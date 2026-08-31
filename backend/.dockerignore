@@ -1,0 +1,22 @@
+# El contexto de build debe llevar solo pom.xml y src/.
+
+target/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Secretos: la imagen NUNCA debe contener el .env. La configuracion entra por
+# variables de entorno en tiempo de ejecucion, no horneada en una capa.
+.env
+.env.*
+
+*.md
+compose.yml
+Dockerfile
+.dockerignore
+.gitignore
+.gitattributes
+end_points.json
+sembrar-demo.sh
+.idea/
+.vscode/

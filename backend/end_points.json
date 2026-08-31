@@ -1,0 +1,6002 @@
+{
+  "info": {
+    "_postman_id": "5156e2a1-8815-44ea-a7a1-663bcabed05f",
+    "name": "Backend Logistica Chaquena — API v1",
+    "description": "Coleccion completa del backend de logistica y POS de Chaquena.\n\n## Empieza por el flujo principal\n\nLa carpeta **`Flujo principal (recorrido completo)`** recorre el ciclo entero de una comanda —pedir, cocinar, entregar, cobrar, cerrar— tal y como lo haria un administrador, **sin ningun servicio externo**: ni bots, ni pasarela de pago, ni facturacion.\n\nBoton derecho sobre esa carpeta -> **Run folder**. Encadena sus variables sola y comprueba cada paso: no hay que copiar ningun UUID a mano.\n\nAntes hace falta:\n\n1. `docker compose up -d bd-logistica redis-logistica` en la raiz del repositorio.\n2. `cd backend && ./sembrar-demo.sh` para levantar el backend con datos de prueba.\n\nGuia completa del flujo, con los estados y los cronometros: `backend/FLUJO_PRINCIPAL.md`.\n\n## El resto de carpetas\n\nCubren la API endpoint por endpoint, agrupadas por area. Si no vienes del flujo principal, ejecuta primero **01 · Arranque y sesion -> Login**: el script guarda el token en la coleccion y el resto de peticiones quedan autenticadas solas. Los `GET` de listado guardan un id cada uno (`{{platilloId}}`, `{{mesaId}}`, `{{clienteId}}`...), asi que conviene lanzarlos antes que las peticiones que los usan.\n\nLas carpetas de catalogo e inventario **crean su propia fila de prueba y editan o borran esa**, no una sembrada: la peticion de alta guarda su id y las de edicion y baja apuntan ahi. Por eso hay que ejecutar el alta antes que el resto de la carpeta; si no, la variable esta vacia y la peticion responde 400 en lugar de tocar un dato de demostracion.\n\nLas carpetas 22 y 23 son los webhooks de WhatsApp: solo responden con `MENSAJERIA_PROVEEDOR=whatsapp`, que no es el canal en servicio (hoy es Discord, que se conecta por WebSocket saliente y no expone webhooks).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Flujo principal (recorrido completo)",
+      "description": "**Empieza por aqui.** Veintidos peticiones que recorren el ciclo entero de una comanda tal y como lo haria un administrador, sin ningun servicio externo: ni bots, ni pasarela de pago, ni facturacion.\n\nPedir → cocinar → entregar → cobrar → cerrar → mirar los numeros.\n\n## Como ejecutarlo\n\nBoton derecho sobre la carpeta → **Run folder**. Cada peticion guarda lo que la siguiente necesita (token, ids, total a cobrar), asi que no hay que copiar ningun UUID a mano, y cada una comprueba su resultado. Si todo esta en pie, terminan las veintidos en verde.\n\n## Que hace falta antes\n\n1. `docker compose up -d` en la raiz del repositorio (Postgres y Redis).\n2. `cd backend && ./sembrar-demo.sh` (levanta el backend y siembra carta, stock, mesas y personal).\n\nEl paso 18 **espera un 409 a proposito**: es la prueba de que la maquina de estados rechaza retroceder una comanda cerrada.\n\nEl resto de carpetas cubre la API endpoint por endpoint. Ojo con los cuerpos de ejemplo de catalogo e inventario: escriben datos de prueba sobre la base y pueden dejar la carta sin stock. Este recorrido no toca nada de eso.",
+      "item": [
+        {
+          "name": "01 · Entrar como administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Punto de partida. El administrador es el unico perfil que puede recorrer el ciclo entero por si solo, asi que todo el flujo se firma con su token.\n\nEl script guarda el token en la coleccion: el resto de peticiones quedan autenticadas solas.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"admin\",\n  \"password\": \"Chaquena2001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('login correcto', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.test('es administrador', () => pm.expect(d.cargo).to.eql('ADMINISTRADOR'));",
+                  "console.log('Sesion de ' + d.nombres + ' (' + d.cargo + ')');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 · Ver la carta disponible",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos/menu-disponible",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos",
+                "menu-disponible"
+              ]
+            },
+            "description": "La carta con su disponibilidad calculada. **Devuelve todos los platillos activos**, no solo los que se pueden cocinar: cada uno viene anotado con `disponible`, `porcionesPosibles` (lo que da de si el insumo mas escaso de su receta) e `insumosFaltantes`.\n\nEs lo que necesita el POS para mostrar un plato agotado en gris en vez de esconderlo. Quien pida, tiene que filtrar por `disponible`; si no, la comanda se rechaza luego con **422 Stock Insuficiente**.\n\nUn platillo sin receta (una bebida embotellada) se considera siempre disponible y trae `porcionesPosibles: null`."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "// Ojo: el endpoint devuelve la carta entera. Hay que quedarse con los disponibles.",
+                  "const listos = d.filter(p => p.disponible);",
+                  "pm.test('hay platillos que se pueden cocinar', () =>",
+                  "    pm.expect(listos.length, 'ningun platillo tiene stock: repon insumos').to.be.above(0));",
+                  "pm.collectionVariables.set('platilloId', listos[0].id);",
+                  "pm.collectionVariables.set('platilloId2', (listos[1] || listos[0]).id);",
+                  "const agotados = d.filter(p => !p.disponible);",
+                  "console.log('Se pueden cocinar: ' + listos.map(p => p.nombre + ' (x' + p.porcionesPosibles + ')').join(', '));",
+                  "if (agotados.length) {",
+                  "    console.log('Agotados: ' + agotados.map(p => p.nombre + ' — falta ' + p.insumosFaltantes.join(', ')).join(' | '));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 · Ver el mapa de mesas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas"
+              ]
+            },
+            "description": "El salon con el estado de cada mesa. El script se queda con la primera LIBRE, que es donde se sentara el comensal de esta prueba."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "const libre = d.find(m => m.estado === 'LIBRE');",
+                  "pm.test('hay una mesa libre', () => pm.expect(libre, 'todas las mesas estan ocupadas').to.not.be.undefined);",
+                  "pm.collectionVariables.set('mesaId', libre.id);",
+                  "pm.collectionVariables.set('mesaNumero', libre.numero);",
+                  "console.log('Mesa ' + libre.numero);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 · Tomar el pedido (crear la comanda)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes"
+              ]
+            },
+            "description": "El corazon del flujo. En una sola transaccion la comanda: valida que haya insumos para cada platillo, descuenta el stock segun la receta, calcula el total, ocupa la mesa y deja la comanda en ENCOLADO para cocina.\n\n`excepcionesNota` es la personalizacion del comensal ('sin cebolla'). Si falta stock la respuesta es **422 Stock Insuficiente** y no se crea nada.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoOrden\": \"MESA\",\n  \"canalOrigen\": \"POS\",\n  \"mesaId\": \"{{mesaId}}\",\n  \"tipoPago\": \"EFECTIVO\",\n  \"items\": [\n    {\n      \"platilloId\": \"{{platilloId}}\",\n      \"cantidad\": 2,\n      \"excepcionesNota\": \"sin cebolla\"\n    },\n    {\n      \"platilloId\": \"{{platilloId2}}\",\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('comanda creada', () => pm.response.to.have.status(201));",
+                  "pm.test('nace ENCOLADO', () => pm.expect(d.estado).to.eql('ENCOLADO'));",
+                  "pm.collectionVariables.set('ordenId', d.id);",
+                  "pm.collectionVariables.set('detalleId', d.detalles[0].id);",
+                  "console.log('Comanda ' + d.id + ' por S/ ' + d.montoTotal);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 · El comensal pide un plato mas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/{{ordenId}}/detalles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "{{ordenId}}",
+                "detalles"
+              ]
+            },
+            "description": "Mientras la comanda sigue en ENCOLADO se puede editar: agregar, cambiar o quitar lineas. El total se recalcula y el stock del platillo nuevo se descuenta en el momento.\n\nEn cuanto cocina la toma, la comanda deja de ser editable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platilloId\": \"{{platilloId2}}\",\n  \"cantidad\": 1,\n  \"excepcionesNota\": \"para compartir\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('linea agregada', () => pm.response.to.have.status(201));",
+                  "pm.test('la comanda tiene 3 lineas', () => pm.expect(d.detalles.length).to.eql(3));",
+                  "console.log('Total actualizado: S/ ' + d.montoTotal);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 · La mesa quedo ocupada",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas/{{mesaId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas",
+                "{{mesaId}}"
+              ]
+            },
+            "description": "Comprobacion lateral: al crear la comanda el salon se entera. La mesa se libera sola cuando la comanda se cierra."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('la mesa esta OCUPADA', () => pm.expect(d.estado).to.eql('OCUPADA'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 · Imprimir la comanda de cocina",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/{{ordenId}}/ticket",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "{{ordenId}}",
+                "ticket"
+              ]
+            },
+            "description": "El papel que sale por la impresora de cocina: que platillos, en que cantidad, con que complementos y con que excepciones. Sin precios, que a cocina no le hacen falta."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('el ticket trae las lineas', () => pm.expect(d.lineas.length).to.eql(3));",
+                  "console.log(d.lineas.map(l => l.cantidad + 'x ' + l.platillo + (l.nota ? ' (' + l.nota + ')' : '')).join(' | '));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 · Cocina ve su cola",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/cola",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "cola"
+              ]
+            },
+            "description": "La pantalla de cocina (KDS): las comandas por orden de llegada con el tiempo que llevan esperando. Es lo que reemplaza al grito por la ventanilla."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('nuestra comanda esta en la cola', () =>",
+                  "    pm.expect(d.some(c => c.ordenId === pm.collectionVariables.get('ordenId'))).to.be.true);",
+                  "console.log(d.length + ' comanda(s) en cola');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 · Cocina toma la comanda",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/ordenes/{{ordenId}}/tomar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "ordenes",
+                "{{ordenId}}",
+                "tomar"
+              ]
+            },
+            "description": "Arranca el cronometro de preparacion (`tiempoInicioCocina`) y cierra el de recepcion. La comanda pasa a EN_PREPARACION y ya no admite cambios de lineas."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('pasa a EN_PREPARACION', () => pm.expect(d.estado).to.eql('EN_PREPARACION'));",
+                  "pm.test('arranco el cronometro de cocina', () => pm.expect(d.tiempoInicioCocina).to.not.be.null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 · Cocina promete un tiempo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/ordenes/{{ordenId}}/estimar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "ordenes",
+                "{{ordenId}}",
+                "estimar"
+              ]
+            },
+            "description": "El cocinero se compromete a un tiempo. Ojo: esto es la **promesa**, no lo que tardo. Lo que tardo de verdad sale de los cronometros, y comparar ambos es lo que alimenta el KPI de comandas fuera de objetivo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"minutos\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('queda registrada la promesa', () => pm.expect(d.tiempoEstimadoCocinaMinutos).to.eql(15));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 · Cocina marca el plato listo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/ordenes/{{ordenId}}/listo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "ordenes",
+                "{{ordenId}}",
+                "listo"
+              ]
+            },
+            "description": "Sella `tiempoCierrePlatillo`: la comida esta hecha.\n\nLa comanda **sigue en EN_PREPARACION** a proposito. 'Listo en cocina' no es un estado del ciclo sino una marca de etapa: la comanda no avanza hasta que alguien la lleva a la mesa, que es el paso siguiente."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('se sello el cierre de platillo', () => pm.expect(d.tiempoCierrePlatillo).to.not.be.null);",
+                  "pm.test('sigue EN_PREPARACION hasta que se entregue', () => pm.expect(d.estado).to.eql('EN_PREPARACION'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 · El mozo entrega en la mesa",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/{{ordenId}}/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "{{ordenId}}",
+                "estado"
+              ]
+            },
+            "description": "La comida llega al comensal. Cierra el cronometro de despacho y deja la comanda en ENTREGADO, que es el unico estado desde el que la caja puede cobrar.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"ENTREGADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('la comanda queda ENTREGADO', () => pm.expect(d.estado).to.eql('ENTREGADO'));",
+                  "pm.test('se cerro el despacho', () => pm.expect(d.tiempoCierreDespacho).to.not.be.null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "13 · La caja consulta la cuenta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/{{ordenId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "{{ordenId}}"
+              ]
+            },
+            "description": "Lo que hay que cobrar. El script guarda el total y prepara un billete con el que pagar, para que el paso siguiente calcule un vuelto real."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "const total = Number(d.montoTotal);",
+                  "pm.collectionVariables.set('montoTotal', total.toFixed(2));",
+                  "// Billete redondo por encima del total, para que haya vuelto que calcular.",
+                  "pm.collectionVariables.set('montoEntregado', (Math.ceil(total / 50) * 50).toFixed(2));",
+                  "console.log('A cobrar S/ ' + total.toFixed(2) + ' — el cliente paga con S/ ' + pm.collectionVariables.get('montoEntregado'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "14 · Cobrar en efectivo (POS simulado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/{{ordenId}}/pagos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "{{ordenId}}",
+                "pagos"
+              ]
+            },
+            "description": "El cobro. **No hay pasarela de pago real**: el efectivo se da por confirmado en el acto y el backend devuelve el vuelto calculado.\n\nCuando lo confirmado alcanza el total, la comanda salta sola a PAGADO — eso se comprueba en el paso siguiente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoPago\": \"EFECTIVO\",\n  \"monto\": \"{{montoTotal}}\",\n  \"montoEntregado\": \"{{montoEntregado}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('pago registrado', () => pm.response.to.have.status(201));",
+                  "pm.test('el efectivo se confirma en el acto', () => pm.expect(d.estado).to.eql('CONFIRMADO'));",
+                  "pm.collectionVariables.set('pagoId', d.id);",
+                  "const esperado = Number(pm.collectionVariables.get('montoEntregado')) - Number(pm.collectionVariables.get('montoTotal'));",
+                  "pm.test('el vuelto esta bien calculado', () => pm.expect(Number(d.vuelto)).to.be.closeTo(esperado, 0.01));",
+                  "console.log('Vuelto: S/ ' + d.vuelto);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "15 · La comanda pasa sola a PAGADO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/{{ordenId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "{{ordenId}}"
+              ]
+            },
+            "description": "Nadie cambio el estado a mano. Lo hizo el cobro al cubrir el total: es la regla que impide dar por pagada una comanda a medio cobrar."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('quedo PAGADO sin tocar el estado a mano', () => pm.expect(d.estado).to.eql('PAGADO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "16 · Cerrar el ciclo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/{{ordenId}}/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "{{ordenId}}",
+                "estado"
+              ]
+            },
+            "description": "CONCLUIDO sella `tiempoFinGlobal` y libera la mesa. A partir de aqui la comanda es historia: no admite ninguna transicion mas.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"CONCLUIDO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('la comanda queda CONCLUIDO', () => pm.expect(d.estado).to.eql('CONCLUIDO'));",
+                  "pm.test('se sello el tiempo total', () => pm.expect(d.tiempoFinGlobal).to.not.be.null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "17 · La mesa vuelve a estar libre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas/{{mesaId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas",
+                "{{mesaId}}"
+              ]
+            },
+            "description": "El salon se entera del cierre igual que se entero de la apertura. Cierra el circulo del paso 06."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('la mesa esta LIBRE otra vez', () => pm.expect(d.estado).to.eql('LIBRE'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "18 · Regla: no se retrocede el estado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/{{ordenId}}/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "{{ordenId}}",
+                "estado"
+              ]
+            },
+            "description": "Prueba negativa, y por eso **espera un 409**. La maquina de estados es el unico lugar que decide que transicion es legal, y desde CONCLUIDO no hay ninguna: una comanda cerrada no puede volver a cocina ni cobrarse dos veces.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"EN_PREPARACION\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('la maquina de estados lo rechaza con 409', () => pm.response.to.have.status(409));",
+                  "const d = pm.response.json();",
+                  "console.log(d.message);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "19 · Arqueo de caja",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/caja/arqueo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "caja",
+                "arqueo"
+              ]
+            },
+            "description": "Cierre de caja del dia desglosado por metodo de pago. Solo suma pagos CONFIRMADO, asi que una tarjeta sin acreditar todavia no aparece aqui."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('el arqueo recogio nuestro cobro', () => pm.expect(Number(d.totalCobrado)).to.be.above(0));",
+                  "console.log('Cobrado: S/ ' + d.totalCobrado + ' en ' + d.cantidadPagos + ' pago(s)');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "20 · Tiempos de cocina",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/kpis",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "kpis"
+              ]
+            },
+            "description": "Lo que de verdad tardo cada etapa, promediado sobre las comandas ya cerradas: recepcion, cocina y despacho, y cuantas se pasaron del objetivo."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('responde los KPIs', () => pm.response.to.have.status(200));",
+                  "console.log('Promedio total: ' + d.minutosPromedioTotal + ' min (objetivo ' + d.minutosObjetivo + ')');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "21 · Reporte de ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/ventas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "ventas"
+              ]
+            },
+            "description": "Cuanto se vendio y por que canal entro. Solo cuentan las comandas ENTREGADO, PAGADO y CONCLUIDO: una que sigue en cocina todavia no es una venta.\n\nEl script comprueba que el desglose por canal suma exactamente el total."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "const suma = d.porCanal.reduce((a, c) => a + Number(c.total), 0);",
+                  "pm.test('el desglose por canal cuadra con el total', () =>",
+                  "    pm.expect(suma).to.be.closeTo(Number(d.totalVendido), 0.01));",
+                  "console.log('Vendido: S/ ' + d.totalVendido);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "22 · Platillos mas vendidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/productos-top",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "productos-top"
+              ]
+            },
+            "description": "Ranking por unidades, con el mismo criterio de venta efectiva que el reporte anterior: lo cancelado no puntua."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('hay ranking', () => pm.expect(d.length).to.be.above(0));",
+                  "console.log(d.map(p => p.platillo + ' x' + p.unidadesVendidas).join(' | '));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "00 · Comprobaciones",
+      "item": [
+        {
+          "name": "Salud del servicio",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            },
+            "description": "Sonda de salud. Deberia responder {\"status\":\"UP\"}."
+          },
+          "response": []
+        },
+        {
+          "name": "Contrato OpenAPI",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v3/api-docs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v3",
+                "api-docs"
+              ]
+            },
+            "description": "Contrato completo, por si quieres regenerar el cliente del frontend."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 · Arranque y sesion",
+      "item": [
+        {
+          "name": "Crear el primer administrador (solo con la tabla de trabajadores vacia)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/bootstrap",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "bootstrap"
+              ]
+            },
+            "description": "Crear el primer administrador (solo con la tabla de trabajadores vacia)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"70000009\",\n  \"nombres\": \"Miguel\",\n  \"apellidos\": \"Flores\",\n  \"correo\": \"admin@chaquena.pe\",\n  \"celular\": \"51900000001\",\n  \"username\": \"admin\",\n  \"password\": \"Chaquena2001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/auth/google",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/google",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Canjea un token de Google por el JWT propio del backend.\n\n**Aqui viajan dos tokens distintos, y es donde se suele liar:**\n\n1. *Entra* un **access token de Google**, en la cabecera `Authorization`. Lo consigue la pestana Authorization de esta peticion, configurada como OAuth 2.0. El backend lo verifica contra `tokeninfo` y comprueba que el `aud` sea su propio client id.\n2. *Sale* el **JWT del backend**, en el campo `token` de la respuesta. Ese es el que necesita el resto de la coleccion, y el que guarda el script de esta peticion.\n\nPara que la pestana Authorization funcione hay que rellenar las variables `google_client_id` y `google_client_secret`, y dar de alta `https://oauth.pstmn.io/v1/callback` como URI de redireccion autorizada en Google Cloud. Ojo: eso es cosa de Postman. La aplicacion real usa el flujo implicito desde el navegador, que no lleva secreto ni redireccion.\n\nSi solo quieres un token para trastear, **usa el login normal**: no necesita nada de Google.",
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "https://accounts.google.com/o/oauth2/v2/auth",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "https://oauth2.googleapis.com/token",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{google_client_id}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{google_client_secret}}",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "openid email profile",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "https://oauth.pstmn.io/v1/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenName",
+                  "value": "Google Access Token",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "body",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('autenticacion con Google correcta', () => pm.response.to.have.status(200));",
+                  "// Lo que se guarda es el JWT del backend que viene en la respuesta, no el token",
+                  "// de Google que se mando en la cabecera: ese ya cumplio su papel.",
+                  "if (d.token) {",
+                  "    pm.collectionVariables.set('token', d.token);",
+                  "    console.log('Token del backend guardado. Sesion de ' + d.nombres + ' (' + d.cargo + ').');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/auth/login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"admin\",\n  \"password\": \"Chaquena2001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.token) {",
+                  "    pm.collectionVariables.set('token', d.token);",
+                  "    console.log('Token guardado. Ya puedes llamar al resto de endpoints.');",
+                  "}",
+                  "pm.test('login correcto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Login, Google OAuth y alta del primer administrador"
+    },
+    {
+      "name": "02 · Trabajadores",
+      "item": [
+        {
+          "name": "Registrar trabajador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trabajadores",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trabajadores"
+              ]
+            },
+            "description": "Registrar trabajador",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"{{dniNuevo}}\",\n  \"nombres\": \"Marta\",\n  \"apellidos\": \"Salas Roque\",\n  \"correo\": \"{{correoNuevo}}\",\n  \"celular\": \"51933445566\",\n  \"cargoId\": {{cargoId}},\n  \"username\": \"{{usernameNuevo}}\",\n  \"password\": \"Chaquena2001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// La siembra de demostracion ya ocupa el DNI y el correo originales,",
+                  "// asi que se generan unicos en cada ejecucion.",
+                  "const s = String(Date.now()).slice(-8);",
+                  "pm.variables.set('dniNuevo', s);",
+                  "pm.variables.set('usernameNuevo', 'mozo' + s.slice(-5));",
+                  "pm.variables.set('correoNuevo', 'mozo' + s.slice(-5) + '@chaquena.pe');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar trabajadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trabajadores?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trabajadores"
+              ],
+              "query": [
+                {
+                  "key": "cargoId",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ]
+            },
+            "description": "Listar trabajadores"
+          },
+          "response": []
+        },
+        {
+          "name": "Trabajadores activos, para asignar mozo o responsable",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trabajadores/activos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trabajadores",
+                "activos"
+              ]
+            },
+            "description": "Trabajadores activos, para asignar mozo o responsable"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener trabajador por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trabajadores/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trabajadores",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{trabajadorId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Obtener trabajador por id"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar datos y cargo del trabajador",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trabajadores/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trabajadores",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{trabajadorId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Actualizar datos y cargo del trabajador",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Marta\",\n  \"apellidos\": \"Salas Roque\",\n  \"correo\": \"marta.salas@correo.pe\",\n  \"celular\": \"51933445566\",\n  \"cargoId\": {{cargoId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dar de alta o de baja al trabajador",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trabajadores/:id/activo?activo=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trabajadores",
+                ":id",
+                "activo"
+              ],
+              "query": [
+                {
+                  "key": "activo",
+                  "value": "true",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{trabajadorId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Dar de alta o de baja al trabajador"
+          },
+          "response": []
+        }
+      ],
+      "description": "Personal del local; el alta requiere cargo administrativo"
+    },
+    {
+      "name": "03 · Cargos",
+      "item": [
+        {
+          "name": "POST /api/v1/cargos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cargos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cargos"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Supervisor de salon\",\n  \"descripcion\": \"Coordina a los mozos del turno\",\n  \"rolIds\": [\n    1\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/cargos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cargos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cargos"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "// Los ids de cargo no empiezan en 1: dependen del orden de siembra.",
+                  "if (Array.isArray(d) && d.length) pm.collectionVariables.set('cargoId', d[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/cargos/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cargos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cargos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{cargoId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "04 · Catalogo · Categorias",
+      "item": [
+        {
+          "name": "Crear categoria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categorias",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categorias"
+              ]
+            },
+            "description": "Crear categoria",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bebidas calientes\",\n  \"descripcion\": \"Infusiones y cafe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const creada = pm.response.code === 201;",
+                  "pm.test('el alta responde 201, o 409 si la categoria ya existe', () =>",
+                  "    pm.expect([201, 409]).to.include(pm.response.code));",
+                  "// Las peticiones de edicion y baja de esta carpeta apuntan a esta fila, nunca a",
+                  "// una sembrada. Si ya existia, el listado siguiente la recupera por su nombre.",
+                  "if (creada) pm.collectionVariables.set('categoriaNuevaId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar categorias de la carta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categorias",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categorias"
+              ]
+            },
+            "description": "Listar categorias de la carta"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (Array.isArray(d) && d.length) pm.collectionVariables.set('categoriaId', d[0].id);",
+                  "// Respaldo del alta: si la categoria de prueba ya existia, el POST devolvio 409",
+                  "// y no pudo guardar su id. Aqui se recupera por nombre.",
+                  "if (!pm.collectionVariables.get('categoriaNuevaId')) {",
+                  "    const prueba = d.find(x => x.nombre === 'Bebidas calientes');",
+                  "    if (prueba) pm.collectionVariables.set('categoriaNuevaId', prueba.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener categoria por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categorias/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categorias",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{categoriaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Obtener categoria por id"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar categoria",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categorias/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categorias",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{categoriaNuevaId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Actualizar categoria",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bebidas calientes\",\n  \"descripcion\": \"Infusiones y cafe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar categoria sin platillos asociados",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categorias/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categorias",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{categoriaNuevaId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Eliminar categoria sin platillos asociados"
+          },
+          "response": []
+        }
+      ],
+      "description": "Categorias de la carta"
+    },
+    {
+      "name": "05 · Catalogo · Platillos y recetas",
+      "item": [
+        {
+          "name": "Crear platillo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos"
+              ]
+            },
+            "description": "Crear platillo",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoriaId\": \"{{categoriaId}}\",\n  \"nombre\": \"Seco de Cordero\",\n  \"descripcion\": \"Cordero norteno con frijoles y arroz\",\n  \"precioVentaBase\": 32.0,\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('el platillo se creo', () => pm.response.to.have.status(201));",
+                  "// Las peticiones de edicion y baja de esta carpeta apuntan a esta fila recien",
+                  "// creada, no a una sembrada: asi los cuerpos de ejemplo no pisan los datos de",
+                  "// demostracion.",
+                  "if (d.id) pm.collectionVariables.set('platilloNuevoId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar platillos con filtros y paginacion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos"
+              ],
+              "query": [
+                {
+                  "key": "categoriaId",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "activo",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "q",
+                  "value": "Rosa",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ]
+            },
+            "description": "Listar platillos con filtros y paginacion"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.contenido && d.contenido.length) {",
+                  "    pm.collectionVariables.set('platilloId', d.contenido[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Carta con disponibilidad calculada segun stock de insumos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos/menu-disponible",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos",
+                "menu-disponible"
+              ]
+            },
+            "description": "Carta con disponibilidad calculada segun stock de insumos"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener platillo con su receta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{platilloId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Obtener platillo con su receta"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar platillo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{platilloNuevoId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Actualizar platillo",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoriaId\": \"{{categoriaId}}\",\n  \"nombre\": \"Seco de Cordero\",\n  \"descripcion\": \"Cordero norteno con frijoles y arroz\",\n  \"precioVentaBase\": 32.0,\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sacar de carta o reponer sin borrar el historico de ventas",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos/:id/activo?activo=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos",
+                ":id",
+                "activo"
+              ],
+              "query": [
+                {
+                  "key": "activo",
+                  "value": "true",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{platilloNuevoId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Sacar de carta o reponer sin borrar el historico de ventas"
+          },
+          "response": []
+        },
+        {
+          "name": "Receta del platillo (lista de insumos y cantidades)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos/:id/receta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos",
+                ":id",
+                "receta"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{platilloId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Receta del platillo (lista de insumos y cantidades)"
+          },
+          "response": []
+        },
+        {
+          "name": "Reemplazar la receta completa del platillo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos/:id/receta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos",
+                ":id",
+                "receta"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{platilloNuevoId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Reemplazar la receta completa del platillo",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"insumos\": [\n    {\n      \"insumoId\": \"{{insumoId}}\",\n      \"cantidadRequerida\": 0.25\n    },\n    {\n      \"insumoId\": \"{{insumoCocidoId}}\",\n      \"cantidadRequerida\": 0.2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Carta, precios y recetas (BOM)"
+    },
+    {
+      "name": "06 · Catalogo · Complementos",
+      "item": [
+        {
+          "name": "Crear complemento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/complementos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "complementos"
+              ]
+            },
+            "description": "Crear complemento",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Chicha morada 500 ml\",\n  \"tipoComplemento\": \"BEBIDA\",\n  \"precioAdicional\": 6.0,\n  \"insumoAsociadoId\": \"{{insumoGaseosaId}}\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('el complemento se creo', () => pm.response.to.have.status(201));",
+                  "// Las peticiones de edicion y baja de esta carpeta apuntan a esta fila recien",
+                  "// creada, no a una sembrada: asi los cuerpos de ejemplo no pisan los datos de",
+                  "// demostracion.",
+                  "if (d.id) pm.collectionVariables.set('complementoNuevoId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar complementos, opcionalmente por tipo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/complementos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "complementos"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "BEBIDA",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "soloActivos",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Listar complementos, opcionalmente por tipo"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.length) pm.collectionVariables.set('complementoId', d[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener complemento por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/complementos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "complementos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{complementoId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Obtener complemento por id"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar complemento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/complementos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "complementos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{complementoNuevoId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Actualizar complemento",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Chicha morada 500 ml\",\n  \"tipoComplemento\": \"BEBIDA\",\n  \"precioAdicional\": 6.0,\n  \"insumoAsociadoId\": \"{{insumoGaseosaId}}\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habilitar o deshabilitar complemento",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/complementos/:id/activo?activo=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "complementos",
+                ":id",
+                "activo"
+              ],
+              "query": [
+                {
+                  "key": "activo",
+                  "value": "true",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{complementoNuevoId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Habilitar o deshabilitar complemento"
+          },
+          "response": []
+        }
+      ],
+      "description": "Bebidas, helados, salsas y extras"
+    },
+    {
+      "name": "07 · Catalogo · Promociones",
+      "item": [
+        {
+          "name": "Crear promocion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/promociones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "promociones"
+              ]
+            },
+            "description": "Crear promocion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Dos por uno en entradas\",\n  \"descripcion\": \"Valida de lunes a jueves\",\n  \"porcentajeDescuento\": 10.0,\n  \"montoDescuento\": 5.0,\n  \"requiereInsumoExtra\": true,\n  \"insumoExtraId\": \"{{insumoGaseosaId}}\",\n  \"fechaInicio\": \"2026-01-01T12:00:00Z\",\n  \"fechaFin\": \"2026-12-31T23:59:59Z\",\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('la promocion se creo', () => pm.response.to.have.status(201));",
+                  "// Las peticiones de edicion y baja de esta carpeta apuntan a esta fila recien",
+                  "// creada, no a una sembrada: asi los cuerpos de ejemplo no pisan los datos de",
+                  "// demostracion.",
+                  "if (d.id) pm.collectionVariables.set('promocionNuevaId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar promociones; por defecto solo las vigentes por fecha",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/promociones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "promociones"
+              ],
+              "query": [
+                {
+                  "key": "soloVigentes",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Listar promociones; por defecto solo las vigentes por fecha"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.length) pm.collectionVariables.set('promocionId', d[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Promociones vigentes con el stock del insumo extra ya validado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/promociones/aplicables",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "promociones",
+                "aplicables"
+              ]
+            },
+            "description": "Promociones vigentes con el stock del insumo extra ya validado"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener promocion por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/promociones/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "promociones",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{promocionId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Obtener promocion por id"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar promocion",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/promociones/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "promociones",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{promocionNuevaId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Actualizar promocion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Dos por uno en entradas\",\n  \"descripcion\": \"Valida de lunes a jueves\",\n  \"porcentajeDescuento\": 10.0,\n  \"montoDescuento\": 5.0,\n  \"requiereInsumoExtra\": true,\n  \"insumoExtraId\": \"{{insumoGaseosaId}}\",\n  \"fechaInicio\": \"2026-01-01T12:00:00Z\",\n  \"fechaFin\": \"2026-12-31T23:59:59Z\",\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Encender o apagar la promocion",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/promociones/:id/activa?activa=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "promociones",
+                ":id",
+                "activa"
+              ],
+              "query": [
+                {
+                  "key": "activa",
+                  "value": "true",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{promocionNuevaId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Encender o apagar la promocion"
+          },
+          "response": []
+        }
+      ],
+      "description": "Descuentos y promociones con insumo extra"
+    },
+    {
+      "name": "08 · Inventario · Insumos",
+      "item": [
+        {
+          "name": "Crear insumo (nace con stock cero)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/insumos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "insumos"
+              ]
+            },
+            "description": "Crear insumo (nace con stock cero)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Culantro fresco\",\n  \"tipoInsumo\": \"COCIDO\",\n  \"unidadMedida\": \"KG\",\n  \"stockMinimo\": 5.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('el insumo se creo', () => pm.response.to.have.status(201));",
+                  "// Las peticiones de edicion y baja de esta carpeta apuntan a esta fila recien",
+                  "// creada, no a una sembrada: asi los cuerpos de ejemplo no pisan los datos de",
+                  "// demostracion.",
+                  "if (d.id) pm.collectionVariables.set('insumoNuevoId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar insumos con filtros por tipo, texto y bajo minimo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/insumos?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "insumos"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "COCIDO",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "q",
+                  "value": "Rosa",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "bajoMinimo",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ]
+            },
+            "description": "Listar insumos con filtros por tipo, texto y bajo minimo"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.contenido && d.contenido.length) {",
+                  "    pm.collectionVariables.set('insumoId', d.contenido[0].id);",
+                  "    const cocido = d.contenido.find(i => i.tipoInsumo === 'COCIDO');",
+                  "    if (cocido) pm.collectionVariables.set('insumoCocidoId', cocido.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Insumos en o por debajo del stock minimo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/insumos/alertas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "insumos",
+                "alertas"
+              ]
+            },
+            "description": "Insumos en o por debajo del stock minimo"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener insumo por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/insumos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "insumos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{insumoId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Obtener insumo por id"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar datos maestros del insumo (no mueve stock)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/insumos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "insumos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{insumoNuevoId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Actualizar datos maestros del insumo (no mueve stock)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Culantro fresco\",\n  \"tipoInsumo\": \"COCIDO\",\n  \"unidadMedida\": \"KG\",\n  \"stockMinimo\": 5.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Datos maestros de insumos y alertas de stock"
+    },
+    {
+      "name": "09 · Inventario · Kardex y conteo",
+      "item": [
+        {
+          "name": "Conteo de cierre: ajusta el sistema a lo contado en almacen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/conteo-fisico",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "conteo-fisico"
+              ]
+            },
+            "description": "Conteo de cierre: ajusta el sistema a lo contado en almacen",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"insumoId\": \"{{insumoId}}\",\n      \"cantidadContada\": 24.5\n    }\n  ],\n  \"observacion\": \"Conteo de cierre del turno noche\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verifica si un carrito propuesto se puede preparar con el stock actual",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/disponibilidad",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "disponibilidad"
+              ]
+            },
+            "description": "Verifica si un carrito propuesto se puede preparar con el stock actual",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"platilloId\": \"{{platilloId}}\",\n      \"cantidad\": 4,\n      \"complementoIds\": [\n        \"{{complementoId}}\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar entrada por compra o merma",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/movimientos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "movimientos"
+              ]
+            },
+            "description": "Registrar entrada por compra o merma",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"insumoId\": \"{{insumoId}}\",\n  \"tipoControl\": \"ENTRADA_COMPRA\",\n  \"cantidad\": 10.0,\n  \"motivoObservacion\": \"Compra al proveedor del mercado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Indicadores de inventario para el panel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/resumen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "resumen"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Indicadores de inventario para el panel"
+          },
+          "response": []
+        },
+        {
+          "name": "Cocinar: consume insumo crudo y acredita el cocido resultante",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/transformaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "transformaciones"
+              ]
+            },
+            "description": "Cocinar: consume insumo crudo y acredita el cocido resultante",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"insumoOrigenId\": \"{{insumoId}}\",\n  \"insumoDestinoId\": \"{{insumoCocidoId}}\",\n  \"cantidadConsumida\": 10.0,\n  \"cantidadObtenida\": 8.5,\n  \"motivoObservacion\": \"Arroz graneado del mediodia\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de movimientos de un insumo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/kardex/:insumoId?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "kardex",
+                ":insumoId"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "insumoId",
+                  "value": "{{insumoId}}",
+                  "description": "Identificador de insumoId"
+                }
+              ]
+            },
+            "description": "Historial de movimientos de un insumo"
+          },
+          "response": []
+        }
+      ],
+      "description": "Kardex, mermas, cocinado y conteo fisico"
+    },
+    {
+      "name": "10 · Clientes",
+      "item": [
+        {
+          "name": "Registrar cliente identificado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes"
+              ]
+            },
+            "description": "Registrar cliente identificado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"44556677\",\n  \"nombres\": \"Marta\",\n  \"apellidos\": \"Salas Roque\",\n  \"correo\": \"marta.salas@correo.pe\",\n  \"celular\": \"51933445566\",\n  \"direccionHabitual\": \"Urb. La Marina 88, Arequipa\",\n  \"tipoCliente\": \"CF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) pm.collectionVariables.set('clienteId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listado paginado de clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ]
+            },
+            "description": "Listado paginado de clientes"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.contenido && d.contenido.length) pm.collectionVariables.set('clienteId', d.contenido[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar cliente que no desea identificarse (documento provisional)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/anonimo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                "anonimo"
+              ]
+            },
+            "description": "Registrar cliente que no desea identificarse (documento provisional)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreReferencia\": \"Senor de la mesa 5\",\n  \"celular\": \"51933445566\",\n  \"direccionHabitual\": \"Urb. La Marina 88, Arequipa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Busqueda rapida por telefono, documento, nombre o correo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/buscar?q=Rosa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Rosa",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ]
+            },
+            "description": "Busqueda rapida por telefono, documento, nombre o correo"
+          },
+          "response": []
+        },
+        {
+          "name": "Ficha del cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Ficha del cliente"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar datos del cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Actualizar datos del cliente",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"44556677\",\n  \"nombres\": \"Marta\",\n  \"apellidos\": \"Salas Roque\",\n  \"correo\": \"marta.salas@correo.pe\",\n  \"celular\": \"51933445566\",\n  \"direccionHabitual\": \"Urb. La Marina 88, Arequipa\",\n  \"tipoCliente\": \"CF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vincular el cliente con una empresa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:id/empresas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":id",
+                "empresas"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Vincular el cliente con una empresa",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empresaId\": \"{{empresaId}}\",\n  \"cargoEnEmpresa\": \"Gerente de operaciones\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Empresas a cuyo nombre el cliente pide factura",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:id/empresas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":id",
+                "empresas"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Empresas a cuyo nombre el cliente pide factura"
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de comandas del cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:id/ordenes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":id",
+                "ordenes"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Historial de comandas del cliente"
+          },
+          "response": []
+        },
+        {
+          "name": "Notas de excepcion de comandas anteriores del cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:id/preferencias",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":id",
+                "preferencias"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Notas de excepcion de comandas anteriores del cliente"
+          },
+          "response": []
+        },
+        {
+          "name": "Bloquear o desbloquear al cliente por fraude",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:id/bloqueo-fraude?bloqueado=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":id",
+                "bloqueo-fraude"
+              ],
+              "query": [
+                {
+                  "key": "bloqueado",
+                  "value": "false",
+                  "disabled": false,
+                  "description": "obligatorio"
+                },
+                {
+                  "key": "motivo",
+                  "value": "Reporte del cajero por billete falso",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Bloquear o desbloquear al cliente por fraude"
+          },
+          "response": []
+        }
+      ],
+      "description": "Busqueda rapida, registro y preferencias del cliente"
+    },
+    {
+      "name": "11 · Clientes · Empresas",
+      "item": [
+        {
+          "name": "Registrar empresa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/empresas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "empresas"
+              ]
+            },
+            "description": "Registrar empresa",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ruc\": \"{{rucNuevo}}\",\n  \"razonSocial\": \"Inversiones El Chaco S.A.C.\",\n  \"celular\": \"51933445566\",\n  \"direccionFiscal\": \"Av. Parra 145, Arequipa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// El RUC de la siembra ya existe. Se genera uno de 11 digitos,",
+                  "// que es lo que exige la validacion del backend.",
+                  "pm.variables.set('rucNuevo', '20' + String(Date.now()).slice(-9));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar empresas, opcionalmente filtrando por razon social",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/empresas?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "empresas"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Rosa",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ]
+            },
+            "description": "Listar empresas, opcionalmente filtrando por razon social"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.contenido && d.contenido.length) pm.collectionVariables.set('empresaId', d.contenido[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar empresa por RUC",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/empresas/ruc/:ruc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "empresas",
+                "ruc",
+                ":ruc"
+              ],
+              "variable": [
+                {
+                  "key": "ruc",
+                  "value": "20601234567",
+                  "description": "Identificador de ruc"
+                }
+              ]
+            },
+            "description": "Buscar empresa por RUC"
+          },
+          "response": []
+        }
+      ],
+      "description": "Empresas por RUC para comprobantes con factura"
+    },
+    {
+      "name": "12 · Salon · Mesas",
+      "item": [
+        {
+          "name": "Crear mesa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas"
+              ]
+            },
+            "description": "Crear mesa",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"{{mesaNueva}}\",\n  \"zona\": \"Salon principal\",\n  \"capacidad\": 4,\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// M9 ya esta sembrada. Maximo 10 caracteres segun la validacion.",
+                  "pm.variables.set('mesaNueva', 'M' + String(Date.now()).slice(-4));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('la mesa se creo', () => pm.response.to.have.status(201));",
+                  "// La edicion de esta carpeta apunta a esta mesa, no a una sembrada.",
+                  "if (d.id) {",
+                  "    pm.collectionVariables.set('mesaNuevaId', d.id);",
+                  "    pm.collectionVariables.set('mesaNuevoNumero', d.numero);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mapa del salon: mesas activas con su estado, por zona",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas"
+              ]
+            },
+            "description": "Mapa del salon: mesas activas con su estado, por zona"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "const libre = d.find(m => m.estado === 'LIBRE');",
+                  "if (libre) pm.collectionVariables.set('mesaId', libre.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener mesa por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{mesaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Obtener mesa por id"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar mesa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{mesaNuevaId}}",
+                  "description": "Fila creada por la peticion de alta de esta carpeta. Ejecutala primero."
+                }
+              ]
+            },
+            "description": "Actualizar mesa",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"{{mesaNuevoNumero}}\",\n  \"zona\": \"Salon principal\",\n  \"capacidad\": 6,\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar el estado de la mesa",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas/:id/estado?estado=LIBRE",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas",
+                ":id",
+                "estado"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "LIBRE",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{mesaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Cambiar el estado de la mesa"
+          },
+          "response": []
+        },
+        {
+          "name": "Liberar la mesa",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas/:id/liberar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas",
+                ":id",
+                "liberar"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{mesaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Liberar la mesa"
+          },
+          "response": []
+        },
+        {
+          "name": "Reservar la mesa a nombre de alguien",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas/:id/reservar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas",
+                ":id",
+                "reservar"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{mesaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Reservar la mesa a nombre de alguien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"para\": \"2026-12-31T23:59:59Z\",\n  \"aNombreDe\": \"texto de ejemplo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Mapa de mesas con estados y reservas"
+    },
+    {
+      "name": "13 · Comandas",
+      "item": [
+        {
+          "name": "Crear comanda: valida stock, descuenta insumos y emite evento de facturacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes"
+              ]
+            },
+            "description": "Crear comanda: valida stock, descuenta insumos y emite evento de facturacion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"tipoOrden\": \"MESA\",\n  \"canalOrigen\": \"POS\",\n  \"mesaId\": \"{{mesaId}}\",\n  \"tipoPago\": \"EFECTIVO\",\n  \"items\": [\n    {\n      \"platilloId\": \"{{platilloId}}\",\n      \"cantidad\": 2,\n      \"excepcionesNota\": \"sin cebolla\",\n      \"complementos\": [\n        {\n          \"complementoId\": \"{{complementoId}}\",\n          \"cantidad\": 1\n        }\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) {",
+                  "    pm.collectionVariables.set('ordenId', d.id);",
+                  "    if (d.codigoOtpEntrega) pm.collectionVariables.set('otp', d.codigoOtpEntrega);",
+                  "    if (d.detalles && d.detalles.length)",
+                  "        pm.collectionVariables.set('detalleId', d.detalles[0].id);",
+                  "}",
+                  "pm.test('comanda creada', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar comandas con filtros y paginacion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "LIBRE",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "canal",
+                  "value": "POS",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "tipoOrden",
+                  "value": "MESA",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "clienteId",
+                  "value": "{{clienteId}}",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "mesaNumero",
+                  "value": "texto de ejemplo",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ]
+            },
+            "description": "Listar comandas con filtros y paginacion"
+          },
+          "response": []
+        },
+        {
+          "name": "Comandas abiertas, para el mapa de mesas y el tablero del salon",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/activas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                "activas"
+              ]
+            },
+            "description": "Comandas abiertas, para el mapa de mesas y el tablero del salon"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.length) pm.collectionVariables.set('ordenId', d[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detalle completo de la comanda",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Detalle completo de la comanda"
+          },
+          "response": []
+        },
+        {
+          "name": "Agregar platillo a una comanda todavia en recepcion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/detalles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "detalles"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Agregar platillo a una comanda todavia en recepcion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platilloId\": \"{{platilloId}}\",\n  \"cantidad\": 1,\n  \"excepcionesNota\": \"para llevar\",\n  \"complementos\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transicion de estado validada contra la maquina de estados",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "estado"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Transicion de estado validada contra la maquina de estados",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"ENCOLADO\",\n  \"observacion\": \"Conteo de cierre del turno noche\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cerrar etapa de recepcion, platillo o despacho con su marca de tiempo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "flags"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Cerrar etapa de recepcion, platillo o despacho con su marca de tiempo",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cierreRecepcion\": true,\n  \"cierrePlatillo\": true,\n  \"cierreDespacho\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Aplicar o descartar promocion y cupon, recalculando el total",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/promociones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "promociones"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{promocionId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Aplicar o descartar promocion y cupon, recalculando el total",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"promocionId\": \"{{promocionId}}\",\n  \"cuponCodigo\": \"CHQ-A7K2M9\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Promociones aplicables a esta comanda, con el stock del extra ya validado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/promociones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "promociones"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{promocionId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Promociones aplicables a esta comanda, con el stock del extra ya validado"
+          },
+          "response": []
+        },
+        {
+          "name": "Payload de impresion de la comanda de cocina",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/ticket",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "ticket"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Payload de impresion de la comanda de cocina"
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar cantidad, complementos o nota de una linea",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/detalles/:detalleId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "detalles",
+                ":detalleId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                },
+                {
+                  "key": "detalleId",
+                  "value": "{{detalleId}}",
+                  "description": "Identificador de detalleId"
+                }
+              ]
+            },
+            "description": "Cambiar cantidad, complementos o nota de una linea",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platilloId\": \"{{platilloId}}\",\n  \"cantidad\": 3,\n  \"excepcionesNota\": \"sin aji\",\n  \"complementos\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancelar con motivo obligatorio y reponer los insumos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/cancelar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "cancelar"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Cancelar con motivo obligatorio y reponer los insumos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"El cliente cancelo antes de que saliera de cocina\",\n  \"reponerStock\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quitar platillo y devolver sus insumos al stock",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:id/detalles/:detalleId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":id",
+                "detalles",
+                ":detalleId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                },
+                {
+                  "key": "detalleId",
+                  "value": "{{detalleId}}",
+                  "description": "Identificador de detalleId"
+                }
+              ]
+            },
+            "description": "Quitar platillo y devolver sus insumos al stock"
+          },
+          "response": []
+        }
+      ],
+      "description": "Ciclo de vida de la comanda: creacion, edicion y estados"
+    },
+    {
+      "name": "14 · Cocina (KDS)",
+      "item": [
+        {
+          "name": "Cola de comandas por orden de llegada con tiempo transcurrido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/cola",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "cola"
+              ]
+            },
+            "description": "Cola de comandas por orden de llegada con tiempo transcurrido"
+          },
+          "response": []
+        },
+        {
+          "name": "Tiempos promedio por etapa: recepcion, cocina y despacho",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/kpis",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "kpis"
+              ]
+            },
+            "description": "Tiempos promedio por etapa: recepcion, cocina y despacho"
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar un platillo suelto como listo en comandas que salen por partes",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/detalles/:detalleId/listo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "detalles",
+                ":detalleId",
+                "listo"
+              ],
+              "variable": [
+                {
+                  "key": "detalleId",
+                  "value": "{{detalleId}}",
+                  "description": "Identificador de detalleId"
+                }
+              ]
+            },
+            "description": "Marcar un platillo suelto como listo en comandas que salen por partes"
+          },
+          "response": []
+        },
+        {
+          "name": "Comanda completa: cierra el cronometro de platillo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/ordenes/:id/listo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "ordenes",
+                ":id",
+                "listo"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Comanda completa: cierra el cronometro de platillo"
+          },
+          "response": []
+        },
+        {
+          "name": "Avisar al mozo que un insumo no alcanza para la comanda",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/ordenes/:id/reportar-faltante",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "ordenes",
+                ":id",
+                "reportar-faltante"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Avisar al mozo que un insumo no alcanza para la comanda",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"insumoId\": \"{{insumoId}}\",\n  \"detalle\": \"Faltan 2 kg de pescado para completar la comanda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cocina toma la comanda y arranca el cronometro de preparacion",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/kds/ordenes/:id/tomar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kds",
+                "ordenes",
+                ":id",
+                "tomar"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Cocina toma la comanda y arranca el cronometro de preparacion"
+          },
+          "response": []
+        }
+      ],
+      "description": "Pantalla de cocina: cola, cronometros y faltantes"
+    },
+    {
+      "name": "15 · Caja · Pagos",
+      "item": [
+        {
+          "name": "Registrar cobro (efectivo con vuelto, billetera o tarjeta con referencia)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:ordenId/pagos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":ordenId",
+                "pagos"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Registrar cobro (efectivo con vuelto, billetera o tarjeta con referencia)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoPago\": \"EFECTIVO\",\n  \"monto\": 64.0,\n  \"montoEntregado\": 100.0,\n  \"referencia\": null,\n  \"confirmado\": true,\n  \"observacion\": \"Cobro en caja 1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pagos de la comanda, incluidos los intentos pendientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:ordenId/pagos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":ordenId",
+                "pagos"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Pagos de la comanda, incluidos los intentos pendientes"
+          },
+          "response": []
+        }
+      ],
+      "description": "Cobros de la comanda y alerta de fraude"
+    },
+    {
+      "name": "16 · Caja · Arqueo y fraude",
+      "item": [
+        {
+          "name": "Bandeja de pagos marcados como fraudulentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/caja/alertas-fraude",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "caja",
+                "alertas-fraude"
+              ]
+            },
+            "description": "Bandeja de pagos marcados como fraudulentos"
+          },
+          "response": []
+        },
+        {
+          "name": "Cierre de caja por metodo de pago en un rango de fechas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/caja/arqueo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "caja",
+                "arqueo"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Cierre de caja por metodo de pago en un rango de fechas"
+          },
+          "response": []
+        },
+        {
+          "name": "Confirmar la acreditacion de un pago con billetera o tarjeta",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/caja/pagos/:pagoId/confirmar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "caja",
+                "pagos",
+                ":pagoId",
+                "confirmar"
+              ],
+              "variable": [
+                {
+                  "key": "pagoId",
+                  "value": "{{pagoId}}",
+                  "description": "Identificador de pagoId"
+                }
+              ]
+            },
+            "description": "Confirmar la acreditacion de un pago con billetera o tarjeta"
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar la comanda como fraudulenta y notificar a administracion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/caja/ordenes/:ordenId/alerta-fraude",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "caja",
+                "ordenes",
+                ":ordenId",
+                "alerta-fraude"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Marcar la comanda como fraudulenta y notificar a administracion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Billete de 100 detectado como falso en caja\",\n  \"puntosRiesgo\": 10,\n  \"bloquearCliente\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Cierre de caja y bandeja de alertas"
+    },
+    {
+      "name": "17 · Despacho · Transportistas",
+      "item": [
+        {
+          "name": "Registrar transportista con DNI, empresa y telefono",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transportistas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transportistas"
+              ]
+            },
+            "description": "Registrar transportista con DNI, empresa y telefono",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"44556677\",\n  \"nombres\": \"Marta\",\n  \"apellidos\": \"Salas Roque\",\n  \"celular\": \"51933445566\",\n  \"correo\": \"marta.salas@correo.pe\",\n  \"empresaTransporte\": \"Motos Express Arequipa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) pm.collectionVariables.set('transportistaId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar transportistas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transportistas?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transportistas"
+              ],
+              "query": [
+                {
+                  "key": "empresa",
+                  "value": "texto de ejemplo",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ]
+            },
+            "description": "Listar transportistas"
+          },
+          "response": []
+        },
+        {
+          "name": "Transportistas activos con sus vehiculos, para asignar un reparto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transportistas/activos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transportistas",
+                "activos"
+              ]
+            },
+            "description": "Transportistas activos con sus vehiculos, para asignar un reparto"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.length) {",
+                  "    pm.collectionVariables.set('transportistaId', d[0].id);",
+                  "    if (d[0].vehiculos && d[0].vehiculos.length)",
+                  "        pm.collectionVariables.set('vehiculoId', d[0].vehiculos[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar datos del transportista",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transportistas/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transportistas",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{transportistaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Actualizar datos del transportista",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"44556677\",\n  \"nombres\": \"Marta\",\n  \"apellidos\": \"Salas Roque\",\n  \"celular\": \"51933445566\",\n  \"correo\": \"marta.salas@correo.pe\",\n  \"empresaTransporte\": \"Motos Express Arequipa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habilitar o dar de baja al transportista",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transportistas/:id/activo?activo=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transportistas",
+                ":id",
+                "activo"
+              ],
+              "query": [
+                {
+                  "key": "activo",
+                  "value": "true",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{transportistaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Habilitar o dar de baja al transportista"
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar placa, tipo y modelo del vehiculo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transportistas/:id/vehiculos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transportistas",
+                ":id",
+                "vehiculos"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{transportistaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Registrar placa, tipo y modelo del vehiculo",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoVehiculo\": \"MOTO\",\n  \"placa\": \"V1V-238\",\n  \"marcaModelo\": \"Honda CB 125\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) pm.collectionVariables.set('vehiculoId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vehiculos del transportista",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transportistas/:id/vehiculos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transportistas",
+                ":id",
+                "vehiculos"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{transportistaId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Vehiculos del transportista"
+          },
+          "response": []
+        }
+      ],
+      "description": "Conductores y vehiculos habilitados"
+    },
+    {
+      "name": "18 · Despacho · Reparto y OTP",
+      "item": [
+        {
+          "name": "Pedidos en ruta con transportista y tiempo transcurrido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/delivery/tablero",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "delivery",
+                "tablero"
+              ]
+            },
+            "description": "Pedidos en ruta con transportista y tiempo transcurrido"
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar transportista y vehiculo, y fijar el tiempo estimado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:ordenId/delivery/asignar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":ordenId",
+                "delivery",
+                "asignar"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Asignar transportista y vehiculo, y fijar el tiempo estimado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transportistaId\": \"{{transportistaId}}\",\n  \"vehiculoId\": \"{{vehiculoId}}\",\n  \"tiempoEstimadoMinutos\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sale a ruta: sella la hora y avisa al cliente por WhatsApp",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:ordenId/delivery/despachar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":ordenId",
+                "delivery",
+                "despachar"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Sale a ruta: sella la hora y avisa al cliente por WhatsApp"
+          },
+          "response": []
+        },
+        {
+          "name": "Reenviar el codigo de entrega al cliente",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:ordenId/delivery/otp/reenviar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":ordenId",
+                "delivery",
+                "otp",
+                "reenviar"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Reenviar el codigo de entrega al cliente"
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar el codigo que dicta el cliente: unica via para marcar entregado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:ordenId/delivery/otp/verificar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":ordenId",
+                "delivery",
+                "otp",
+                "verificar"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Verificar el codigo que dicta el cliente: unica via para marcar entregado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"683520\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Asignacion, salida a ruta y entrega con OTP"
+    },
+    {
+      "name": "19 · Feedback y fidelizacion",
+      "item": [
+        {
+          "name": "Parametros del local: umbral N, descuento y objetivo de cocina",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/configuracion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "configuracion"
+              ]
+            },
+            "description": "Parametros del local: umbral N, descuento y objetivo de cocina"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar los parametros del local",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/configuracion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "configuracion"
+              ]
+            },
+            "description": "Actualizar los parametros del local",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"calificacionesParaCupon\": 5,\n  \"porcentajeDescuentoCupon\": 10.0,\n  \"diasVigenciaCupon\": 30,\n  \"minutosObjetivoCocina\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Promedios de satisfaccion por criterio y periodo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/satisfaccion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "satisfaccion"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Promedios de satisfaccion por criterio y periodo"
+          },
+          "response": []
+        },
+        {
+          "name": "Cupones del cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:clienteId/cupones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":clienteId",
+                "cupones"
+              ],
+              "variable": [
+                {
+                  "key": "clienteId",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de clienteId"
+                }
+              ]
+            },
+            "description": "Cupones del cliente"
+          },
+          "response": []
+        },
+        {
+          "name": "Cuantas calificaciones lleva el cliente y cuantas le faltan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/:clienteId/fidelizacion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clientes",
+                ":clienteId",
+                "fidelizacion"
+              ],
+              "variable": [
+                {
+                  "key": "clienteId",
+                  "value": "{{clienteId}}",
+                  "description": "Identificador de clienteId"
+                }
+              ]
+            },
+            "description": "Cuantas calificaciones lleva el cliente y cuantas le faltan"
+          },
+          "response": []
+        },
+        {
+          "name": "Canjear cupon contra una comanda",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cupones/:codigo/canjear?ordenId={{ordenId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cupones",
+                ":codigo",
+                "canjear"
+              ],
+              "query": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "codigo",
+                  "value": "{{cuponCodigo}}",
+                  "description": "Identificador de codigo"
+                }
+              ]
+            },
+            "description": "Canjear cupon contra una comanda"
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar calificacion y evaluar la regla de las N calificaciones",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:ordenId/feedback",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":ordenId",
+                "feedback"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Registrar calificacion y evaluar la regla de las N calificaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puntajeAtencion\": 5,\n  \"puntajeComida\": 4,\n  \"puntajeLugar\": 5,\n  \"comentario\": \"Buena atencion y el plato llego caliente\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calificacion de una comanda",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ordenes/:ordenId/feedback",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ordenes",
+                ":ordenId",
+                "feedback"
+              ],
+              "variable": [
+                {
+                  "key": "ordenId",
+                  "value": "{{ordenId}}",
+                  "description": "Identificador de ordenId"
+                }
+              ]
+            },
+            "description": "Calificacion de una comanda"
+          },
+          "response": []
+        }
+      ],
+      "description": "Calificaciones, cupones y parametros del local"
+    },
+    {
+      "name": "20 · Reportes",
+      "item": [
+        {
+          "name": "Platillos mas vendidos, para decidir la carta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/productos-top",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "productos-top"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "limite",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Platillos mas vendidos, para decidir la carta"
+          },
+          "response": []
+        },
+        {
+          "name": "Ventas por rango de fechas y canal de origen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/ventas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "ventas"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Ventas por rango de fechas y canal de origen"
+          },
+          "response": []
+        }
+      ],
+      "description": "Ventas y platillos mas vendidos"
+    },
+    {
+      "name": "21 · Outbox",
+      "item": [
+        {
+          "name": "Eventos por estado, para ver que no llego a facturacion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/outbox/eventos?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "outbox",
+                "eventos"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDIENTE",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Pagina, empezando en 0"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Registros por pagina"
+                },
+                {
+                  "key": "sort",
+                  "value": "dateCreated,desc",
+                  "disabled": true,
+                  "description": "campo,asc|desc"
+                }
+              ]
+            },
+            "description": "Eventos por estado, para ver que no llego a facturacion"
+          },
+          "response": []
+        },
+        {
+          "name": "Conteo de eventos por estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/outbox/salud",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "outbox",
+                "salud"
+              ]
+            },
+            "description": "Conteo de eventos por estado"
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle del evento con su payload completo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/outbox/eventos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "outbox",
+                "eventos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{eventoId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Detalle del evento con su payload completo"
+          },
+          "response": []
+        },
+        {
+          "name": "Devolver a la cola un evento en error o en cola muerta",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/outbox/eventos/:id/reintentar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "outbox",
+                "eventos",
+                ":id",
+                "reintentar"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{eventoId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Devolver a la cola un evento en error o en cola muerta"
+          },
+          "response": []
+        }
+      ],
+      "description": "Eventos hacia facturacion: monitoreo y reintento manual"
+    },
+    {
+      "name": "22 · Webhook · Bot de stock",
+      "item": [
+        {
+          "name": "POST /api/v1/whatsapp/in/webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/in/webhook",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "whatsapp",
+                "in",
+                "webhook"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/whatsapp/in/webhook",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/in/webhook?hub.mode=subscribe&hub.verify_token={{whatsapp_verify_token_in}}&hub.challenge=1158201444",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "whatsapp",
+                "in",
+                "webhook"
+              ],
+              "query": [
+                {
+                  "key": "hub.mode",
+                  "value": "subscribe",
+                  "disabled": false,
+                  "description": "obligatorio"
+                },
+                {
+                  "key": "hub.verify_token",
+                  "value": "{{whatsapp_verify_token_in}}",
+                  "disabled": false,
+                  "description": "obligatorio"
+                },
+                {
+                  "key": "hub.challenge",
+                  "value": "1158201444",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "23 · Webhook · Bot de clientes",
+      "item": [
+        {
+          "name": "POST /api/v1/whatsapp/out/webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/out/webhook",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "whatsapp",
+                "out",
+                "webhook"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/whatsapp/out/webhook",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/out/webhook?hub.mode=subscribe&hub.verify_token={{whatsapp_verify_token_out}}&hub.challenge=1158201444",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "whatsapp",
+                "out",
+                "webhook"
+              ],
+              "query": [
+                {
+                  "key": "hub.mode",
+                  "value": "subscribe",
+                  "disabled": false,
+                  "description": "obligatorio"
+                },
+                {
+                  "key": "hub.verify_token",
+                  "value": "{{whatsapp_verify_token_out}}",
+                  "disabled": false,
+                  "description": "obligatorio"
+                },
+                {
+                  "key": "hub.challenge",
+                  "value": "1158201444",
+                  "disabled": false,
+                  "description": "obligatorio"
+                }
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": ""
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "google_client_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "google_client_secret",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "whatsapp_verify_token_in",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "whatsapp_verify_token_out",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "platilloId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "insumoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "insumoCocidoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "insumoGaseosaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoriaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "complementoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "promocionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mesaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clienteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "empresaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "trabajadorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cargoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ordenId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "detalleId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pagoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transportistaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vehiculoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "eventoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "otp",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cuponCodigo",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "platilloId2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mesaNumero",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "montoTotal",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "montoEntregado",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoriaNuevaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "platilloNuevoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "complementoNuevoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "promocionNuevaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "insumoNuevoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mesaNuevaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mesaNuevoNumero",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

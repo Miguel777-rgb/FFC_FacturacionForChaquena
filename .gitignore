@@ -1,0 +1,69 @@
+# =============================================================================
+# FFC_FacturacionForChaquena
+#
+# La carpeta de trabajo es el monorepo completo, pero este repositorio publica
+# solo lo vital: backend/, bd/, los README.md y el compose que levanta esos dos
+# servicios. Todo lo demas vive en local y se queda fuera de git.
+# =============================================================================
+
+### Carpetas que no se publican ###
+/frontend/
+/legal-discord/
+/Documentacion/
+
+### Solo se versionan los README.md ###
+# Cualquier otra nota (CLAUDE.md, FLUJO_PRINCIPAL.md, OAUTH_DESPLIEGUE.md,
+# PLAN.md...) queda fuera, este a la altura que este.
+*.md
+!README.md
+
+### Compose de la pila completa (incluye el frontend, que no se publica) ###
+# El compose.yml versionado levanta backend + bd + redis y si se publica.
+/compose.local.yml
+
+### Secretos ###
+# Solo se versiona backend/.env.example, nunca un .env con valores reales.
+.env
+.env.local
+.env.*.local
+!.env.example
+
+### Java / Maven ###
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+.mvn/wrapper/maven-wrapper.jar
+
+### Node ###
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+
+### Editores e IDE ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.springBeans
+.sts4-cache
+.apt_generated
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+### Logs ###
+*.log
+
+### Sistema operativo ###
+.DS_Store
+Thumbs.db
