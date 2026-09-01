@@ -1,0 +1,23 @@
+allowBuilds:
+  '@openapitools/openapi-generator-cli': true
+  '@parcel/watcher': true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
+# Ajustes de pnpm del proyecto. Desde pnpm 10 estos vivien aqui y no en la
+# clave "pnpm" de package.json, que se sigue leyendo pero ya no es el sitio.
+
+# Unicos paquetes autorizados a ejecutar scripts de instalacion. Todo lo demas
+# se instala sin correr nada, que es la razon principal para usar pnpm: un
+# postinstall de una dependencia transitiva no se ejecuta sin aprobarlo antes.
+#
+#   esbuild, lmdb, msgpackr-extract, @parcel/watcher -> binarios nativos que
+#     usa la cadena de compilacion de Angular.
+#   @openapitools/openapi-generator-cli -> descarga el JAR del generador; sin
+#     su script, `pnpm api:sync` no tiene con que generar el cliente.
+onlyBuiltDependencies:
+  - '@openapitools/openapi-generator-cli'
+  - '@parcel/watcher'
+  - esbuild
+  - lmdb
+  - msgpackr-extract

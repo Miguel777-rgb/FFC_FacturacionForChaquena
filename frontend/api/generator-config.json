@@ -1,0 +1,24 @@
+{
+  "$comment": "Configuracion del cliente TypeScript que se genera desde el contrato OpenAPI del backend. No editar el codigo generado: cambiar el backend y volver a correr `pnpm api:sync`.",
+
+  "ngVersion": "22.1.0",
+  "npmName": "@chaquena/api-logistica",
+  "providedInRoot": true,
+
+  "fileNaming": "kebab-case",
+  "serviceSuffix": "Api",
+  "serviceFileSuffix": ".api",
+  "modelSuffix": "",
+  "modelFileSuffix": "",
+
+  "stringEnums": true,
+  "enumPropertyNaming": "original",
+
+  "supportsES6": true,
+  "withInterfaces": false,
+  "useSingleRequestParameter": true,
+  "taggedUnions": false,
+
+  "legacyDiscriminatorBehavior": false,
+  "disallowAdditionalPropertiesIfNotPresent": false
+}

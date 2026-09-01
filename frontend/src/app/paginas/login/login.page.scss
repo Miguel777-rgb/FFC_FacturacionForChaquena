@@ -1,0 +1,158 @@
+.entrada {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--e4);
+
+  /* Una sola veladura de la marca, anclada arriba y desvanecida enseguida. Da
+     pertenencia a la pantalla sin convertirla en un degradado de plantilla: a
+     media altura ya no queda nada. */
+  background:
+    radial-gradient(120% 60% at 50% 0%, var(--acento-suave) 0%, transparent 55%), var(--fondo);
+}
+
+.tarjeta {
+  position: relative;
+  width: min(100%, 25rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+  padding: var(--e6) var(--e5) var(--e5);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+}
+
+/* Filete de marca al borde superior. Es el detalle preciso donde vive el rojo
+   en una pantalla que, por lo demas, no necesita color. */
+.tarjeta::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--acento);
+}
+
+header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--tenue);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+
+  span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--tenue);
+  }
+}
+
+.campo-contrasena {
+  position: relative;
+
+  input {
+    /* Espacio para que el ojo no quede sobre los ultimos caracteres. */
+    padding-right: calc(var(--toque) + var(--e1));
+  }
+}
+
+/* No es la accion principal ni destructiva: se anulan a mano los estilos
+   globales de `button` (fondo relleno) en vez de heredarlos, que es lo que
+   pasaria por defecto en cualquier boton sin clase. */
+.alternar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--toque);
+  min-height: 0;
+  padding: 0;
+  color: var(--tenue);
+  background: transparent;
+  border: none;
+  border-radius: var(--radio-chico);
+}
+
+.alternar:hover {
+  color: var(--tinta);
+}
+
+/* Contorneado, como todo lo que no es la accion principal. */
+.error {
+  margin: 0;
+  padding: var(--e3);
+  font-size: 0.9rem;
+  color: var(--critico);
+  background: var(--critico-suave);
+  border: 1px solid var(--critico);
+  border-radius: var(--radio-chico);
+}
+
+button[type='submit'] {
+  margin-top: var(--e1);
+  width: 100%;
+}
+
+/* Separador con la palabra centrada sobre la linea. Las dos vias de entrada
+   son alternativas, no una principal y una secundaria escondida. */
+.separador {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--tenue);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--linea);
+  }
+}
+
+/* Contorneado, como todo lo que no es la accion principal: entrar con el
+   usuario del local es lo que hace la mayoria del personal, y el rojo relleno
+   se reserva para eso. Aqui manda ademas la convencion de Google, que pide su
+   logotipo sobre fondo neutro. */
+.google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  width: 100%;
+  color: var(--tinta);
+  background: var(--superficie);
+  border-color: var(--linea);
+  font-weight: 500;
+}
+
+.google:hover:not(:disabled) {
+  background: var(--hundido);
+  border-color: var(--linea);
+}
+
+.google svg {
+  flex: none;
+}

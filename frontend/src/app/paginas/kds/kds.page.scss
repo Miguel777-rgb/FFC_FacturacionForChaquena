@@ -1,0 +1,179 @@
+/* La pantalla de cocina se lee de pie y a un metro de distancia: tipografia
+   grande, tarjetas anchas y el cronometro como dato dominante. Nada de esto es
+   decorativo, es lo que decide si el plato sale a tiempo. */
+
+.kds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+  padding: var(--e5);
+}
+
+/* `.cabecera`, `.chip` y sus estados son globales: viven en `src/styles.scss`
+   porque las tres superficies los pintan igual. */
+
+/* --- kpis ----------------------------------------------------------------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    padding: var(--e3);
+    background: var(--superficie);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+  }
+
+  li.alerta {
+    border-color: var(--critico);
+    background: var(--critico-suave);
+
+    .dato {
+      color: var(--critico);
+    }
+  }
+
+  .dato {
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .rotulo {
+    font-size: 0.75rem;
+    color: var(--tenue);
+  }
+}
+
+/* --- tablero -------------------------------------------------------------- */
+.tablero {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: var(--e3);
+  align-items: start;
+}
+
+.comanda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+  padding: var(--e4);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+
+  > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--e2);
+  }
+
+  > footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e2);
+    padding-top: var(--e3);
+    border-top: 1px solid var(--linea);
+  }
+}
+
+/* Fuera de objetivo: filete grueso a la izquierda ademas del color, para que se
+   distinga tambien en una pantalla con reflejos o mal calibrada. */
+.comanda.tarde {
+  border-color: var(--critico);
+  box-shadow: inset 3px 0 0 var(--critico);
+
+  .reloj {
+    color: var(--critico);
+  }
+}
+
+.quien {
+  display: flex;
+  flex-direction: column;
+}
+
+.correlativo {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--tenue);
+}
+
+.donde {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.reloj {
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.lineas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: var(--e2);
+    align-items: baseline;
+  }
+
+  .cantidad {
+    font-weight: 600;
+    color: var(--acento);
+  }
+
+  .plato {
+    display: flex;
+    flex-direction: column;
+    font-size: 1.05rem;
+  }
+
+  .complementos {
+    font-size: 0.8rem;
+    color: var(--tenue);
+  }
+
+  /* La nota cambia como se cocina el plato: se marca con tinte y borde, no con
+     letra pequena gris que se pasa por alto en plena hora punta. */
+  .nota {
+    align-self: flex-start;
+    margin-top: 2px;
+    padding: 1px var(--e2);
+    font-size: 0.8rem;
+    color: var(--aviso);
+    background: var(--aviso-suave);
+    border: 1px solid var(--aviso);
+    border-radius: var(--radio-chico);
+  }
+}
+
+.servida {
+  font-size: 0.8rem;
+  color: var(--ok);
+}
+
+.vacio {
+  margin: 0;
+  padding: var(--e6);
+  color: var(--tenue);
+  text-align: center;
+  background: var(--superficie);
+  border: 1px dashed var(--linea);
+  border-radius: var(--radio);
+  grid-column: 1 / -1;
+}

@@ -1,0 +1,336 @@
+/* ==========================================================================
+   Base del frontend-logistica.
+
+   Cinco superficies con ergonomias distintas comparten estos tokens: el POS
+   en tablet, el KDS colgado en la cocina, la caja en escritorio, el despacho
+   en movil y la trastienda. Lo que cambia entre ellas es la escala, no la
+   paleta, y por eso los tamanos tactiles viven aqui y no en cada pantalla.
+
+   ---------------------------------------------------------------------------
+   REGLA DE COLOR — leer antes de tocar nada
+
+   La marca es roja (#8F0808) y el estado critico tambien es rojo. Se separan
+   por dos vias a la vez, y hacen falta las dos:
+
+     1. Luminosidad. La marca es oscura (L 30%), el critico es claro (L ~49%).
+        Uno lee como vino; el otro, como alarma.
+
+     2. Forma, que es la que de verdad protege. La marca es lo unico que se
+        pinta RELLENO. Lo destructivo va siempre CONTORNEADO: texto critico
+        sobre su tinte suave, con borde. Son dos objetos distintos, no dos
+        tonos del mismo objeto.
+
+   Un boton rojo relleno significa "accion principal", nunca "borrar". Si algun
+   dia se pinta un `Cancelar comanda` en rojo relleno, el mozo con prisa va a
+   confundirlo con `Enviar`, y eso es un error de servicio, no de estilo.
+   ---------------------------------------------------------------------------
+   ========================================================================== */
+
+:root {
+  /* Neutros calidos: llevan un susurro del matiz de la marca (~15 grados,
+     saturacion minima). Es lo que separa una paleta roja elegante de una de
+     alarma: el fondo no es gris, pertenece a la misma familia que el rojo.
+     Nadie lo nota conscientemente, y por eso funciona. */
+  --fondo: #f8f5f4;
+  --superficie: #ffffff;
+  --hundido: #f0eae9;
+  --tinta: #1c1615;
+  --tenue: #6d5f5d;
+  --linea: #e5dcda;
+
+  /* La marca. Lo bastante oscura para funcionar como TINTA, no solo como
+     relleno: >7:1 sobre blanco. Por eso puede llevar titulos y no queda
+     relegada a manchar botones, que es de donde viene el aspecto de plantilla. */
+  --acento: #8f0808;
+  --acento-fuerte: #6e0606;
+  --acento-suave: #fbebea;
+
+  /* Semanticos: separados del acento a proposito. En el KDS el color dice
+     cuanto lleva esperando una comanda, no que algo sea pulsable. */
+  --ok: #1f6b45;
+  --ok-suave: #e6f2eb;
+  --aviso: #8a5a0b;
+  --aviso-suave: #f9efdc;
+  --critico: #cf3a2a;
+  --critico-suave: #fdeceb;
+
+  /* Pila de sistema honesta: antes se pedia 'Inter var' sin cargarla nunca, y
+     cada maquina resolvia lo que le parecia. Cero peso de red, que en una
+     tablet de cocina con wifi regular vale mas que la coherencia tipografica. */
+  --f-texto:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --f-mono:
+    ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+
+  /* Escala de espaciado: un solo juego, para que nada se invente margenes. */
+  --e1: 0.25rem;
+  --e2: 0.5rem;
+  --e3: 0.75rem;
+  --e4: 1rem;
+  --e5: 1.5rem;
+  --e6: 2rem;
+  --e7: 3rem;
+
+  --radio: 8px;
+  --radio-chico: 4px;
+
+  /* Minimo tactil. El mozo trabaja de pie y con prisa: nada por debajo. */
+  --toque: 44px;
+
+  /* Sombra unica y corta. Una herramienta de trabajo no flota. */
+  --sombra: 0 1px 2px rgb(28 22 21 / 0.06), 0 1px 3px rgb(28 22 21 / 0.04);
+}
+
+/* En oscuro la marca tiene que subir de luminosidad o desaparece contra el
+   fondo; se conserva el matiz y se cede saturacion. El critico sube tambien,
+   y ademas se desplaza hacia el naranja para mantener la separacion de matiz
+   que en claro daba la luminosidad. */
+@mixin tema-oscuro {
+  --fondo: #14100f;
+  --superficie: #1c1716;
+  --hundido: #241d1c;
+  --tinta: #ece5e3;
+  --tenue: #a89a97;
+  --linea: #322827;
+
+  --acento: #e0605a;
+  --acento-fuerte: #ef7a74;
+  --acento-suave: #2e1615;
+
+  --ok: #58ab7c;
+  --ok-suave: #14261b;
+  --aviso: #c9932f;
+  --aviso-suave: #2a2013;
+  --critico: #ff8a72;
+  --critico-suave: #331813;
+
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='claro']) {
+    @include tema-oscuro;
+  }
+}
+
+:root[data-tema='oscuro'] {
+  @include tema-oscuro;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: var(--f-texto);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  text-wrap: balance;
+  letter-spacing: -0.011em;
+}
+
+/* Cifras que se actualizan solas —importes, cronometros del KDS, codigos OTP—
+   no deben bailar de ancho al cambiar. Se nota mas que cualquier fuente de
+   titular. */
+.cifra {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Marca de agua tipografica, compartida por el login y la barra de sesion. */
+.marca {
+  font-family: var(--f-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acento);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-chico);
+  padding: 0 var(--e3);
+  min-height: var(--toque);
+  width: 100%;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--critico);
+}
+
+/* Relleno = accion principal. Ver la REGLA DE COLOR de arriba. */
+button {
+  font: inherit;
+  font-weight: 500;
+  min-height: var(--toque);
+  padding: 0 var(--e4);
+  color: #ffffff;
+  background: var(--acento);
+  border: 1px solid var(--acento);
+  border-radius: var(--radio-chico);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--acento-fuerte);
+  border-color: var(--acento-fuerte);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button.secundario {
+  color: var(--acento);
+  background: transparent;
+}
+
+button.secundario:hover:not(:disabled) {
+  background: var(--acento-suave);
+  border-color: var(--acento);
+}
+
+/* Destructivo: CONTORNEADO, nunca relleno. Es la separacion de forma que
+   impide confundirlo con la accion principal. */
+button.destructivo {
+  color: var(--critico);
+  background: var(--critico-suave);
+  border-color: var(--critico);
+}
+
+button.destructivo:hover:not(:disabled) {
+  background: var(--critico);
+  color: var(--superficie);
+}
+
+a {
+  color: var(--acento);
+}
+
+/* Cualquier tabla o bloque ancho se desplaza dentro de su caja: el cuerpo de
+   la pagina nunca debe moverse en horizontal, y menos en tablet. */
+.desplazable {
+  overflow-x: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Piezas compartidas por las superficies.
+
+   Viven aqui y no en cada pantalla porque las tres —POS, cocina y caja— las
+   pintaban identicas. Tres copias del mismo chip de estado no solo pesan: se
+   desincronizan, y entonces el mismo ENTREGADO se ve de un color en el salon y
+   de otro en la caja.
+   -------------------------------------------------------------------------- */
+
+/* Tarjeta de contenido. La superficie de trabajo por defecto. */
+.bloque {
+  padding: var(--e4);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+}
+
+/* Rotulo de seccion: pequeno, monoespaciado y tenue. No compite con el titulo
+   de la pantalla ni con los datos, que es lo que se viene a leer. */
+.bloque > h2 {
+  margin: 0 0 var(--e3);
+  font-family: var(--f-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+/* Estado de una comanda. El texto es el que informa; el color solo refuerza,
+   porque estos chips se leen tambien en pantallas de cocina mal calibradas. */
+.chip {
+  font-family: var(--f-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  padding: 2px var(--e2);
+  border-radius: 999px;
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  color: var(--tenue);
+}
+
+.chip[data-estado='EN_PREPARACION'] {
+  color: var(--aviso);
+  background: var(--aviso-suave);
+  border-color: var(--aviso);
+}
+
+.chip[data-estado='ENTREGADO'] {
+  color: var(--ok);
+  background: var(--ok-suave);
+  border-color: var(--ok);
+}
+
+.chip[data-estado='PAGADO'] {
+  color: var(--acento);
+  background: var(--acento-suave);
+  border-color: var(--acento);
+}
+
+/* Hueco honesto: una lista vacia dice por que lo esta, no se queda en blanco. */
+.vacio {
+  margin: 0;
+  color: var(--tenue);
+  font-size: 0.9rem;
+}
+
+/* Cabecera de superficie: rotulo de marca, titulo y la accion de refresco. */
+.cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--e4);
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

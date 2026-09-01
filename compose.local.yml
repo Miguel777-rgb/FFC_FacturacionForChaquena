@@ -1,0 +1,127 @@
+# =============================================================================
+# Pila completa de FFC — cuatro contenedores independientes.
+#
+#   frontend-logistica  :81   Angular servido por Nginx, que ademas hace de
+#                             proxy hacia el backend. Es la unica puerta que
+#                             el navegador necesita.
+#   backend-logistica   :8080 Spring Boot 4.1 sobre Java 21.
+#   bd-logistica        :5432 PostgreSQL 16.
+#   redis-logistica     :6379 Redis 7, sesiones del bot de WhatsApp.
+#
+# Los secretos salen de backend/.env, que no se versiona (ver .env.example).
+# Ninguno se hornea en las imagenes: entran como variables de entorno al
+# arrancar el contenedor.
+#
+# Arranque:  docker compose up -d --build
+# Manual:    EJECUTAR.md
+# =============================================================================
+
+name: ffc
+
+services:
+  # ---------------------------------------------------------------------------
+  bd-logistica:
+    image: postgres:16-alpine
+    container_name: bd-logistica
+    restart: unless-stopped
+    env_file: [backend/.env]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_logistica_data:/var/lib/postgresql/data
+    healthcheck:
+      # El backend espera a que esto pase: sin ello arranca antes de que
+      # Postgres acepte conexiones y muere en el primer intento.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks: [ffc]
+
+  # ---------------------------------------------------------------------------
+  redis-logistica:
+    image: redis:7-alpine
+    container_name: redis-logistica
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [ffc]
+
+  # ---------------------------------------------------------------------------
+  backend-logistica:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ffc/backend-logistica:local
+    container_name: backend-logistica
+    restart: unless-stopped
+    depends_on:
+      bd-logistica: { condition: service_healthy }
+      redis-logistica: { condition: service_healthy }
+    env_file: [backend/.env]
+    environment:
+      # Dentro de la red de Docker los servicios se llaman por su nombre, no
+      # por localhost. Estas tres lineas pisan lo que traiga el .env, que esta
+      # escrito para ejecutar el backend fuera de Docker.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bd-logistica:5432/${POSTGRES_DB}
+      SPRING_DATA_REDIS_HOST: redis-logistica
+      SPRING_DATA_REDIS_PORT: 6379
+      # El navegador entra por el 81 y Nginx hace de proxy, asi que las
+      # peticiones son del mismo origen y CORS no llega a intervenir. Se deja
+      # configurado igualmente por si alguien apunta un Angular de desarrollo
+      # a este backend.
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:81,http://localhost:4200}
+    ports:
+      # Publicado para poder usar Swagger y `npm run api:sync` desde la maquina.
+      # Si no hiciera falta, se puede quitar: el frontend lo alcanza por la red
+      # interna sin necesidad de que este publicado.
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    networks: [ffc]
+
+  # ---------------------------------------------------------------------------
+  frontend-logistica:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: ffc/frontend-logistica:local
+    container_name: frontend-logistica
+    restart: unless-stopped
+    depends_on:
+      backend-logistica: { condition: service_started }
+    ports:
+      # Nginx escucha en el 80 dentro del contenedor; fuera se publica en el 81
+      # para dejar el 80 libre al futuro frontend-facturacion.
+      - "81:80"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks: [ffc]
+
+networks:
+  ffc:
+    name: ffc
+
+volumes:
+  postgres_logistica_data:
+    # Nombre explicito para que siga siendo el mismo volumen que creo el
+    # compose anterior de backend/ y no se pierdan los datos ya sembrados.
+    name: backend_postgres_logistica_data
+    external: true

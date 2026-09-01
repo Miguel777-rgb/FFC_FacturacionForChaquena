@@ -1,0 +1,8 @@
+# Este cliente vive dentro de la app Angular, no se publica como paquete npm.
+# Todo lo que el generador emite para empaquetarlo por separado sobra aqui.
+README.md
+git_push.sh
+ng-package.json
+package.json
+tsconfig.json
+.gitignore

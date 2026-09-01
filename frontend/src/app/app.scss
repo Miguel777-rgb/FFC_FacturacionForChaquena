@@ -1,0 +1,20 @@
+/* El marco solo existe con sesion abierta: el login ocupa la pantalla entera
+   sin panel lateral, que no tendria ningun destino que ofrecer todavia. */
+.marco {
+  display: flex;
+  min-height: 100dvh;
+}
+
+/* El panel es fijo y el contenido es lo que se desplaza. Sin esto, bajar en el
+   kardex de la trastienda se llevaria la navegacion fuera de la pantalla. */
+.marco > app-panel-lateral {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  z-index: 10;
+}
+
+main {
+  flex: 1;
+  min-width: 0;
+}

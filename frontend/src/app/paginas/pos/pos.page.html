@@ -1,0 +1,181 @@
+<section class="pos">
+  <header class="cabecera">
+    <div>
+      <p class="marca">Punto de venta</p>
+      <h1>Tomar comanda</h1>
+    </div>
+    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+      {{ cargando() ? 'Cargando…' : 'Actualizar' }}
+    </button>
+  </header>
+
+  <div class="tablero">
+    <div class="eleccion">
+      <!-- ---------------------------------------------------------------- -->
+      <section class="bloque">
+        <h2>Mesa</h2>
+
+        <div class="mesas">
+          @for (m of mesas(); track m.id) {
+            <button
+              type="button"
+              class="mesa"
+              [class.elegida]="esMesaElegida(m)"
+              [class.ocupada]="m.estado === 'OCUPADA'"
+              [disabled]="m.estado === 'INHABILITADA'"
+              [attr.aria-pressed]="esMesaElegida(m)"
+              (click)="elegirMesa(m)"
+            >
+              <span class="numero cifra">{{ m.numero }}</span>
+              <span class="detalle">{{ m.zona || 'sin zona' }}</span>
+              <span class="estado">{{ m.estado }}</span>
+            </button>
+          } @empty {
+            <p class="vacio">
+              {{ cargando() ? 'Cargando el mapa de mesas…' : 'No hay mesas dadas de alta.' }}
+            </p>
+          }
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="bloque">
+        <h2>Carta</h2>
+
+        <div class="carta">
+          @for (p of carta(); track p.id) {
+            <button
+              type="button"
+              class="platillo"
+              [class.agotado]="!p.disponible"
+              [disabled]="!p.disponible"
+              (click)="agregar(p)"
+            >
+              <span class="categoria">{{ p.categoriaNombre }}</span>
+              <span class="nombre">{{ p.nombre }}</span>
+              <span class="precio cifra">S/ {{ p.precioVentaBase | number: '1.2-2' }}</span>
+
+              @if (!p.disponible) {
+                <!-- El servidor manda la carta entera con la bandera puesta: el
+                     plato agotado se ve en gris y dice que le falta, en vez de
+                     desaparecer y dejar al mozo preguntandose donde esta. -->
+                <span class="falta">Agotado · falta {{ p.insumosFaltantes?.join(', ') }}</span>
+              } @else if (p.porcionesPosibles !== null && p.porcionesPosibles !== undefined && p.porcionesPosibles <= 5) {
+                <span class="quedan">Quedan {{ p.porcionesPosibles }}</span>
+              }
+            </button>
+          } @empty {
+            <p class="vacio">
+              {{ cargando() ? 'Cargando la carta…' : 'La carta no tiene platillos activos.' }}
+            </p>
+          }
+        </div>
+      </section>
+    </div>
+
+    <!-- ------------------------------------------------------------------ -->
+    <aside class="comanda bloque">
+      <h2>La comanda</h2>
+
+      @if (mesaElegida(); as mesa) {
+        <p class="destino">Mesa <strong class="cifra">{{ mesa.numero }}</strong> · {{ mesa.zona || 'sin zona' }}</p>
+      } @else {
+        <p class="destino sin">Elige una mesa para empezar.</p>
+      }
+
+      <ul class="lineas">
+        @for (l of lineas(); track l.platillo.id) {
+          <li>
+            <div class="fila">
+              <span class="nombre">{{ l.platillo.nombre }}</span>
+              <span class="subtotal cifra">
+                S/ {{ (l.platillo.precioVentaBase ?? 0) * l.cantidad | number: '1.2-2' }}
+              </span>
+            </div>
+
+            <div class="fila controles">
+              <div class="contador">
+                <button
+                  type="button"
+                  class="paso"
+                  (click)="cambiarCantidad(l, -1)"
+                  [attr.aria-label]="'Quitar una unidad de ' + l.platillo.nombre"
+                >
+                  −
+                </button>
+                <span class="cantidad cifra">{{ l.cantidad }}</span>
+                <button
+                  type="button"
+                  class="paso"
+                  (click)="cambiarCantidad(l, 1)"
+                  [attr.aria-label]="'Agregar una unidad de ' + l.platillo.nombre"
+                >
+                  +
+                </button>
+              </div>
+
+              <button type="button" class="destructivo quitar" (click)="quitar(l)">Quitar</button>
+            </div>
+
+            <!-- La nota es la personalizacion del comensal: "sin cebolla", "bien
+                 cocido". Viaja como `excepcionesNota` y sale impresa en cocina. -->
+            <input
+              type="text"
+              class="nota"
+              placeholder="Sin cebolla, bien cocido…"
+              [value]="l.nota"
+              (change)="anotar(l, $any($event.target).value)"
+              [attr.aria-label]="'Nota para ' + l.platillo.nombre"
+            />
+          </li>
+        } @empty {
+          <li class="vacio">Toca un platillo de la carta para agregarlo.</li>
+        }
+      </ul>
+
+      <footer class="cierre">
+        <div class="total">
+          <span>Total estimado</span>
+          <strong class="cifra">S/ {{ total() | number: '1.2-2' }}</strong>
+        </div>
+
+        <button type="button" (click)="enviar()" [disabled]="!puedeEnviar()">
+          {{ enviando() ? 'Enviando…' : 'Enviar a cocina' }}
+        </button>
+
+        @if (lineas().length > 0) {
+          <button type="button" class="secundario" (click)="vaciar()">Vaciar</button>
+        }
+      </footer>
+    </aside>
+  </div>
+
+  <!-- -------------------------------------------------------------------- -->
+  <section class="bloque salon">
+    <h2>En el salon</h2>
+
+    <ul class="comandas">
+      @for (o of enSalon(); track o.id) {
+        <li>
+          <span class="chip" [attr.data-estado]="o.estado">{{ o.estado }}</span>
+          <span class="mesa cifra">Mesa {{ o.mesaNumero || '—' }}</span>
+          <span class="items">{{ o.cantidadItems }} items</span>
+          <span class="monto cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</span>
+          <span class="espera cifra">{{ o.minutosTranscurridos }} min</span>
+
+          @if (sePuedeEntregar(o)) {
+            <button type="button" (click)="entregar(o)">Entregar</button>
+          } @else {
+            <span class="nota-estado">
+              {{ o.estado === 'ENCOLADO' ? 'Esperando a cocina' : 'Lista para cobrar' }}
+            </span>
+          }
+        </li>
+      } @empty {
+        <li class="vacio">
+          {{ cargando() ? 'Cargando…' : 'No hay comandas abiertas.' }}
+        </li>
+      }
+    </ul>
+  </section>
+</section>

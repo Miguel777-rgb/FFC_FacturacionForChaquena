@@ -1,0 +1,12 @@
+@if (sesion.autenticado()) {
+  <div class="marco">
+    <app-panel-lateral />
+    <main>
+      <router-outlet />
+    </main>
+  </div>
+} @else {
+  <router-outlet />
+}
+
+<app-pila-avisos />

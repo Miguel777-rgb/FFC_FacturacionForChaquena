@@ -1,0 +1,308 @@
+/* El POS vive en una tablet apaisada: dos columnas, y la comanda siempre a la
+   vista a la derecha. En vertical se apila y la comanda queda arriba, que es lo
+   que el mozo mira mientras el comensal habla. */
+
+.pos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+  padding: var(--e5);
+}
+
+/* `.cabecera`, `.bloque`, `.chip` y `.vacio` son globales: viven en
+   `src/styles.scss` porque las tres superficies los pintan igual. */
+
+.tablero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 21rem;
+  gap: var(--e4);
+  align-items: start;
+}
+
+.eleccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+  min-width: 0;
+}
+
+/* --- mesas ---------------------------------------------------------------- */
+.mesas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: var(--e2);
+}
+
+.mesa {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: calc(var(--toque) + var(--e4));
+  padding: var(--e2) var(--e3);
+  color: var(--tinta);
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  text-align: left;
+
+  .numero {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .detalle,
+  .estado {
+    font-size: 0.7rem;
+    color: var(--tenue);
+  }
+
+  .estado {
+    font-family: var(--f-mono);
+    letter-spacing: 0.06em;
+  }
+}
+
+.mesa:hover:not(:disabled) {
+  background: var(--acento-suave);
+  border-color: var(--acento);
+}
+
+/* Ocupada no se bloquea: el servidor solo rechaza la mesa inhabilitada, y una
+   mesa larga puede llevar dos comandas. Se avisa, no se impide. */
+.mesa.ocupada .estado {
+  color: var(--aviso);
+}
+
+.mesa.elegida {
+  color: #ffffff;
+  background: var(--acento);
+  border-color: var(--acento);
+
+  .detalle,
+  .estado {
+    color: rgb(255 255 255 / 0.8);
+  }
+}
+
+/* --- carta ---------------------------------------------------------------- */
+.carta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--e2);
+}
+
+.platillo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--e3);
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  text-align: left;
+
+  .categoria {
+    font-family: var(--f-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tenue);
+  }
+
+  .nombre {
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  .precio {
+    color: var(--acento);
+    font-weight: 600;
+  }
+
+  .falta,
+  .quedan {
+    font-size: 0.7rem;
+  }
+
+  .falta {
+    color: var(--critico);
+  }
+
+  .quedan {
+    color: var(--aviso);
+  }
+}
+
+.platillo:hover:not(:disabled) {
+  border-color: var(--acento);
+  background: var(--acento-suave);
+}
+
+.platillo.agotado {
+  background: var(--hundido);
+  opacity: 1; /* se anula el atenuado global: el texto tiene que poder leerse */
+  color: var(--tenue);
+
+  .precio {
+    color: var(--tenue);
+  }
+}
+
+/* --- comanda -------------------------------------------------------------- */
+.comanda {
+  position: sticky;
+  top: var(--e4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+}
+
+.destino {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.destino.sin {
+  color: var(--tenue);
+}
+
+.lineas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 45vh;
+  overflow-y: auto;
+
+  li:not(.vacio) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e2);
+    padding-bottom: var(--e3);
+    border-bottom: 1px solid var(--linea);
+  }
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2);
+
+  .nombre {
+    font-weight: 500;
+  }
+}
+
+.contador {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+}
+
+.paso {
+  width: var(--toque);
+  padding: 0;
+  font-size: 1.2rem;
+  color: var(--acento);
+  background: transparent;
+}
+
+.paso:hover:not(:disabled) {
+  background: var(--acento-suave);
+}
+
+.cantidad {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.quitar {
+  min-height: 2rem;
+  padding: 0 var(--e2);
+  font-size: 0.8rem;
+}
+
+.nota {
+  font-size: 0.85rem;
+  min-height: 2.25rem;
+}
+
+.cierre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding-top: var(--e3);
+  border-top: 1px solid var(--linea);
+}
+
+.total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  strong {
+    font-size: 1.35rem;
+  }
+}
+
+/* --- salon ---------------------------------------------------------------- */
+.comandas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  /* Fila con borde y no con fondo hundido: el chip de estado lleva ya su propio
+     tinte suave, y sobre otro fondo se emborrona. */
+  li:not(.vacio) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--e3);
+    padding: var(--e2) var(--e3);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio-chico);
+  }
+
+  .mesa {
+    font-weight: 600;
+    background: none;
+    border: none;
+    padding: 0;
+    min-height: 0;
+  }
+
+  .items,
+  .espera,
+  .nota-estado {
+    font-size: 0.85rem;
+    color: var(--tenue);
+  }
+
+  .monto {
+    font-weight: 600;
+    margin-left: auto;
+  }
+
+  button {
+    min-height: 2.25rem;
+  }
+}
+
+@media (max-width: 60rem) {
+  .tablero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .comanda {
+    position: static;
+    order: -1;
+  }
+}

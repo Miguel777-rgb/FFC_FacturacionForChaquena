@@ -1,0 +1,15 @@
+# node_modules pesa cientos de megas y se reinstala dentro con `pnpm install`;
+# mandarlo en el contexto haria el build lento y no serviria de nada.
+node_modules/
+dist/
+.angular/
+
+Dockerfile
+.dockerignore
+*.md
+
+# nginx.conf NO se excluye: la etapa de servicio lo copia desde el contexto.
+
+.git/
+.vscode/
+.idea/

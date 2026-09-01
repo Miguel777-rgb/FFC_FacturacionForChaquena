@@ -2,12 +2,11 @@
 # FFC_FacturacionForChaquena
 #
 # La carpeta de trabajo es el monorepo completo, pero este repositorio publica
-# solo lo vital: backend/, bd/, los README.md y el compose que levanta esos dos
-# servicios. Todo lo demas vive en local y se queda fuera de git.
+# solo lo vital: backend/, frontend/, bd/, los README.md y los dos composes.
+# Todo lo demas vive en local y se queda fuera de git.
 # =============================================================================
 
 ### Carpetas que no se publican ###
-/frontend/
 /legal-discord/
 /Documentacion/
 
@@ -16,10 +15,6 @@
 # PLAN.md...) queda fuera, este a la altura que este.
 *.md
 !README.md
-
-### Compose de la pila completa (incluye el frontend, que no se publica) ###
-# El compose.yml versionado levanta backend + bd + redis y si se publica.
-/compose.local.yml
 
 ### Secretos ###
 # Solo se versiona backend/.env.example, nunca un .env con valores reales.
@@ -38,10 +33,14 @@ build/
 .mvn/wrapper/maven-wrapper.jar
 
 ### Node ###
+# El cliente HTTP generado (frontend/src/app/api) si se versiona: es lo que
+# hace falta para compilar sin tener el backend delante.
 node_modules/
 dist/
 .angular/
 npm-debug.log*
+pnpm-debug.log*
+coverage/
 
 ### Editores e IDE ###
 .idea/

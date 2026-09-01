@@ -1,0 +1,253 @@
+/* La caja es de escritorio: la lista de comandas a la izquierda y la cuenta
+   abierta a la derecha, las dos a la vez. Cobrar mirando una sola cosa obliga a
+   ir y volver con el comensal delante. */
+
+.caja {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+  padding: var(--e5);
+}
+
+/* `.cabecera`, `.bloque`, `.chip` y `.vacio` son globales: viven en
+   `src/styles.scss` porque las tres superficies los pintan igual. */
+
+.tablero {
+  display: grid;
+  grid-template-columns: 20rem minmax(0, 1fr);
+  gap: var(--e4);
+  align-items: start;
+}
+
+/* --- lista ---------------------------------------------------------------- */
+.comandas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Borde en vez de fondo hundido: el chip de estado lleva su propio tinte suave
+   y sobre otro fondo se emborrona. */
+.fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  width: 100%;
+  padding: var(--e2) var(--e3);
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  text-align: left;
+
+  .mesa {
+    font-weight: 600;
+  }
+
+  .monto {
+    margin-left: auto;
+  }
+}
+
+.fila:hover:not(:disabled) {
+  border-color: var(--acento);
+}
+
+.fila.elegida {
+  background: var(--acento-suave);
+  border-color: var(--acento);
+}
+
+.pie {
+  margin: var(--e3) 0 0;
+  font-size: 0.8rem;
+  color: var(--tenue);
+}
+
+/* --- cuenta --------------------------------------------------------------- */
+.cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+}
+
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+
+  h2 {
+    margin: 0;
+    font-family: var(--f-texto);
+    font-size: 1.2rem;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--tinta);
+  }
+}
+
+.detalles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--e3);
+  }
+
+  .cantidad {
+    color: var(--tenue);
+  }
+
+  .plato {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .nota {
+    font-size: 0.8rem;
+    color: var(--tenue);
+  }
+
+  .importe {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.totales {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+  margin: 0;
+  padding-top: var(--e3);
+  border-top: 1px solid var(--linea);
+
+  div {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  dt {
+    color: var(--tenue);
+  }
+
+  .grande {
+    margin-top: var(--e2);
+
+    dt {
+      color: var(--tinta);
+      font-weight: 600;
+    }
+
+    dd {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+  }
+}
+
+/* --- cobro ---------------------------------------------------------------- */
+.cobro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e4);
+  background: var(--hundido);
+  border-radius: var(--radio);
+
+  label {
+    font-size: 0.85rem;
+    color: var(--tenue);
+  }
+}
+
+.entrada {
+  display: flex;
+  gap: var(--e2);
+
+  input {
+    font-family: var(--f-mono);
+    font-size: 1.2rem;
+  }
+
+  button {
+    flex: none;
+  }
+}
+
+.vuelto {
+  margin: 0;
+  color: var(--ok);
+
+  strong {
+    font-size: 1.2rem;
+  }
+}
+
+.falta {
+  margin: 0;
+  color: var(--critico);
+}
+
+.pagada {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--tenue);
+}
+
+/* --- arqueo --------------------------------------------------------------- */
+.arqueo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e5);
+}
+
+.grueso {
+  display: flex;
+  flex-direction: column;
+
+  .dato {
+    font-size: 1.8rem;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+}
+
+.metodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.rotulo {
+  font-size: 0.75rem;
+  color: var(--tenue);
+}
+
+@media (max-width: 60rem) {
+  .tablero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

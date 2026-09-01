@@ -1,0 +1,166 @@
+<section class="caja">
+  <header class="cabecera">
+    <div>
+      <p class="marca">Caja</p>
+      <h1>Cobrar y cerrar</h1>
+    </div>
+    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+      {{ cargando() ? 'Cargando…' : 'Actualizar' }}
+    </button>
+  </header>
+
+  <div class="tablero">
+    <!-- ------------------------------------------------------------------ -->
+    <section class="bloque">
+      <h2>Comandas abiertas</h2>
+
+      <ul class="comandas">
+        @for (o of enSalon(); track o.id) {
+          <li>
+            <button
+              type="button"
+              class="fila"
+              [class.elegida]="seleccionada()?.id === o.id"
+              [disabled]="!seCobra(o)"
+              (click)="seleccionar(o)"
+            >
+              <span class="chip" [attr.data-estado]="o.estado">{{ o.estado }}</span>
+              <span class="mesa cifra">Mesa {{ o.mesaNumero || '—' }}</span>
+              <span class="monto cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</span>
+            </button>
+          </li>
+        } @empty {
+          <li class="vacio">
+            {{ cargando() ? 'Cargando…' : 'No hay comandas abiertas.' }}
+          </li>
+        }
+      </ul>
+
+      <p class="pie">Solo se cobra lo que ya esta ENTREGADO.</p>
+    </section>
+
+    <!-- ------------------------------------------------------------------ -->
+    <section class="bloque cuenta">
+      @if (seleccionada(); as o) {
+        <header class="titulo">
+          <h2>Mesa {{ o.mesaNumero || '—' }}</h2>
+          <span class="chip" [attr.data-estado]="o.estado">{{ o.estado }}</span>
+        </header>
+
+        <ul class="detalles">
+          @for (d of o.detalles; track d.id) {
+            <li>
+              <span class="cantidad cifra">{{ d.cantidad }}×</span>
+              <span class="plato">
+                {{ d.platilloNombre }}
+                @if (d.excepcionesNota) {
+                  <span class="nota">{{ d.excepcionesNota }}</span>
+                }
+              </span>
+              <span class="importe cifra">S/ {{ d.montoSubtotal | number: '1.2-2' }}</span>
+            </li>
+          }
+        </ul>
+
+        <dl class="totales">
+          <div>
+            <dt>Subtotal</dt>
+            <dd class="cifra">S/ {{ o.montoSubtotal | number: '1.2-2' }}</dd>
+          </div>
+          @if ((o.montoDescuento ?? 0) > 0) {
+            <div>
+              <dt>Descuento</dt>
+              <dd class="cifra">− S/ {{ o.montoDescuento | number: '1.2-2' }}</dd>
+            </div>
+          }
+          <div class="grande">
+            <dt>Total</dt>
+            <dd class="cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</dd>
+          </div>
+        </dl>
+
+        @if (o.estado === 'ENTREGADO') {
+          <div class="cobro">
+            <label for="entregado">Efectivo recibido</label>
+            <div class="entrada">
+              <input
+                id="entregado"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.10"
+                placeholder="0.00"
+                [value]="entregado() ?? ''"
+                (input)="anotarEntregado($any($event.target).value)"
+              />
+              <button type="button" class="secundario" (click)="importeExacto()">Exacto</button>
+            </div>
+
+            <!-- Se compara contra null y no con la verdad del numero: el pago
+                 justo da vuelto 0, y `@if (vuelto())` lo habria escondido justo
+                 en el caso mas comun. -->
+            @if (vuelto() !== null) {
+              @if ((vuelto() ?? 0) >= 0) {
+                <p class="vuelto">
+                  Vuelto <strong class="cifra">S/ {{ vuelto() | number: '1.2-2' }}</strong>
+                </p>
+              } @else {
+                <!-- El backend responde 400 si lo entregado no cubre el cobro;
+                     mejor decirlo aqui que dejar que lo diga un error. -->
+                <p class="falta" role="alert">
+                  Faltan <strong class="cifra">S/ {{ -(vuelto() ?? 0) | number: '1.2-2' }}</strong>
+                </p>
+              }
+            }
+
+            <button type="button" (click)="cobrar()" [disabled]="!puedeCobrar()">
+              {{ cobrando() ? 'Cobrando…' : 'Cobrar en efectivo' }}
+            </button>
+          </div>
+        } @else if (o.estado === 'PAGADO') {
+          <div class="cobro">
+            @if (ultimoVuelto() !== null) {
+              <p class="vuelto">
+                Vuelto entregado <strong class="cifra">S/ {{ ultimoVuelto() | number: '1.2-2' }}</strong>
+              </p>
+            }
+            <p class="pagada">Cobrada. Falta cerrar el ciclo y liberar la mesa.</p>
+            <button type="button" (click)="cerrarCiclo()" [disabled]="!puedeCerrar()">
+              {{ cobrando() ? 'Cerrando…' : 'Cerrar comanda' }}
+            </button>
+          </div>
+        }
+
+        <button type="button" class="secundario" (click)="cerrarCuenta()">Dejar esta cuenta</button>
+      } @else {
+        <p class="vacio">Elige una comanda entregada para cobrarla.</p>
+      }
+    </section>
+  </div>
+
+  <!-- -------------------------------------------------------------------- -->
+  @if (arqueo(); as a) {
+    <section class="bloque">
+      <h2>Arqueo del dia</h2>
+
+      <div class="arqueo">
+        <div class="grueso">
+          <span class="dato cifra">S/ {{ a.totalCobrado | number: '1.2-2' }}</span>
+          <span class="rotulo">Cobrado · {{ a.cantidadPagos }} pagos</span>
+        </div>
+
+        <ul class="metodos">
+          @for (m of a.porMetodo; track m.tipoPago) {
+            <li>
+              <span class="rotulo">{{ m.tipoPago }}</span>
+              <span class="cifra">S/ {{ m.total | number: '1.2-2' }}</span>
+              <span class="rotulo">{{ m.cantidad }} pagos</span>
+            </li>
+          } @empty {
+            <li class="vacio">Todavia no se cobro nada hoy.</li>
+          }
+        </ul>
+      </div>
+    </section>
+  }
+</section>

@@ -1,0 +1,7232 @@
+{
+  "components": {
+    "schemas": {
+      "ActualizarTrabajadorRequestDto": {
+        "properties": {
+          "apellidos": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cargoId": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "celular": {
+            "type": "string"
+          },
+          "correo": {
+            "format": "email",
+            "type": "string"
+          },
+          "nombres": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "apellidos",
+          "cargoId",
+          "nombres"
+        ],
+        "type": "object"
+      },
+      "AlertaFraudeRequestDto": {
+        "properties": {
+          "bloquearCliente": {
+            "type": "boolean"
+          },
+          "motivo": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "puntosRiesgo": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "motivo"
+        ],
+        "type": "object"
+      },
+      "AplicarPromocionRequestDto": {
+        "properties": {
+          "cuponCodigo": {
+            "type": "string"
+          },
+          "promocionId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ArqueoCajaDto": {
+        "properties": {
+          "cantidadPagos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "desde": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "hasta": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "porMetodo": {
+            "items": {
+              "$ref": "#/components/schemas/PorMetodo"
+            },
+            "type": "array"
+          },
+          "totalCobrado": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "AsignarDeliveryRequestDto": {
+        "properties": {
+          "tiempoEstimadoMinutos": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "transportistaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "vehiculoId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transportistaId",
+          "vehiculoId"
+        ],
+        "type": "object"
+      },
+      "AuthResponseDto": {
+        "properties": {
+          "apellidos": {
+            "type": "string"
+          },
+          "cargo": {
+            "type": "string"
+          },
+          "celular": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "dni": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "nombres": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "BootstrapAdminRequestDto": {
+        "properties": {
+          "apellidos": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "celular": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "correo": {
+            "format": "email",
+            "minLength": 1,
+            "type": "string"
+          },
+          "dni": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "nombres": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 2147483647,
+            "minLength": 8,
+            "type": "string"
+          },
+          "username": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "apellidos",
+          "celular",
+          "correo",
+          "dni",
+          "nombres",
+          "password",
+          "username"
+        ],
+        "type": "object"
+      },
+      "CambioEstadoRequestDto": {
+        "properties": {
+          "estado": {
+            "enum": [
+              "ENCOLADO",
+              "EN_PREPARACION",
+              "EN_DESPACHO",
+              "ENTREGADO",
+              "PAGADO",
+              "CONCLUIDO",
+              "CANCELADO",
+              "FRAUDULENTO"
+            ],
+            "type": "string"
+          },
+          "observacion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "estado"
+        ],
+        "type": "object"
+      },
+      "CancelarOrdenRequestDto": {
+        "properties": {
+          "motivo": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "reponerStock": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "motivo"
+        ],
+        "type": "object"
+      },
+      "CargoResponseDto": {
+        "properties": {
+          "descripcion": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "rolesNombres": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "CategoriaRequestDto": {
+        "properties": {
+          "descripcion": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre"
+        ],
+        "type": "object"
+      },
+      "CategoriaResponseDto": {
+        "properties": {
+          "descripcion": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ClienteAnonimoRequestDto": {
+        "properties": {
+          "celular": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "direccionHabitual": {
+            "type": "string"
+          },
+          "nombreReferencia": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ClienteRequestDto": {
+        "properties": {
+          "apellidos": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "celular": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "correo": {
+            "format": "email",
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "direccionHabitual": {
+            "type": "string"
+          },
+          "dni": {
+            "maxLength": 15,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nombres": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "tipoCliente": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "apellidos",
+          "dni",
+          "nombres"
+        ],
+        "type": "object"
+      },
+      "ClienteResponseDto": {
+        "properties": {
+          "apellidos": {
+            "type": "string"
+          },
+          "bloqueadoPorFraude": {
+            "type": "boolean"
+          },
+          "celular": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "direccionHabitual": {
+            "type": "string"
+          },
+          "dni": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombreCompleto": {
+            "type": "string"
+          },
+          "nombres": {
+            "type": "string"
+          },
+          "puntosFidelidad": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "scoreFraude": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "tipoCliente": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ComandaKdsDto": {
+        "properties": {
+          "correlativo": {
+            "type": "string"
+          },
+          "estado": {
+            "enum": [
+              "ENCOLADO",
+              "EN_PREPARACION",
+              "EN_DESPACHO",
+              "ENTREGADO",
+              "PAGADO",
+              "CONCLUIDO",
+              "CANCELADO",
+              "FRAUDULENTO"
+            ],
+            "type": "string"
+          },
+          "flagCierrePlatillo": {
+            "type": "boolean"
+          },
+          "fueraDeObjetivo": {
+            "type": "boolean"
+          },
+          "lineas": {
+            "items": {
+              "$ref": "#/components/schemas/LineaKds"
+            },
+            "type": "array"
+          },
+          "mesaNumero": {
+            "type": "string"
+          },
+          "minutosEnCola": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "ordenId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recibida": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tipoOrden": {
+            "enum": [
+              "MESA",
+              "RETIRO_LOCAL",
+              "DELIVERY"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ComplementoDetalleDto": {
+        "properties": {
+          "cantidad": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "complementoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precioVentaComplemento": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "ComplementoItemDto": {
+        "properties": {
+          "cantidad": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "complementoId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "complementoId"
+        ],
+        "type": "object"
+      },
+      "ComplementoRequestDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "insumoAsociadoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "precioAdicional": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          },
+          "tipoComplemento": {
+            "enum": [
+              "BEBIDA",
+              "HELADO",
+              "CERVEZA",
+              "JUGO",
+              "SALSAS",
+              "OTROS"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre",
+          "precioAdicional",
+          "tipoComplemento"
+        ],
+        "type": "object"
+      },
+      "ComplementoResponseDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoAsociadoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoAsociadoNombre": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precioAdicional": {
+            "type": "number"
+          },
+          "tipoComplemento": {
+            "enum": [
+              "BEBIDA",
+              "HELADO",
+              "CERVEZA",
+              "JUGO",
+              "SALSAS",
+              "OTROS"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ConfiguracionLocalDto": {
+        "properties": {
+          "calificacionesParaCupon": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "diasVigenciaCupon": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minutosObjetivoCocina": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "porcentajeDescuentoCupon": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "ConteoFisicoRequestDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemConteo"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "observacion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "ConteoFisicoResponseDto": {
+        "properties": {
+          "descuadres": {
+            "items": {
+              "$ref": "#/components/schemas/Descuadre"
+            },
+            "type": "array"
+          },
+          "insumosAjustados": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "insumosContados": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CrearCargoRequestDto": {
+        "properties": {
+          "descripcion": {
+            "type": "string"
+          },
+          "nombre": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "rolIds": {
+            "items": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "nombre"
+        ],
+        "type": "object"
+      },
+      "CrearOrdenRequestDto": {
+        "properties": {
+          "canalOrigen": {
+            "enum": [
+              "POS",
+              "WHATSAPP_BOT",
+              "WEB"
+            ],
+            "type": "string"
+          },
+          "clienteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "cuponCodigo": {
+            "type": "string"
+          },
+          "direccionDelivery": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOrdenRequestDto"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "mesaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "promocionId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "tipoOrden": {
+            "enum": [
+              "MESA",
+              "RETIRO_LOCAL",
+              "DELIVERY"
+            ],
+            "type": "string"
+          },
+          "tipoPago": {
+            "enum": [
+              "EFECTIVO",
+              "E_WALLET",
+              "TARJETA"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "tipoOrden",
+          "tipoPago"
+        ],
+        "type": "object"
+      },
+      "CuponResponseDto": {
+        "properties": {
+          "clienteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "estado": {
+            "enum": [
+              "VIGENTE",
+              "CANJEADO",
+              "VENCIDO",
+              "ANULADO"
+            ],
+            "type": "string"
+          },
+          "fechaEmision": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fechaVencimiento": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "montoDescuento": {
+            "type": "number"
+          },
+          "porcentajeDescuento": {
+            "type": "number"
+          },
+          "vigente": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "DeliveryInfoDto": {
+        "properties": {
+          "direccionDelivery": {
+            "type": "string"
+          },
+          "estadoOrden": {
+            "enum": [
+              "ENCOLADO",
+              "EN_PREPARACION",
+              "EN_DESPACHO",
+              "ENTREGADO",
+              "PAGADO",
+              "CONCLUIDO",
+              "CANCELADO",
+              "FRAUDULENTO"
+            ],
+            "type": "string"
+          },
+          "horaDespacho": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "horaEntrega": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "minutosEnRuta": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "ordenId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "otpVerificado": {
+            "type": "boolean"
+          },
+          "placaVehiculo": {
+            "type": "string"
+          },
+          "tiempoEstimadoMinutos": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "transportistaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "transportistaNombre": {
+            "type": "string"
+          },
+          "transportistaTelefono": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Descuadre": {
+        "properties": {
+          "diferencia": {
+            "type": "number"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoNombre": {
+            "type": "string"
+          },
+          "stockContado": {
+            "type": "number"
+          },
+          "stockSistema": {
+            "type": "number"
+          },
+          "unidadMedida": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DisponibilidadRequestDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemDisponibilidad"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "DisponibilidadResponseDto": {
+        "properties": {
+          "disponible": {
+            "type": "boolean"
+          },
+          "faltantes": {
+            "items": {
+              "$ref": "#/components/schemas/Faltante"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "EmpresaRequestDto": {
+        "properties": {
+          "celular": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "direccionFiscal": {
+            "type": "string"
+          },
+          "razonSocial": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "ruc": {
+            "minLength": 1,
+            "pattern": "\\d{11}",
+            "type": "string"
+          }
+        },
+        "required": [
+          "razonSocial",
+          "ruc"
+        ],
+        "type": "object"
+      },
+      "EmpresaResponseDto": {
+        "properties": {
+          "celular": {
+            "type": "string"
+          },
+          "direccionFiscal": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "razonSocial": {
+            "type": "string"
+          },
+          "ruc": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Faltante": {
+        "properties": {
+          "disponible": {
+            "type": "number"
+          },
+          "faltante": {
+            "type": "number"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoNombre": {
+            "type": "string"
+          },
+          "requerido": {
+            "type": "number"
+          },
+          "unidadMedida": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "FeedbackRequestDto": {
+        "properties": {
+          "comentario": {
+            "type": "string"
+          },
+          "puntajeAtencion": {
+            "format": "int32",
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "puntajeComida": {
+            "format": "int32",
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "puntajeLugar": {
+            "format": "int32",
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "puntajeAtencion",
+          "puntajeComida",
+          "puntajeLugar"
+        ],
+        "type": "object"
+      },
+      "FeedbackResponseDto": {
+        "properties": {
+          "clienteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "comentario": {
+            "type": "string"
+          },
+          "cuponGenerado": {
+            "$ref": "#/components/schemas/CuponResponseDto"
+          },
+          "fecha": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "mensajeFidelizacion": {
+            "type": "string"
+          },
+          "ordenId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "promedio": {
+            "format": "double",
+            "type": "number"
+          },
+          "puntajeAtencion": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "puntajeComida": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "puntajeLugar": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "FidelizacionDto": {
+        "properties": {
+          "calificacionesFaltantes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "calificacionesRealizadas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "calificacionesRequeridas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "clienteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "cuponesVigentes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "puntosFidelidad": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "FlagsRequestDto": {
+        "properties": {
+          "cierreDespacho": {
+            "type": "boolean"
+          },
+          "cierrePlatillo": {
+            "type": "boolean"
+          },
+          "cierreRecepcion": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "InsumoRequestDto": {
+        "properties": {
+          "nombre": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "stockMinimo": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          },
+          "tipoInsumo": {
+            "enum": [
+              "COCIDO",
+              "NO_COCIDO"
+            ],
+            "type": "string"
+          },
+          "unidadMedida": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre",
+          "tipoInsumo",
+          "unidadMedida"
+        ],
+        "type": "object"
+      },
+      "InsumoResponseDto": {
+        "properties": {
+          "bajoMinimo": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "stockActual": {
+            "type": "number"
+          },
+          "stockMinimo": {
+            "type": "number"
+          },
+          "tipoInsumo": {
+            "enum": [
+              "COCIDO",
+              "NO_COCIDO"
+            ],
+            "type": "string"
+          },
+          "unidadMedida": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ItemConteo": {
+        "properties": {
+          "cantidadContada": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cantidadContada",
+          "insumoId"
+        ],
+        "type": "object"
+      },
+      "ItemDisponibilidad": {
+        "properties": {
+          "cantidad": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "complementoIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "platilloId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cantidad",
+          "platilloId"
+        ],
+        "type": "object"
+      },
+      "ItemOrdenRequestDto": {
+        "properties": {
+          "cantidad": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "complementos": {
+            "items": {
+              "$ref": "#/components/schemas/ComplementoItemDto"
+            },
+            "type": "array"
+          },
+          "excepcionesNota": {
+            "type": "string"
+          },
+          "platilloId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cantidad",
+          "platilloId"
+        ],
+        "type": "object"
+      },
+      "KpisCocinaDto": {
+        "properties": {
+          "comandasEnCola": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "comandasEnPreparacion": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "comandasFueraDeObjetivo": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "minutosObjetivo": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "minutosPromedioCocina": {
+            "format": "double",
+            "type": "number"
+          },
+          "minutosPromedioDespacho": {
+            "format": "double",
+            "type": "number"
+          },
+          "minutosPromedioRecepcion": {
+            "format": "double",
+            "type": "number"
+          },
+          "minutosPromedioTotal": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "LineaKds": {
+        "properties": {
+          "cantidad": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "complementos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "detalleId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nota": {
+            "type": "string"
+          },
+          "platillo": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "LineaTicket": {
+        "properties": {
+          "cantidad": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "complementos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "nota": {
+            "type": "string"
+          },
+          "platillo": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "LoginRequestDto": {
+        "properties": {
+          "password": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "usernameOrEmail": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "password",
+          "usernameOrEmail"
+        ],
+        "type": "object"
+      },
+      "MensajeDto": {
+        "properties": {
+          "mensaje": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MesaRequestDto": {
+        "properties": {
+          "activa": {
+            "type": "boolean"
+          },
+          "capacidad": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "numero": {
+            "maxLength": 10,
+            "minLength": 0,
+            "type": "string"
+          },
+          "zona": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "numero"
+        ],
+        "type": "object"
+      },
+      "MesaResponseDto": {
+        "properties": {
+          "activa": {
+            "type": "boolean"
+          },
+          "capacidad": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "estado": {
+            "enum": [
+              "LIBRE",
+              "OCUPADA",
+              "RESERVADA",
+              "INHABILITADA"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "numero": {
+            "type": "string"
+          },
+          "reservadaANombreDe": {
+            "type": "string"
+          },
+          "reservadaPara": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "zona": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MovimientoRequestDto": {
+        "properties": {
+          "cantidad": {
+            "exclusiveMinimum": false,
+            "minimum": 0.001,
+            "type": "number"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "motivoObservacion": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "tipoControl": {
+            "enum": [
+              "ENTRADA_COMPRA",
+              "TRANSFORMACION_COCIDO",
+              "SALIDA_VENTA",
+              "MERMA_DESPERDICIO",
+              "AJUSTE_AUDITORIA"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "cantidad",
+          "insumoId",
+          "motivoObservacion",
+          "tipoControl"
+        ],
+        "type": "object"
+      },
+      "MovimientoResponseDto": {
+        "properties": {
+          "cantidad": {
+            "type": "number"
+          },
+          "fecha": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoNombre": {
+            "type": "string"
+          },
+          "motivoObservacion": {
+            "type": "string"
+          },
+          "registradoPor": {
+            "type": "string"
+          },
+          "stockAnterior": {
+            "type": "number"
+          },
+          "stockNuevo": {
+            "type": "number"
+          },
+          "tipoControl": {
+            "enum": [
+              "ENTRADA_COMPRA",
+              "TRANSFORMACION_COCIDO",
+              "SALIDA_VENTA",
+              "MERMA_DESPERDICIO",
+              "AJUSTE_AUDITORIA"
+            ],
+            "type": "string"
+          },
+          "trabajadorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "unidadMedida": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MovimientosPorTipo": {
+        "properties": {
+          "cantidadMovimientos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "tipoControl": {
+            "enum": [
+              "ENTRADA_COMPRA",
+              "TRANSFORMACION_COCIDO",
+              "SALIDA_VENTA",
+              "MERMA_DESPERDICIO",
+              "AJUSTE_AUDITORIA"
+            ],
+            "type": "string"
+          },
+          "volumenTotal": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "OrdenDetalleDto": {
+        "properties": {
+          "cantidad": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "complementos": {
+            "items": {
+              "$ref": "#/components/schemas/ComplementoDetalleDto"
+            },
+            "type": "array"
+          },
+          "excepcionesNota": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "montoSubtotal": {
+            "type": "number"
+          },
+          "platilloId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "platilloNombre": {
+            "type": "string"
+          },
+          "precioVentaProducto": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "OrdenResponseDto": {
+        "properties": {
+          "canalOrigen": {
+            "enum": [
+              "POS",
+              "WHATSAPP_BOT",
+              "WEB"
+            ],
+            "type": "string"
+          },
+          "clienteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "clienteNombre": {
+            "type": "string"
+          },
+          "codigoOtpEntrega": {
+            "type": "string"
+          },
+          "cuponCodigo": {
+            "type": "string"
+          },
+          "detalles": {
+            "items": {
+              "$ref": "#/components/schemas/OrdenDetalleDto"
+            },
+            "type": "array"
+          },
+          "direccionDelivery": {
+            "type": "string"
+          },
+          "estado": {
+            "enum": [
+              "ENCOLADO",
+              "EN_PREPARACION",
+              "EN_DESPACHO",
+              "ENTREGADO",
+              "PAGADO",
+              "CONCLUIDO",
+              "CANCELADO",
+              "FRAUDULENTO"
+            ],
+            "type": "string"
+          },
+          "flagCierreDespacho": {
+            "type": "boolean"
+          },
+          "flagCierrePlatillo": {
+            "type": "boolean"
+          },
+          "flagCierreRecepcion": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mesaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mesaNumero": {
+            "type": "string"
+          },
+          "montoDescuento": {
+            "type": "number"
+          },
+          "montoSubtotal": {
+            "type": "number"
+          },
+          "montoTotal": {
+            "type": "number"
+          },
+          "motivoCancelacion": {
+            "type": "string"
+          },
+          "mozoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "promocionNombre": {
+            "type": "string"
+          },
+          "scoringRiesgoOrden": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "tiempoCierreDespacho": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tiempoCierrePlatillo": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tiempoCierreRecepcion": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tiempoFinGlobal": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tiempoInicioCocina": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tiempoInicioGlobal": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tipoOrden": {
+            "enum": [
+              "MESA",
+              "RETIRO_LOCAL",
+              "DELIVERY"
+            ],
+            "type": "string"
+          },
+          "tipoPago": {
+            "enum": [
+              "EFECTIVO",
+              "E_WALLET",
+              "TARJETA"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OrdenResumenDto": {
+        "properties": {
+          "canalOrigen": {
+            "enum": [
+              "POS",
+              "WHATSAPP_BOT",
+              "WEB"
+            ],
+            "type": "string"
+          },
+          "cantidadItems": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "clienteNombre": {
+            "type": "string"
+          },
+          "estado": {
+            "enum": [
+              "ENCOLADO",
+              "EN_PREPARACION",
+              "EN_DESPACHO",
+              "ENTREGADO",
+              "PAGADO",
+              "CONCLUIDO",
+              "CANCELADO",
+              "FRAUDULENTO"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mesaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mesaNumero": {
+            "type": "string"
+          },
+          "minutosTranscurridos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "montoTotal": {
+            "type": "number"
+          },
+          "tiempoInicioGlobal": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tipoOrden": {
+            "enum": [
+              "MESA",
+              "RETIRO_LOCAL",
+              "DELIVERY"
+            ],
+            "type": "string"
+          },
+          "tipoPago": {
+            "enum": [
+              "EFECTIVO",
+              "E_WALLET",
+              "TARJETA"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OutboxEventDto": {
+        "properties": {
+          "aggregateId": {
+            "type": "string"
+          },
+          "aggregateType": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "fecha": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nextRetryAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": {
+              "type": "object"
+            },
+            "type": "object"
+          },
+          "retryCount": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "PENDIENTE",
+              "PROCESADO",
+              "ERROR",
+              "DEAD_LETTER"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoClienteResponseDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/ClienteResponseDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoEmpresaResponseDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/EmpresaResponseDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoInsumoResponseDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/InsumoResponseDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoMovimientoResponseDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/MovimientoResponseDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoOrdenResumenDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/OrdenResumenDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoOutboxEventDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/OutboxEventDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoPlatilloResponseDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/PlatilloResponseDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoTrabajadorResponseDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/TrabajadorResponseDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseDtoTransportistaResponseDto": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/TransportistaResponseDto"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "primera": {
+            "type": "boolean"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ultima": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "Pageable": {
+        "properties": {
+          "page": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "size": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "PagoResponseDto": {
+        "properties": {
+          "esFraudulento": {
+            "type": "boolean"
+          },
+          "estado": {
+            "enum": [
+              "PENDIENTE",
+              "CONFIRMADO",
+              "RECHAZADO",
+              "FRAUDULENTO"
+            ],
+            "type": "string"
+          },
+          "fecha": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "monto": {
+            "type": "number"
+          },
+          "montoEntregado": {
+            "type": "number"
+          },
+          "observacion": {
+            "type": "string"
+          },
+          "ordenId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "referencia": {
+            "type": "string"
+          },
+          "registradoPor": {
+            "type": "string"
+          },
+          "tipoPago": {
+            "enum": [
+              "EFECTIVO",
+              "E_WALLET",
+              "TARJETA"
+            ],
+            "type": "string"
+          },
+          "vuelto": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "PlatilloDisponibleDto": {
+        "properties": {
+          "categoriaId": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "categoriaNombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "disponible": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumosFaltantes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "porcionesPosibles": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "precioVentaBase": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "PlatilloRequestDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "categoriaId": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "precioVentaBase": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "categoriaId",
+          "nombre",
+          "precioVentaBase"
+        ],
+        "type": "object"
+      },
+      "PlatilloResponseDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "categoriaId": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "categoriaNombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precioVentaBase": {
+            "type": "number"
+          },
+          "receta": {
+            "items": {
+              "$ref": "#/components/schemas/RecetaItemDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "PorCanal": {
+        "properties": {
+          "canal": {
+            "enum": [
+              "POS",
+              "WHATSAPP_BOT",
+              "WEB"
+            ],
+            "type": "string"
+          },
+          "cantidadComandas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "PorMetodo": {
+        "properties": {
+          "cantidad": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "tipoPago": {
+            "enum": [
+              "EFECTIVO",
+              "E_WALLET",
+              "TARJETA"
+            ],
+            "type": "string"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "PreferenciasClienteDto": {
+        "properties": {
+          "clienteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notasHabituales": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "platillosFrecuentes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ProductoTopDto": {
+        "properties": {
+          "montoTotal": {
+            "type": "number"
+          },
+          "platillo": {
+            "type": "string"
+          },
+          "unidadesVendidas": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "PromocionRequestDto": {
+        "properties": {
+          "activa": {
+            "type": "boolean"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "fechaFin": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fechaInicio": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "insumoExtraId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "montoDescuento": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          },
+          "nombre": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "porcentajeDescuento": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          "requiereInsumoExtra": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "fechaFin",
+          "fechaInicio",
+          "nombre"
+        ],
+        "type": "object"
+      },
+      "PromocionResponseDto": {
+        "properties": {
+          "activa": {
+            "type": "boolean"
+          },
+          "aplicable": {
+            "type": "boolean"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "fechaFin": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fechaInicio": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoExtraId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoExtraNombre": {
+            "type": "string"
+          },
+          "montoDescuento": {
+            "type": "number"
+          },
+          "motivoNoAplicable": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "porcentajeDescuento": {
+            "type": "number"
+          },
+          "requiereInsumoExtra": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "RecetaItemDto": {
+        "properties": {
+          "cantidadRequerida": {
+            "exclusiveMinimum": false,
+            "minimum": 0.001,
+            "type": "number"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoNombre": {
+            "type": "string"
+          },
+          "unidadMedida": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cantidadRequerida",
+          "insumoId"
+        ],
+        "type": "object"
+      },
+      "RecetaRequestDto": {
+        "properties": {
+          "insumos": {
+            "items": {
+              "$ref": "#/components/schemas/RecetaItemDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "insumos"
+        ],
+        "type": "object"
+      },
+      "RegistrarPagoRequestDto": {
+        "properties": {
+          "confirmado": {
+            "type": "boolean"
+          },
+          "monto": {
+            "exclusiveMinimum": false,
+            "minimum": 0.01,
+            "type": "number"
+          },
+          "montoEntregado": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          },
+          "observacion": {
+            "type": "string"
+          },
+          "referencia": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "tipoPago": {
+            "enum": [
+              "EFECTIVO",
+              "E_WALLET",
+              "TARJETA"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "monto",
+          "tipoPago"
+        ],
+        "type": "object"
+      },
+      "RegistrarTrabajadorRequestDto": {
+        "properties": {
+          "apellidos": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cargoId": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "celular": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "correo": {
+            "format": "email",
+            "type": "string"
+          },
+          "dni": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "nombres": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "password": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "username": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "apellidos",
+          "cargoId",
+          "celular",
+          "dni",
+          "nombres",
+          "password",
+          "username"
+        ],
+        "type": "object"
+      },
+      "ReportarFaltanteRequestDto": {
+        "properties": {
+          "detalle": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detalle",
+          "insumoId"
+        ],
+        "type": "object"
+      },
+      "ReporteSatisfaccionDto": {
+        "properties": {
+          "desde": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "hasta": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "promedioAtencion": {
+            "format": "double",
+            "type": "number"
+          },
+          "promedioComida": {
+            "format": "double",
+            "type": "number"
+          },
+          "promedioGeneral": {
+            "format": "double",
+            "type": "number"
+          },
+          "promedioLugar": {
+            "format": "double",
+            "type": "number"
+          },
+          "totalCalificaciones": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ReporteVentasDto": {
+        "properties": {
+          "desde": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "hasta": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "porCanal": {
+            "items": {
+              "$ref": "#/components/schemas/PorCanal"
+            },
+            "type": "array"
+          },
+          "totalVendido": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "ReservarMesaRequestDto": {
+        "properties": {
+          "anombreDe": {
+            "type": "string"
+          },
+          "para": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "para"
+        ],
+        "type": "object"
+      },
+      "ResumenInventarioDto": {
+        "properties": {
+          "alertas": {
+            "items": {
+              "$ref": "#/components/schemas/InsumoResponseDto"
+            },
+            "type": "array"
+          },
+          "insumosBajoMinimo": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "movimientos": {
+            "items": {
+              "$ref": "#/components/schemas/MovimientosPorTipo"
+            },
+            "type": "array"
+          },
+          "totalInsumos": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "TicketCocinaDto": {
+        "properties": {
+          "clienteNombre": {
+            "type": "string"
+          },
+          "correlativo": {
+            "type": "string"
+          },
+          "emitido": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lineas": {
+            "items": {
+              "$ref": "#/components/schemas/LineaTicket"
+            },
+            "type": "array"
+          },
+          "mesaNumero": {
+            "type": "string"
+          },
+          "ordenId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "tipoOrden": {
+            "enum": [
+              "MESA",
+              "RETIRO_LOCAL",
+              "DELIVERY"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TrabajadorResponseDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "apellidos": {
+            "type": "string"
+          },
+          "cargoNombre": {
+            "type": "string"
+          },
+          "celular": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "dni": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombres": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TransformacionRequestDto": {
+        "properties": {
+          "cantidadConsumida": {
+            "exclusiveMinimum": false,
+            "minimum": 0.001,
+            "type": "number"
+          },
+          "cantidadObtenida": {
+            "exclusiveMinimum": false,
+            "minimum": 0.001,
+            "type": "number"
+          },
+          "insumoDestinoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "insumoOrigenId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "motivoObservacion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cantidadConsumida",
+          "cantidadObtenida",
+          "insumoDestinoId",
+          "insumoOrigenId"
+        ],
+        "type": "object"
+      },
+      "TransportistaRequestDto": {
+        "properties": {
+          "apellidos": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "celular": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "correo": {
+            "format": "email",
+            "type": "string"
+          },
+          "dni": {
+            "maxLength": 15,
+            "minLength": 0,
+            "type": "string"
+          },
+          "empresaTransporte": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nombres": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "apellidos",
+          "celular",
+          "dni",
+          "empresaTransporte",
+          "nombres"
+        ],
+        "type": "object"
+      },
+      "TransportistaResponseDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "apellidos": {
+            "type": "string"
+          },
+          "celular": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "dni": {
+            "type": "string"
+          },
+          "empresaTransporte": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombreCompleto": {
+            "type": "string"
+          },
+          "nombres": {
+            "type": "string"
+          },
+          "vehiculos": {
+            "items": {
+              "$ref": "#/components/schemas/VehiculoResponseDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "VehiculoRequestDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "marcaModelo": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "placa": {
+            "maxLength": 15,
+            "minLength": 0,
+            "type": "string"
+          },
+          "tipoVehiculo": {
+            "enum": [
+              "MOTO",
+              "TAXI_AUTO",
+              "BICICLETA"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "placa",
+          "tipoVehiculo"
+        ],
+        "type": "object"
+      },
+      "VehiculoResponseDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "marcaModelo": {
+            "type": "string"
+          },
+          "placa": {
+            "type": "string"
+          },
+          "tipoVehiculo": {
+            "enum": [
+              "MOTO",
+              "TAXI_AUTO",
+              "BICICLETA"
+            ],
+            "type": "string"
+          },
+          "transportistaId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "VerificarOtpRequestDto": {
+        "properties": {
+          "codigo": {
+            "minLength": 1,
+            "pattern": "\\d{4,6}",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo"
+        ],
+        "type": "object"
+      },
+      "VincularEmpresaRequestDto": {
+        "properties": {
+          "cargoEnEmpresa": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "empresaId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "empresaId"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "API de POS, inventario, comandas, cocina, despacho y caja del sistema de gestion gastronomica Chaquena.",
+    "title": "Backend Logistica - Chaquena",
+    "version": "v1"
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/api/v1/auth/bootstrap": {
+      "post": {
+        "operationId": "bootstrap",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BootstrapAdminRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrabajadorResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear el primer administrador (solo con la tabla de trabajadores vacia)",
+        "tags": [
+          "Autenticacion"
+        ]
+      }
+    },
+    "/api/v1/auth/google": {
+      "post": {
+        "operationId": "autenticarConGoogle",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Autenticacion"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Autenticacion"
+        ]
+      }
+    },
+    "/api/v1/caja/alertas-fraude": {
+      "get": {
+        "operationId": "alertas_1",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PagoResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Bandeja de pagos marcados como fraudulentos",
+        "tags": [
+          "Caja - Arqueo y fraude"
+        ]
+      }
+    },
+    "/api/v1/caja/arqueo": {
+      "get": {
+        "operationId": "arqueo",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArqueoCajaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cierre de caja por metodo de pago en un rango de fechas",
+        "tags": [
+          "Caja - Arqueo y fraude"
+        ]
+      }
+    },
+    "/api/v1/caja/ordenes/{ordenId}/alerta-fraude": {
+      "post": {
+        "operationId": "alertaFraude",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertaFraudeRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Marcar la comanda como fraudulenta y notificar a administracion",
+        "tags": [
+          "Caja - Arqueo y fraude"
+        ]
+      }
+    },
+    "/api/v1/caja/pagos/{pagoId}/confirmar": {
+      "post": {
+        "operationId": "confirmar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pagoId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Confirmar la acreditacion de un pago con billetera o tarjeta",
+        "tags": [
+          "Caja - Arqueo y fraude"
+        ]
+      }
+    },
+    "/api/v1/cargos": {
+      "get": {
+        "operationId": "listarTodos",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CargoResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Cargos"
+        ]
+      },
+      "post": {
+        "operationId": "crear_10",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearCargoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CargoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Cargos"
+        ]
+      }
+    },
+    "/api/v1/cargos/{id}": {
+      "get": {
+        "operationId": "obtenerPorId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CargoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Cargos"
+        ]
+      }
+    },
+    "/api/v1/categorias": {
+      "get": {
+        "operationId": "listar_7",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CategoriaResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar categorias de la carta",
+        "tags": [
+          "Catalogo - Categorias"
+        ]
+      },
+      "post": {
+        "operationId": "crear_9",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoriaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear categoria",
+        "tags": [
+          "Catalogo - Categorias"
+        ]
+      }
+    },
+    "/api/v1/categorias/{id}": {
+      "delete": {
+        "operationId": "eliminar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Eliminar categoria sin platillos asociados",
+        "tags": [
+          "Catalogo - Categorias"
+        ]
+      },
+      "get": {
+        "operationId": "obtener_7",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Obtener categoria por id",
+        "tags": [
+          "Catalogo - Categorias"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_8",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoriaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar categoria",
+        "tags": [
+          "Catalogo - Categorias"
+        ]
+      }
+    },
+    "/api/v1/clientes": {
+      "get": {
+        "operationId": "listar_6",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoClienteResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listado paginado de clientes",
+        "tags": [
+          "Clientes"
+        ]
+      },
+      "post": {
+        "operationId": "crear_8",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClienteRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClienteResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar cliente identificado",
+        "tags": [
+          "Clientes"
+        ]
+      }
+    },
+    "/api/v1/clientes/anonimo": {
+      "post": {
+        "operationId": "crearAnonimo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClienteAnonimoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClienteResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar cliente que no desea identificarse (documento provisional)",
+        "tags": [
+          "Clientes"
+        ]
+      }
+    },
+    "/api/v1/clientes/buscar": {
+      "get": {
+        "operationId": "buscar_3",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClienteResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Busqueda rapida por telefono, documento, nombre o correo",
+        "tags": [
+          "Clientes"
+        ]
+      }
+    },
+    "/api/v1/clientes/{clienteId}/cupones": {
+      "get": {
+        "operationId": "cupones",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "clienteId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CuponResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cupones del cliente",
+        "tags": [
+          "Feedback y fidelizacion"
+        ]
+      }
+    },
+    "/api/v1/clientes/{clienteId}/fidelizacion": {
+      "get": {
+        "operationId": "progreso",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "clienteId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FidelizacionDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cuantas calificaciones lleva el cliente y cuantas le faltan",
+        "tags": [
+          "Feedback y fidelizacion"
+        ]
+      }
+    },
+    "/api/v1/clientes/{id}": {
+      "get": {
+        "operationId": "obtener_6",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClienteResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Ficha del cliente",
+        "tags": [
+          "Clientes"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_7",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClienteRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClienteResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar datos del cliente",
+        "tags": [
+          "Clientes"
+        ]
+      }
+    },
+    "/api/v1/clientes/{id}/bloqueo-fraude": {
+      "patch": {
+        "operationId": "bloqueoFraude",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "bloqueado",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "motivo",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClienteResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Bloquear o desbloquear al cliente por fraude",
+        "tags": [
+          "Clientes"
+        ]
+      }
+    },
+    "/api/v1/clientes/{id}/empresas": {
+      "get": {
+        "operationId": "empresas",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EmpresaResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Empresas a cuyo nombre el cliente pide factura",
+        "tags": [
+          "Clientes"
+        ]
+      },
+      "post": {
+        "operationId": "vincularEmpresa",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VincularEmpresaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmpresaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Vincular el cliente con una empresa",
+        "tags": [
+          "Clientes"
+        ]
+      }
+    },
+    "/api/v1/clientes/{id}/ordenes": {
+      "get": {
+        "operationId": "ordenes",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrdenResumenDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Historial de comandas del cliente",
+        "tags": [
+          "Clientes"
+        ]
+      }
+    },
+    "/api/v1/clientes/{id}/preferencias": {
+      "get": {
+        "operationId": "preferencias",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferenciasClienteDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Notas de excepcion de comandas anteriores del cliente",
+        "tags": [
+          "Clientes"
+        ]
+      }
+    },
+    "/api/v1/complementos": {
+      "get": {
+        "operationId": "listar_5",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tipo",
+            "required": false,
+            "schema": {
+              "enum": [
+                "BEBIDA",
+                "HELADO",
+                "CERVEZA",
+                "JUGO",
+                "SALSAS",
+                "OTROS"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "soloActivos",
+            "required": false,
+            "schema": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ComplementoResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar complementos, opcionalmente por tipo",
+        "tags": [
+          "Catalogo - Complementos"
+        ]
+      },
+      "post": {
+        "operationId": "crear_7",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComplementoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplementoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear complemento",
+        "tags": [
+          "Catalogo - Complementos"
+        ]
+      }
+    },
+    "/api/v1/complementos/{id}": {
+      "get": {
+        "operationId": "obtener_5",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplementoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Obtener complemento por id",
+        "tags": [
+          "Catalogo - Complementos"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_6",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComplementoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplementoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar complemento",
+        "tags": [
+          "Catalogo - Complementos"
+        ]
+      }
+    },
+    "/api/v1/complementos/{id}/activo": {
+      "patch": {
+        "operationId": "cambiarActivo_3",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activo",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplementoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Habilitar o deshabilitar complemento",
+        "tags": [
+          "Catalogo - Complementos"
+        ]
+      }
+    },
+    "/api/v1/configuracion": {
+      "get": {
+        "operationId": "configuracion",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfiguracionLocalDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Parametros del local: umbral N, descuento y objetivo de cocina",
+        "tags": [
+          "Feedback y fidelizacion"
+        ]
+      },
+      "put": {
+        "operationId": "actualizarConfiguracion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfiguracionLocalDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfiguracionLocalDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar los parametros del local",
+        "tags": [
+          "Feedback y fidelizacion"
+        ]
+      }
+    },
+    "/api/v1/cupones/{codigo}/canjear": {
+      "post": {
+        "operationId": "canjear",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "codigo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CuponResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Canjear cupon contra una comanda",
+        "tags": [
+          "Feedback y fidelizacion"
+        ]
+      }
+    },
+    "/api/v1/delivery/tablero": {
+      "get": {
+        "operationId": "tablero",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DeliveryInfoDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Pedidos en ruta con transportista y tiempo transcurrido",
+        "tags": [
+          "Despacho - Reparto"
+        ]
+      }
+    },
+    "/api/v1/empresas": {
+      "get": {
+        "operationId": "listar_4",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoEmpresaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar empresas, opcionalmente filtrando por razon social",
+        "tags": [
+          "Clientes - Empresas"
+        ]
+      },
+      "post": {
+        "operationId": "crear_6",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmpresaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmpresaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar empresa",
+        "tags": [
+          "Clientes - Empresas"
+        ]
+      }
+    },
+    "/api/v1/empresas/ruc/{ruc}": {
+      "get": {
+        "operationId": "porRuc",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ruc",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmpresaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Buscar empresa por RUC",
+        "tags": [
+          "Clientes - Empresas"
+        ]
+      }
+    },
+    "/api/v1/insumos": {
+      "get": {
+        "operationId": "buscar_2",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tipo",
+            "required": false,
+            "schema": {
+              "enum": [
+                "COCIDO",
+                "NO_COCIDO"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "bajoMinimo",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoInsumoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar insumos con filtros por tipo, texto y bajo minimo",
+        "tags": [
+          "Inventario - Insumos"
+        ]
+      },
+      "post": {
+        "operationId": "crear_5",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsumoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsumoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear insumo (nace con stock cero)",
+        "tags": [
+          "Inventario - Insumos"
+        ]
+      }
+    },
+    "/api/v1/insumos/alertas": {
+      "get": {
+        "operationId": "alertas",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InsumoResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Insumos en o por debajo del stock minimo",
+        "tags": [
+          "Inventario - Insumos"
+        ]
+      }
+    },
+    "/api/v1/insumos/{id}": {
+      "get": {
+        "operationId": "obtener_4",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsumoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Obtener insumo por id",
+        "tags": [
+          "Inventario - Insumos"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_5",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsumoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsumoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar datos maestros del insumo (no mueve stock)",
+        "tags": [
+          "Inventario - Insumos"
+        ]
+      }
+    },
+    "/api/v1/inventario/conteo-fisico": {
+      "post": {
+        "operationId": "conteoFisico",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConteoFisicoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConteoFisicoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Conteo de cierre: ajusta el sistema a lo contado en almacen",
+        "tags": [
+          "Inventario - Movimientos"
+        ]
+      }
+    },
+    "/api/v1/inventario/disponibilidad": {
+      "post": {
+        "operationId": "disponibilidad",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisponibilidadRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisponibilidadResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Verifica si un carrito propuesto se puede preparar con el stock actual",
+        "tags": [
+          "Inventario - Movimientos"
+        ]
+      }
+    },
+    "/api/v1/inventario/kardex/{insumoId}": {
+      "get": {
+        "operationId": "kardex",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "insumoId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoMovimientoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Historial de movimientos de un insumo",
+        "tags": [
+          "Inventario - Movimientos"
+        ]
+      }
+    },
+    "/api/v1/inventario/movimientos": {
+      "post": {
+        "operationId": "registrar_3",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MovimientoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovimientoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar entrada por compra o merma",
+        "tags": [
+          "Inventario - Movimientos"
+        ]
+      }
+    },
+    "/api/v1/inventario/resumen": {
+      "get": {
+        "operationId": "resumen",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumenInventarioDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Indicadores de inventario para el panel",
+        "tags": [
+          "Inventario - Movimientos"
+        ]
+      }
+    },
+    "/api/v1/inventario/transformaciones": {
+      "post": {
+        "operationId": "transformar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransformacionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MovimientoResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cocinar: consume insumo crudo y acredita el cocido resultante",
+        "tags": [
+          "Inventario - Movimientos"
+        ]
+      }
+    },
+    "/api/v1/kds/cola": {
+      "get": {
+        "operationId": "cola",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ComandaKdsDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cola de comandas por orden de llegada con tiempo transcurrido",
+        "tags": [
+          "Cocina (KDS)"
+        ]
+      }
+    },
+    "/api/v1/kds/detalles/{detalleId}/listo": {
+      "patch": {
+        "operationId": "detalleListo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "detalleId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Marcar un platillo suelto como listo en comandas que salen por partes",
+        "tags": [
+          "Cocina (KDS)"
+        ]
+      }
+    },
+    "/api/v1/kds/kpis": {
+      "get": {
+        "operationId": "kpis",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KpisCocinaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Tiempos promedio por etapa: recepcion, cocina y despacho",
+        "tags": [
+          "Cocina (KDS)"
+        ]
+      }
+    },
+    "/api/v1/kds/ordenes/{id}/listo": {
+      "patch": {
+        "operationId": "listo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Comanda completa: cierra el cronometro de platillo",
+        "tags": [
+          "Cocina (KDS)"
+        ]
+      }
+    },
+    "/api/v1/kds/ordenes/{id}/reportar-faltante": {
+      "post": {
+        "operationId": "reportarFaltante",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportarFaltanteRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Avisar al mozo que un insumo no alcanza para la comanda",
+        "tags": [
+          "Cocina (KDS)"
+        ]
+      }
+    },
+    "/api/v1/kds/ordenes/{id}/tomar": {
+      "patch": {
+        "operationId": "tomar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cocina toma la comanda y arranca el cronometro de preparacion",
+        "tags": [
+          "Cocina (KDS)"
+        ]
+      }
+    },
+    "/api/v1/mesas": {
+      "get": {
+        "operationId": "mapa",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MesaResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Mapa del salon: mesas activas con su estado, por zona",
+        "tags": [
+          "Salon - Mesas"
+        ]
+      },
+      "post": {
+        "operationId": "crear_4",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MesaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MesaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear mesa",
+        "tags": [
+          "Salon - Mesas"
+        ]
+      }
+    },
+    "/api/v1/mesas/{id}": {
+      "get": {
+        "operationId": "obtener_3",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MesaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Obtener mesa por id",
+        "tags": [
+          "Salon - Mesas"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_4",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MesaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MesaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar mesa",
+        "tags": [
+          "Salon - Mesas"
+        ]
+      }
+    },
+    "/api/v1/mesas/{id}/estado": {
+      "patch": {
+        "operationId": "cambiarEstado_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "estado",
+            "required": true,
+            "schema": {
+              "enum": [
+                "LIBRE",
+                "OCUPADA",
+                "RESERVADA",
+                "INHABILITADA"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MesaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cambiar el estado de la mesa",
+        "tags": [
+          "Salon - Mesas"
+        ]
+      }
+    },
+    "/api/v1/mesas/{id}/liberar": {
+      "post": {
+        "operationId": "liberar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MesaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Liberar la mesa",
+        "tags": [
+          "Salon - Mesas"
+        ]
+      }
+    },
+    "/api/v1/mesas/{id}/reservar": {
+      "post": {
+        "operationId": "reservar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservarMesaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MesaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Reservar la mesa a nombre de alguien",
+        "tags": [
+          "Salon - Mesas"
+        ]
+      }
+    },
+    "/api/v1/ordenes": {
+      "get": {
+        "operationId": "buscar_1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "estado",
+            "required": false,
+            "schema": {
+              "enum": [
+                "ENCOLADO",
+                "EN_PREPARACION",
+                "EN_DESPACHO",
+                "ENTREGADO",
+                "PAGADO",
+                "CONCLUIDO",
+                "CANCELADO",
+                "FRAUDULENTO"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "canal",
+            "required": false,
+            "schema": {
+              "enum": [
+                "POS",
+                "WHATSAPP_BOT",
+                "WEB"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tipoOrden",
+            "required": false,
+            "schema": {
+              "enum": [
+                "MESA",
+                "RETIRO_LOCAL",
+                "DELIVERY"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "clienteId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mesaNumero",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoOrdenResumenDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar comandas con filtros y paginacion",
+        "tags": [
+          "Comandas"
+        ]
+      },
+      "post": {
+        "operationId": "crear_3",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearOrdenRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear comanda: valida stock, descuenta insumos y emite evento de facturacion",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/activas": {
+      "get": {
+        "operationId": "activas",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrdenResumenDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Comandas abiertas, para el mapa de mesas y el tablero del salon",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{id}": {
+      "get": {
+        "operationId": "obtener_10",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Detalle completo de la comanda",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{id}/cancelar": {
+      "post": {
+        "operationId": "cancelar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelarOrdenRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cancelar con motivo obligatorio y reponer los insumos",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{id}/detalles": {
+      "post": {
+        "operationId": "agregarDetalle",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemOrdenRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Agregar platillo a una comanda todavia en recepcion",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{id}/detalles/{detalleId}": {
+      "delete": {
+        "operationId": "eliminarDetalle",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "detalleId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Quitar platillo y devolver sus insumos al stock",
+        "tags": [
+          "Comandas"
+        ]
+      },
+      "put": {
+        "operationId": "actualizarDetalle",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "detalleId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemOrdenRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cambiar cantidad, complementos o nota de una linea",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{id}/estado": {
+      "patch": {
+        "operationId": "cambiarEstado",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambioEstadoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Transicion de estado validada contra la maquina de estados",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{id}/flags": {
+      "patch": {
+        "operationId": "flags",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlagsRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cerrar etapa de recepcion, platillo o despacho con su marca de tiempo",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{id}/promociones": {
+      "get": {
+        "operationId": "promociones",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PromocionResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Promociones aplicables a esta comanda, con el stock del extra ya validado",
+        "tags": [
+          "Comandas"
+        ]
+      },
+      "post": {
+        "operationId": "aplicarPromocion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AplicarPromocionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Aplicar o descartar promocion y cupon, recalculando el total",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{id}/ticket": {
+      "get": {
+        "operationId": "ticket",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketCocinaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Payload de impresion de la comanda de cocina",
+        "tags": [
+          "Comandas"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{ordenId}/delivery/asignar": {
+      "post": {
+        "operationId": "asignar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsignarDeliveryRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryInfoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Asignar transportista y vehiculo, y fijar el tiempo estimado",
+        "tags": [
+          "Despacho - Reparto"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{ordenId}/delivery/despachar": {
+      "post": {
+        "operationId": "despachar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryInfoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Sale a ruta: sella la hora y avisa al cliente por WhatsApp",
+        "tags": [
+          "Despacho - Reparto"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{ordenId}/delivery/otp/reenviar": {
+      "post": {
+        "operationId": "reenviarOtp",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Reenviar el codigo de entrega al cliente",
+        "tags": [
+          "Despacho - Reparto"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{ordenId}/delivery/otp/verificar": {
+      "post": {
+        "operationId": "verificarOtp",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificarOtpRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryInfoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Verificar el codigo que dicta el cliente: unica via para marcar entregado",
+        "tags": [
+          "Despacho - Reparto"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{ordenId}/feedback": {
+      "get": {
+        "operationId": "obtener_8",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Calificacion de una comanda",
+        "tags": [
+          "Feedback y fidelizacion"
+        ]
+      },
+      "post": {
+        "operationId": "registrar_2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar calificacion y evaluar la regla de las N calificaciones",
+        "tags": [
+          "Feedback y fidelizacion"
+        ]
+      }
+    },
+    "/api/v1/ordenes/{ordenId}/pagos": {
+      "get": {
+        "operationId": "listar_3",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PagoResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Pagos de la comanda, incluidos los intentos pendientes",
+        "tags": [
+          "Caja - Pagos"
+        ]
+      },
+      "post": {
+        "operationId": "registrar_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ordenId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrarPagoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar cobro (efectivo con vuelto, billetera o tarjeta con referencia)",
+        "tags": [
+          "Caja - Pagos"
+        ]
+      }
+    },
+    "/api/v1/outbox/eventos": {
+      "get": {
+        "operationId": "listar_8",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "enum": [
+                "PENDIENTE",
+                "PROCESADO",
+                "ERROR",
+                "DEAD_LETTER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoOutboxEventDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Eventos por estado, para ver que no llego a facturacion",
+        "tags": [
+          "Outbox"
+        ]
+      }
+    },
+    "/api/v1/outbox/eventos/{id}": {
+      "get": {
+        "operationId": "obtener_9",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutboxEventDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Detalle del evento con su payload completo",
+        "tags": [
+          "Outbox"
+        ]
+      }
+    },
+    "/api/v1/outbox/eventos/{id}/reintentar": {
+      "post": {
+        "operationId": "reintentar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutboxEventDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Devolver a la cola un evento en error o en cola muerta",
+        "tags": [
+          "Outbox"
+        ]
+      }
+    },
+    "/api/v1/outbox/salud": {
+      "get": {
+        "operationId": "salud",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Conteo de eventos por estado",
+        "tags": [
+          "Outbox"
+        ]
+      }
+    },
+    "/api/v1/platillos": {
+      "get": {
+        "operationId": "buscar",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "categoriaId",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activo",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoPlatilloResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar platillos con filtros y paginacion",
+        "tags": [
+          "Catalogo - Platillos"
+        ]
+      },
+      "post": {
+        "operationId": "crear_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatilloRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatilloResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear platillo",
+        "tags": [
+          "Catalogo - Platillos"
+        ]
+      }
+    },
+    "/api/v1/platillos/menu-disponible": {
+      "get": {
+        "operationId": "menuDisponible",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlatilloDisponibleDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Carta con disponibilidad calculada segun stock de insumos",
+        "tags": [
+          "Catalogo - Platillos"
+        ]
+      }
+    },
+    "/api/v1/platillos/{id}": {
+      "get": {
+        "operationId": "obtener_2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatilloResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Obtener platillo con su receta",
+        "tags": [
+          "Catalogo - Platillos"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_3",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatilloRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatilloResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar platillo",
+        "tags": [
+          "Catalogo - Platillos"
+        ]
+      }
+    },
+    "/api/v1/platillos/{id}/activo": {
+      "patch": {
+        "operationId": "cambiarActivo_2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activo",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatilloResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Sacar de carta o reponer sin borrar el historico de ventas",
+        "tags": [
+          "Catalogo - Platillos"
+        ]
+      }
+    },
+    "/api/v1/platillos/{id}/receta": {
+      "get": {
+        "operationId": "obtenerReceta",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecetaItemDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Receta del platillo (lista de insumos y cantidades)",
+        "tags": [
+          "Catalogo - Platillos"
+        ]
+      },
+      "put": {
+        "operationId": "reemplazarReceta",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecetaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecetaItemDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Reemplazar la receta completa del platillo",
+        "tags": [
+          "Catalogo - Platillos"
+        ]
+      }
+    },
+    "/api/v1/promociones": {
+      "get": {
+        "operationId": "listar_2",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "soloVigentes",
+            "required": false,
+            "schema": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PromocionResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar promociones; por defecto solo las vigentes por fecha",
+        "tags": [
+          "Catalogo - Promociones"
+        ]
+      },
+      "post": {
+        "operationId": "crear_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromocionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromocionResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear promocion",
+        "tags": [
+          "Catalogo - Promociones"
+        ]
+      }
+    },
+    "/api/v1/promociones/aplicables": {
+      "get": {
+        "operationId": "aplicables",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PromocionResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Promociones vigentes con el stock del insumo extra ya validado",
+        "tags": [
+          "Catalogo - Promociones"
+        ]
+      }
+    },
+    "/api/v1/promociones/{id}": {
+      "get": {
+        "operationId": "obtener_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromocionResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Obtener promocion por id",
+        "tags": [
+          "Catalogo - Promociones"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromocionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromocionResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar promocion",
+        "tags": [
+          "Catalogo - Promociones"
+        ]
+      }
+    },
+    "/api/v1/promociones/{id}/activa": {
+      "patch": {
+        "operationId": "cambiarActiva",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activa",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromocionResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Encender o apagar la promocion",
+        "tags": [
+          "Catalogo - Promociones"
+        ]
+      }
+    },
+    "/api/v1/reportes/productos-top": {
+      "get": {
+        "operationId": "productosTop",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limite",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoTopDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Platillos mas vendidos, para decidir la carta",
+        "tags": [
+          "Reportes"
+        ]
+      }
+    },
+    "/api/v1/reportes/satisfaccion": {
+      "get": {
+        "operationId": "satisfaccion",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReporteSatisfaccionDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Promedios de satisfaccion por criterio y periodo",
+        "tags": [
+          "Feedback y fidelizacion"
+        ]
+      }
+    },
+    "/api/v1/reportes/ventas": {
+      "get": {
+        "operationId": "ventas",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReporteVentasDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Ventas por rango de fechas y canal de origen",
+        "tags": [
+          "Reportes"
+        ]
+      }
+    },
+    "/api/v1/trabajadores": {
+      "get": {
+        "operationId": "listar_1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cargoId",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoTrabajadorResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar trabajadores",
+        "tags": [
+          "Trabajadores"
+        ]
+      },
+      "post": {
+        "operationId": "registrar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrarTrabajadorRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrabajadorResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar trabajador",
+        "tags": [
+          "Trabajadores"
+        ]
+      }
+    },
+    "/api/v1/trabajadores/activos": {
+      "get": {
+        "operationId": "activos_1",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrabajadorResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Trabajadores activos, para asignar mozo o responsable",
+        "tags": [
+          "Trabajadores"
+        ]
+      }
+    },
+    "/api/v1/trabajadores/{id}": {
+      "get": {
+        "operationId": "obtener",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrabajadorResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Obtener trabajador por id",
+        "tags": [
+          "Trabajadores"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarTrabajadorRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrabajadorResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar datos y cargo del trabajador",
+        "tags": [
+          "Trabajadores"
+        ]
+      }
+    },
+    "/api/v1/trabajadores/{id}/activo": {
+      "patch": {
+        "operationId": "cambiarActivo_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activo",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrabajadorResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Dar de alta o de baja al trabajador",
+        "tags": [
+          "Trabajadores"
+        ]
+      }
+    },
+    "/api/v1/transportistas": {
+      "get": {
+        "operationId": "listar",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "empresa",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoTransportistaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Listar transportistas",
+        "tags": [
+          "Despacho - Transportistas"
+        ]
+      },
+      "post": {
+        "operationId": "crear",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportistaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportistaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar transportista con DNI, empresa y telefono",
+        "tags": [
+          "Despacho - Transportistas"
+        ]
+      }
+    },
+    "/api/v1/transportistas/activos": {
+      "get": {
+        "operationId": "activos",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TransportistaResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Transportistas activos con sus vehiculos, para asignar un reparto",
+        "tags": [
+          "Despacho - Transportistas"
+        ]
+      }
+    },
+    "/api/v1/transportistas/{id}": {
+      "put": {
+        "operationId": "actualizar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportistaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportistaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar datos del transportista",
+        "tags": [
+          "Despacho - Transportistas"
+        ]
+      }
+    },
+    "/api/v1/transportistas/{id}/activo": {
+      "patch": {
+        "operationId": "cambiarActivo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activo",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportistaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Habilitar o dar de baja al transportista",
+        "tags": [
+          "Despacho - Transportistas"
+        ]
+      }
+    },
+    "/api/v1/transportistas/{id}/vehiculos": {
+      "get": {
+        "operationId": "vehiculos",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VehiculoResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Vehiculos del transportista",
+        "tags": [
+          "Despacho - Transportistas"
+        ]
+      },
+      "post": {
+        "operationId": "registrarVehiculo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehiculoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehiculoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Registrar placa, tipo y modelo del vehiculo",
+        "tags": [
+          "Despacho - Transportistas"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "description": "Busqueda rapida, registro y preferencias del cliente",
+      "name": "Clientes"
+    },
+    {
+      "description": "Personal del local; el alta requiere cargo administrativo",
+      "name": "Trabajadores"
+    },
+    {
+      "description": "Asignacion, salida a ruta y entrega con OTP",
+      "name": "Despacho - Reparto"
+    },
+    {
+      "description": "Categorias de la carta",
+      "name": "Catalogo - Categorias"
+    },
+    {
+      "description": "Calificaciones, cupones y parametros del local",
+      "name": "Feedback y fidelizacion"
+    },
+    {
+      "description": "Eventos hacia facturacion: monitoreo y reintento manual",
+      "name": "Outbox"
+    },
+    {
+      "description": "Carta, precios y recetas (BOM)",
+      "name": "Catalogo - Platillos"
+    },
+    {
+      "description": "Empresas por RUC para comprobantes con factura",
+      "name": "Clientes - Empresas"
+    },
+    {
+      "description": "Cierre de caja y bandeja de alertas",
+      "name": "Caja - Arqueo y fraude"
+    },
+    {
+      "description": "Ciclo de vida de la comanda: creacion, edicion y estados",
+      "name": "Comandas"
+    },
+    {
+      "description": "Login, Google OAuth y alta del primer administrador",
+      "name": "Autenticacion"
+    },
+    {
+      "description": "Mapa de mesas con estados y reservas",
+      "name": "Salon - Mesas"
+    },
+    {
+      "description": "Conductores y vehiculos habilitados",
+      "name": "Despacho - Transportistas"
+    },
+    {
+      "description": "Ventas y platillos mas vendidos",
+      "name": "Reportes"
+    },
+    {
+      "description": "Cargos del personal y los roles que llevan asociados",
+      "name": "Cargos"
+    },
+    {
+      "description": "Bebidas, helados, salsas y extras",
+      "name": "Catalogo - Complementos"
+    },
+    {
+      "description": "Datos maestros de insumos y alertas de stock",
+      "name": "Inventario - Insumos"
+    },
+    {
+      "description": "Pantalla de cocina: cola, cronometros y faltantes",
+      "name": "Cocina (KDS)"
+    },
+    {
+      "description": "Kardex, mermas, cocinado y conteo fisico",
+      "name": "Inventario - Movimientos"
+    },
+    {
+      "description": "Cobros de la comanda y alerta de fraude",
+      "name": "Caja - Pagos"
+    },
+    {
+      "description": "Descuentos y promociones con insumo extra",
+      "name": "Catalogo - Promociones"
+    }
+  ]
+}

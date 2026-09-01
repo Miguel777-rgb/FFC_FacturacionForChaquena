@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Chaquena · Logistica</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Google Identity Services: da el access token que /api/v1/auth/google
+       espera en la cabecera Authorization. Se carga aqui y no bajo demanda
+       porque la pantalla de login es la primera que se pinta. Si no hay
+       conexion, el boton de Google no aparece y el login con usuario y
+       contrasena sigue funcionando. -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

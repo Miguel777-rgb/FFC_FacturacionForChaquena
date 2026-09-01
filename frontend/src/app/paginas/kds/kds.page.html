@@ -1,0 +1,88 @@
+<section class="kds">
+  <header class="cabecera">
+    <div>
+      <p class="marca">Cocina</p>
+      <h1>Cola de comandas</h1>
+    </div>
+    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+      {{ cargando() ? 'Cargando…' : 'Actualizar' }}
+    </button>
+  </header>
+
+  @if (kpis(); as k) {
+    <ul class="kpis">
+      <li>
+        <span class="cifra dato">{{ k.comandasEnCola }}</span>
+        <span class="rotulo">En cola</span>
+      </li>
+      <li>
+        <span class="cifra dato">{{ k.comandasEnPreparacion }}</span>
+        <span class="rotulo">En fuego</span>
+      </li>
+      <li>
+        <span class="cifra dato">{{ k.minutosPromedioCocina ?? '—' }}</span>
+        <span class="rotulo">Min. de cocina</span>
+      </li>
+      <li [class.alerta]="(k.comandasFueraDeObjetivo ?? 0) > 0">
+        <span class="cifra dato">{{ k.comandasFueraDeObjetivo }}</span>
+        <span class="rotulo">Fuera de objetivo ({{ k.minutosObjetivo }} min)</span>
+      </li>
+    </ul>
+  }
+
+  <div class="tablero">
+    @for (c of cola(); track c.ordenId) {
+      <article class="comanda" [class.tarde]="c.fueraDeObjetivo">
+        <header>
+          <div class="quien">
+            <span class="correlativo cifra">{{ c.correlativo }}</span>
+            <span class="donde">
+              {{ c.tipoOrden === 'MESA' ? 'Mesa ' + (c.mesaNumero || '—') : c.tipoOrden }}
+            </span>
+          </div>
+
+          <!-- El cronometro es el dato que se lee desde lejos: va grande y en
+               cifra tabular para que no baile al pasar de 9 a 10. -->
+          <span class="reloj cifra">{{ c.minutosEnCola }}′</span>
+        </header>
+
+        <ul class="lineas">
+          @for (l of c.lineas; track l.detalleId) {
+            <li>
+              <span class="cantidad cifra">{{ l.cantidad }}×</span>
+              <span class="plato">
+                {{ l.platillo }}
+
+                @if (l.complementos?.length) {
+                  <span class="complementos">+ {{ l.complementos?.join(', ') }}</span>
+                }
+
+                <!-- La nota del comensal es lo unico que cambia como se cocina:
+                     va destacada, no como texto secundario. -->
+                @if (l.nota) {
+                  <span class="nota">{{ l.nota }}</span>
+                }
+              </span>
+            </li>
+          }
+        </ul>
+
+        <footer>
+          <span class="chip" [attr.data-estado]="c.estado">{{ c.estado }}</span>
+
+          @if (esperando(c)) {
+            <button type="button" (click)="tomar(c)" [disabled]="ocupada() !== null">Tomar</button>
+          } @else if (enFuego(c) && !c.flagCierrePlatillo) {
+            <button type="button" (click)="listo(c)" [disabled]="ocupada() !== null">Listo</button>
+          } @else {
+            <span class="servida">Lista · esperando al mozo</span>
+          }
+        </footer>
+      </article>
+    } @empty {
+      <p class="vacio">
+        {{ cargando() ? 'Cargando la cola…' : 'Nada en cola. La cocina esta al dia.' }}
+      </p>
+    }
+  </div>
+</section>
