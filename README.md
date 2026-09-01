@@ -1,12 +1,13 @@
 # FFC_FacturacionForChaquena
 
 Sistema de logística, POS y facturación electrónica (SUNAT, Perú) para
-restaurante. Este repositorio versiona el código del servidor y el esquema de la
-base de datos:
+restaurante. Este repositorio versiona el servidor, la cara web y el esquema de
+la base de datos:
 
 | Carpeta | Qué es |
 |---|---|
 | `backend/` | `backend-logistica` — Spring Boot 4 sobre Java 21. 124 endpoints en 24 controladores. |
+| `frontend/` | `frontend-logistica` — Angular 22 sin zonas, con el cliente HTTP generado del contrato OpenAPI. Tres de las cinco superficies en pie. |
 | `bd/` | Volcado del esquema de PostgreSQL, sincronizado con `bd/watch_schema.sh`, más las migraciones aplicadas. |
 
 ## Arranque
@@ -17,13 +18,33 @@ docker compose up -d --build
 ```
 
 Levanta `bd-logistica` (PostgreSQL 16), `redis-logistica` (Redis 7) y
-`backend-logistica` (puerto 8080). Para desarrollar desde el IDE con solo las
-dependencias en Docker:
+`backend-logistica` (puerto 8080). Es el compose de la raíz: sirve la API y nada
+más. Para levantar también la web, el de la pila completa:
+
+```bash
+docker compose -f compose.local.yml up -d --build    # http://localhost:81
+```
+
+Añade `frontend-logistica`: un Nginx que sirve los estáticos y hace de proxy de
+`/api/` hacia el backend, así que el navegador habla con un solo origen y CORS no
+llega a intervenir. Reutiliza el volumen de datos que crea el compose de la raíz,
+de modo que en una máquina limpia ese va primero.
+
+Para desarrollar desde el IDE con solo las dependencias en Docker:
 
 ```bash
 docker compose up -d bd-logistica redis-logistica
-cd backend && ./mvnw spring-boot:run
+
+# en una terminal, desde la raíz del repositorio
+cd backend && ./mvnw spring-boot:run                 # API en el 8080
+
+# en otra
+cd frontend && pnpm install && pnpm start            # web en el 4200
 ```
+
+El front usa **pnpm**, y el CORS del backend ya permite `http://localhost:4200`
+(`app.cors.allowed-origins`), así que el servidor de desarrollo habla directo con
+el 8080.
 
 Todos los secretos salen de `backend/.env`, que no se versiona. La plantilla
 comentada es [backend/.env.example](backend/.env.example) e incluye qué hace
@@ -48,6 +69,17 @@ encadenando las variables sola:
 pnpm dlx newman run backend/end_points.json \
   --folder "Flujo principal (recorrido completo)"
 ```
+
+**Ese mismo ciclo se recorre desde el navegador.** `frontend-logistica` tiene en
+pie tres de las cinco superficies, las que bastan para llevar una comanda de mesa
+de principio a fin: `/pos` (mapa de mesas, carta con la disponibilidad ya
+resuelta contra el stock, envío a cocina y entrega), `/kds` (cola con cronómetro
+y los dos gestos que mueven la comanda) y `/caja` (cuenta, cobro en efectivo con
+vuelto, cierre del ciclo y arqueo del día). `/despacho` y `/trastienda` siguen
+siendo marcadores que declaran qué endpoints consumirán. Ninguna pantalla escribe
+una URL a mano: el cliente HTTP se genera del contrato OpenAPI con
+`pnpm run api:sync`, y el token lo pone ese cliente solo en los endpoints que
+declaran seguridad. Detalle en [frontend/README.md](frontend/README.md).
 
 **Los bots viven en Discord, no en WhatsApp.** La mensajería es un puerto con
 dos adaptadores, y el proveedor se elige con `app.mensajeria.proveedor`
@@ -84,12 +116,12 @@ Todos comparten la contraseña `Chaquena2001`. Se entra por
 
 | Usuario | Correo | Cargo | Rol efectivo | Qué superficie abre |
 |---|---|---|---|---|
-| `admin` | admin@chaquena.pe | ADMINISTRADOR | `ADMIN` | Todas |
-| `mozo1` | mozo@chaquena.pe | MOZO | `MOZO` | POS, despacho |
-| `chef1` | cocina@chaquena.pe | JEFE DE COCINA | `COCINA` | Cocina (KDS) |
-| `caja1` | caja@chaquena.pe | CAJERO | `CAJA` | Caja |
-| `almacen1` | almacen@chaquena.pe | ALMACENERO | `ALMACEN` | Trastienda |
-| `repartidor1` | reparto@chaquena.pe | REPARTIDOR | `DELIVERY` | Despacho |
+| `admin` | admin@chaquena.pe | ADMINISTRADOR | `ADMIN` | Todas; aterriza en `/pos`, que es donde empieza |
+| `mozo1` | mozo@chaquena.pe | MOZO | `MOZO` | `/pos` y `/despacho` |
+| `chef1` | cocina@chaquena.pe | JEFE DE COCINA | `COCINA` | `/kds` |
+| `caja1` | caja@chaquena.pe | CAJERO | `CAJA` | `/caja` |
+| `almacen1` | almacen@chaquena.pe | ALMACENERO | `ALMACEN` | `/trastienda` (aún un marcador) |
+| `repartidor1` | reparto@chaquena.pe | REPARTIDOR | `DELIVERY` | `/despacho` (aún un marcador) |
 
 Para comprobar el control de acceso, entra con `chef1` e intenta crear una
 promoción: responde `403`.
@@ -120,3 +152,9 @@ trabajador ya registrado se rechaza con `401`. Para usarlo con tu propia cuenta,
 date de alta primero con `POST /api/v1/trabajadores` usando un cargo que sí tenga
 roles. Requiere `GOOGLE_OAUTH_CLIENT_ID` en `backend/.env`; si está vacío, el
 backend rechaza todos los inicios con Google y el resto del sistema sigue igual.
+
+La web necesita ese mismo valor en `googleClientId`
+(`frontend/src/environments/`), porque el backend comprueba que el token venga
+emitido para su propio client id: si los dos no coinciden, el inicio falla. No es
+un secreto —viaja en la URL del flujo de OAuth—, y dejarlo vacío en el front
+esconde el botón, que es mejor que ofrecer uno que no puede funcionar.
