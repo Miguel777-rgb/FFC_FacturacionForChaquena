@@ -34,13 +34,13 @@ public class OrdenController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','MOZO','CAJA')")
-    @Operation(summary = "Crear comanda: valida stock, descuenta insumos y emite evento de facturacion")
+    @Operation(operationId = "crearOrden", summary = "Crear comanda: valida stock, descuenta insumos y emite evento de facturacion")
     public ResponseEntity<OrdenResponseDto> crear(@Valid @RequestBody CrearOrdenRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ordenService.crear(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar comandas con filtros y paginacion")
+    @Operation(operationId = "buscarOrdenes", summary = "Listar comandas con filtros y paginacion")
     public ResponseEntity<PageResponseDto<OrdenResumenDto>> buscar(
             @RequestParam(required = false) EstadoOrdenEnum estado,
             @RequestParam(required = false) CanalOrigenEnum canal,
@@ -61,7 +61,7 @@ public class OrdenController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Detalle completo de la comanda")
+    @Operation(operationId = "obtenerOrden", summary = "Detalle completo de la comanda")
     public ResponseEntity<OrdenResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(ordenService.obtenerPorId(id));
     }
@@ -112,7 +112,7 @@ public class OrdenController {
 
     @PatchMapping("/{id}/estado")
     @PreAuthorize("hasAnyRole('ADMIN','MOZO','CAJA','COCINA','DELIVERY')")
-    @Operation(summary = "Transicion de estado validada contra la maquina de estados")
+    @Operation(operationId = "cambiarEstadoOrden", summary = "Transicion de estado validada contra la maquina de estados")
     public ResponseEntity<OrdenResponseDto> cambiarEstado(@PathVariable UUID id,
             @Valid @RequestBody CambioEstadoRequestDto request) {
         return ResponseEntity.ok(ordenService.cambiarEstado(id, request));

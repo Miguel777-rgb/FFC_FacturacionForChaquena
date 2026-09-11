@@ -27,7 +27,7 @@ public class PagoController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','CAJA','MOZO')")
-    @Operation(summary = "Registrar cobro (efectivo con vuelto, billetera o tarjeta con referencia)")
+    @Operation(operationId = "registrarPagoDeOrden", summary = "Registrar cobro (efectivo con vuelto, billetera o tarjeta con referencia)")
     public ResponseEntity<PagoResponseDto> registrar(@PathVariable UUID ordenId,
             @Valid @RequestBody RegistrarPagoRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(pagoService.registrar(ordenId, request));
@@ -35,7 +35,7 @@ public class PagoController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','CAJA','MOZO')")
-    @Operation(summary = "Pagos de la comanda, incluidos los intentos pendientes")
+    @Operation(operationId = "listarPagosDeOrden", summary = "Pagos de la comanda, incluidos los intentos pendientes")
     public ResponseEntity<List<PagoResponseDto>> listar(@PathVariable UUID ordenId) {
         return ResponseEntity.ok(pagoService.pagosDeOrden(ordenId));
     }

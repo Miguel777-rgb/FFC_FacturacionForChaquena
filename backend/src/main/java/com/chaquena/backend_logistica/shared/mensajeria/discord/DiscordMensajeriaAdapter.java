@@ -3,6 +3,7 @@ package com.chaquena.backend_logistica.shared.mensajeria.discord;
 import com.chaquena.backend_logistica.shared.mensajeria.BotonBot;
 import com.chaquena.backend_logistica.shared.mensajeria.CanalBot;
 import com.chaquena.backend_logistica.shared.mensajeria.DestinoBot;
+import com.chaquena.backend_logistica.shared.mensajeria.EstadoCanalBot;
 import com.chaquena.backend_logistica.shared.mensajeria.MensajeriaPort;
 import com.chaquena.backend_logistica.shared.mensajeria.OpcionBot;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,7 @@ public class DiscordMensajeriaAdapter implements MensajeriaPort {
     public static final String ID_SELECTOR = "bot:seleccion";
 
     private final ClientesDiscord clientes;
+    private final DiscordProperties propiedades;
 
     @Override
     public String nombre() {
@@ -77,6 +79,60 @@ public class DiscordMensajeriaAdapter implements MensajeriaPort {
     @Override
     public boolean disponible() {
         return clientes.alguno();
+    }
+
+    /**
+     * Lee el estado de las dos conexiones con la pasarela.
+     *
+     * <p>Se consulta {@code JDA.Status} y no solo la presencia del cliente en el
+     * mapa: {@link ArranqueDiscord} registra la conexion en cuanto la construye,
+     * pero el apreton de manos con Discord tarda un par de segundos y puede
+     * fallar despues —token revocado, intent privilegiado sin encender—, dejando
+     * un cliente registrado que no habla con nadie.
+     *
+     * <p>El nombre de la cuenta se pide dentro de un try: {@code getSelfUser()}
+     * revienta mientras la sesion no esta lista, y este metodo lo llama una
+     * pantalla de monitoreo, que es el peor sitio donde tener una excepcion.
+     */
+    @Override
+    public List<EstadoCanalBot> estado() {
+        return List.of(estadoDe(CanalBot.IN, propiedades.botIn(), "al personal"),
+                estadoDe(CanalBot.OUT, propiedades.botOut(), "a los clientes"));
+    }
+
+    private EstadoCanalBot estadoDe(CanalBot canal, DiscordProperties.Bot bot, String audiencia) {
+        if (!bot.configurado()) {
+            return EstadoCanalBot.sinConfigurar(canal,
+                    "Sin token en el .env: no atiende " + audiencia + ".");
+        }
+
+        Optional<JDA> cliente = clientes.de(canal);
+        if (cliente.isEmpty()) {
+            return new EstadoCanalBot(canal, true, false, null, null,
+                    "Tiene token pero no se abrió la conexión. Revisa el arranque del backend.");
+        }
+
+        JDA jda = cliente.get();
+        JDA.Status estado = jda.getStatus();
+        boolean conectado = estado == JDA.Status.CONNECTED;
+
+        String identidad = null;
+        try {
+            identidad = jda.getSelfUser().getName();
+        } catch (RuntimeException e) {
+            // La sesion todavia no esta lista; el estado de abajo ya lo cuenta.
+        }
+
+        String detalle = conectado
+                ? "Conectado y atendiendo " + audiencia + "."
+                : "Conexión en estado " + estado + ".";
+
+        if (conectado && canal == CanalBot.IN && !propiedades.tieneCanalCocina()) {
+            detalle += " Sin canal de cocina configurado: el tablero de comandas no se publica.";
+        }
+
+        return new EstadoCanalBot(canal, true, conectado, identidad,
+                conectado ? jda.getGatewayPing() : null, detalle);
     }
 
     @Override

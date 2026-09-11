@@ -263,12 +263,29 @@
      tinte suave, y sobre otro fondo se emborrona. */
   li:not(.vacio) {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--e3);
+    flex-direction: column;
+    gap: var(--e2);
     padding: var(--e2) var(--e3);
     border: 1px solid var(--linea);
     border-radius: var(--radio-chico);
+  }
+
+  .fila {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--e3);
+  }
+
+  /* El motivo se escribe en la propia fila. Un `prompt` del navegador sale
+     fuera de la aplicacion y en algunas tablets en modo quiosco ni aparece. */
+  .cancelacion {
+    gap: var(--e2);
+
+    input {
+      flex: 1 1 14rem;
+      min-height: 2.25rem;
+      font-size: 0.85rem;
+    }
   }
 
   .mesa {
@@ -305,4 +322,267 @@
     position: static;
     order: -1;
   }
+}
+
+/* --- codigo de entrega ----------------------------------------------------- */
+/* Se pinta con el tinte de la marca y no con el critico: es informacion que hay
+   que leer en voz alta, no una alarma. Va arriba del todo porque el mozo tiene
+   que verlo sin desplazarse, y no se va solo. */
+.entrega {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e4);
+  border-color: var(--acento);
+  background: var(--acento-suave);
+
+  > div {
+    flex: 1 1 16rem;
+  }
+
+  .dictar,
+  .direccion {
+    margin: var(--e1) 0 0;
+    font-size: 0.85rem;
+    color: var(--tenue);
+  }
+
+  .otp {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--acento);
+  }
+}
+
+/* --- tipo de comanda ------------------------------------------------------- */
+/* Tres opciones excluyentes, siempre visibles: en una tablet un desplegable
+   cuesta dos toques y esconde lo que no esta elegido. */
+.tipos {
+  display: flex;
+  gap: var(--e2);
+  margin-bottom: var(--e3);
+
+  button {
+    flex: 1;
+    /* Un elemento flexible no baja de su ancho minimo de contenido salvo que se
+       le diga: sin esto, "Retiro en local" fija el ancho de los tres botones y
+       en un movil chico se salen de la pantalla en lugar de partir el texto. */
+    min-width: 0;
+    color: var(--acento);
+    background: transparent;
+    font-size: 0.9rem;
+  }
+
+  button.elegido {
+    color: #ffffff;
+    background: var(--acento);
+  }
+}
+
+/* --- campos con rotulo ----------------------------------------------------- */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+
+  > span {
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tenue);
+  }
+}
+
+/* --- cliente --------------------------------------------------------------- */
+.buscador {
+  display: flex;
+  gap: var(--e2);
+
+  button {
+    flex: 0 0 auto;
+  }
+}
+
+.cliente-elegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+
+  .detalle {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--tenue);
+  }
+}
+
+.resultados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+  margin: var(--e2) 0 0;
+  padding: 0;
+  list-style: none;
+
+  button {
+    width: 100%;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--e3);
+    text-align: left;
+  }
+
+  .detalle {
+    font-size: 0.8rem;
+    opacity: 0.75;
+  }
+}
+
+/* --- complementos de una linea --------------------------------------------- */
+.extras {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--tenue);
+}
+
+.extra {
+  min-height: 2rem;
+  padding: 0 var(--e2);
+  font-size: 0.8rem;
+}
+
+.complementos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+  margin: 0;
+  padding: var(--e2);
+  list-style: none;
+  background: var(--hundido);
+  border-radius: var(--radio-chico);
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--e2);
+  }
+
+  .nombre {
+    flex: 1;
+    font-size: 0.85rem;
+  }
+
+  .precio {
+    font-size: 0.8rem;
+    color: var(--tenue);
+  }
+
+  .paso {
+    width: 2rem;
+    min-height: 2rem;
+  }
+}
+
+/* --- descuentos y totales -------------------------------------------------- */
+.descuentos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+}
+
+.linea-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.linea-total.tenue {
+  color: var(--tenue);
+}
+
+/* --- correccion de una comanda enviada ------------------------------------- */
+/* Va dentro de la fila del salon, con fondo hundido: es una capa de trabajo
+   sobre una comanda concreta, no una seccion nueva de la pantalla. */
+.edicion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  width: 100%;
+  padding: var(--e3);
+  background: var(--hundido);
+  border-radius: var(--radio-chico);
+
+  .detalles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li:not(.vacio) {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--e3);
+    }
+
+    .nombre {
+      flex: 1 1 8rem;
+      font-weight: 500;
+    }
+
+    .extras {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--tenue);
+    }
+  }
+
+  .agregar {
+    gap: var(--e2);
+
+    select {
+      flex: 1;
+    }
+
+    button {
+      flex: 0 0 auto;
+    }
+  }
+}
+
+/* --- cupones del cliente ---------------------------------------------------- */
+/* Fichas y no un desplegable: son pocas, se eligen con el dedo y hay que poder
+   leer el descuento sin abrir nada. */
+.cupones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+}
+
+.cupon-suyo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e2);
+  min-height: 2.25rem;
+  padding: 0 var(--e3);
+  font-size: 0.85rem;
+  color: var(--acento);
+  background: transparent;
+  border: 1px solid var(--acento);
+
+  .detalle {
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
+}
+
+.cupon-suyo.elegido {
+  color: #ffffff;
+  background: var(--acento);
 }

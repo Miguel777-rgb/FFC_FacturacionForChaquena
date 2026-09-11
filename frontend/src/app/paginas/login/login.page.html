@@ -2,12 +2,12 @@
   <form class="tarjeta" [formGroup]="formulario" (ngSubmit)="entrar()" novalidate>
     <header>
       <p class="marca">Chaquena</p>
-      <h1>Logistica</h1>
-      <p class="subtitulo">Entra con tu usuario del local.</p>
+      <h1>{{ t('login.modulo') }}</h1>
+      <p class="subtitulo">{{ t('login.subtitulo') }}</p>
     </header>
 
     <label>
-      <span>Usuario o correo</span>
+      <span>{{ t('login.usuario') }}</span>
       <input
         type="text"
         formControlName="usernameOrEmail"
@@ -21,7 +21,7 @@
     </label>
 
     <label>
-      <span>Contrasena</span>
+      <span>{{ t('login.contrasena') }}</span>
       <div class="campo-contrasena">
         <input
           [type]="contrasenaVisible() ? 'text' : 'password'"
@@ -35,7 +35,7 @@
           type="button"
           class="alternar"
           (click)="alternarVisibilidad()"
-          [attr.aria-label]="contrasenaVisible() ? 'Ocultar contrasena' : 'Mostrar contrasena'"
+          [attr.aria-label]="t(contrasenaVisible() ? 'login.ocultar' : 'login.mostrar')"
           [attr.aria-pressed]="contrasenaVisible()"
         >
           @if (contrasenaVisible()) {
@@ -64,11 +64,13 @@
     }
 
     <button type="submit" [disabled]="enviando()">
-      {{ enviando() ? 'Entrando...' : 'Entrar' }}
+      {{ t(enviando() ? 'login.entrando' : 'login.entrar') }}
     </button>
 
     @if (google.disponible()) {
-      <p class="separador"><span>o</span></p>
+      <p class="separador">
+        <span>{{ t('login.o') }}</span>
+      </p>
 
       <button type="button" class="google" [disabled]="enviando()" (click)="entrarConGoogle()">
         <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true" focusable="false">
@@ -89,7 +91,7 @@
             d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.94l3.02 2.34C4.68 5.16 6.66 3.58 9 3.58Z"
           />
         </svg>
-        Ingresar con Google
+        {{ t('login.google') }}
       </button>
     }
   </form>

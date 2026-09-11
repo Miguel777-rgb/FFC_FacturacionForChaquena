@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
 import { SesionService } from '../sesion/sesion.service';
+import { I18nService } from '../i18n/i18n.service';
 import { AvisosService } from './avisos.service';
 
 /**
@@ -53,11 +54,18 @@ export function mensajeDe(error: HttpErrorResponse, porDefecto: string): string 
  * El token no se toca aqui: lo pone el propio cliente generado a traves de
  * `credentials.bearerAuth`, que solo lo manda a los endpoints que declaran
  * seguridad. Asi no se filtra a un tercero si algun dia se llama a otro host.
+ *
+ * Lo que se traduce es el texto de respaldo, el que se escribe cuando la
+ * respuesta no trae ninguno. El mensaje del servidor se muestra tal cual y en
+ * el idioma en que venga: explica cosas que la pantalla no sabe —que
+ * transiciones si se permiten, que insumo falto— y reescribirlo aqui seria
+ * inventarlo.
  */
 export const erroresInterceptor: HttpInterceptorFn = (peticion, siguiente) => {
   const sesion = inject(SesionService);
   const router = inject(Router);
   const avisos = inject(AvisosService);
+  const t = inject(I18nService).t;
 
   return siguiente(peticion).pipe(
     catchError((error: unknown) => {
@@ -65,7 +73,7 @@ export const erroresInterceptor: HttpInterceptorFn = (peticion, siguiente) => {
 
       switch (error.status) {
         case 0:
-          avisos.error('Sin conexion con el servidor. Revisa la red y vuelve a intentar.');
+          avisos.error(t('errores.sinConexion'));
           break;
 
         case 401:
@@ -73,36 +81,36 @@ export const erroresInterceptor: HttpInterceptorFn = (peticion, siguiente) => {
           // ni a donde echar a nadie: que lo muestre la propia pantalla.
           if (sesion.autenticado()) {
             sesion.cerrar();
-            avisos.error('Tu sesion vencio. Entra de nuevo.');
+            avisos.error(t('errores.sesionVencida'));
             void router.navigate(['/entrar'], { queryParams: { volverA: router.url } });
           }
           break;
 
         case 403:
-          avisos.error('Tu cargo no tiene permiso para esta accion.');
+          avisos.error(t('errores.sinPermiso'));
           break;
 
         case 404:
-          avisos.error(mensajeDe(error, 'No se encontro lo que buscabas.'));
+          avisos.error(mensajeDe(error, t('errores.noEncontrado')));
           break;
 
         case 409:
           // Las transiciones invalidas de comanda caen aqui, y el mensaje del
           // servidor ya explica que transiciones si se permiten. Mostrarlo tal
           // cual es mas util que cualquier texto propio.
-          avisos.error(mensajeDe(error, 'La operacion choca con el estado actual.'));
+          avisos.error(mensajeDe(error, t('errores.conflicto')));
           break;
 
         case 422:
         case 400:
-          avisos.error(mensajeDe(error, 'Revisa los datos: hay algo que el servidor no acepta.'));
+          avisos.error(mensajeDe(error, t('errores.datos')));
           break;
 
         default:
           if (error.status >= 500) {
-            avisos.error('El servidor fallo. Si se repite, avisa al administrador.');
+            avisos.error(t('errores.servidor'));
           } else {
-            avisos.error(mensajeDe(error, 'No se pudo completar la operacion.'));
+            avisos.error(mensajeDe(error, t('errores.generico')));
           }
       }
 

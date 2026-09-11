@@ -56,7 +56,7 @@ public class DeliveryController {
 
     @GetMapping("/delivery/tablero")
     @PreAuthorize("hasAnyRole('ADMIN','DELIVERY','MOZO')")
-    @Operation(summary = "Pedidos en ruta con transportista y tiempo transcurrido")
+    @Operation(operationId = "tablero", summary = "Pedidos en ruta con transportista y tiempo transcurrido")
     public ResponseEntity<List<DeliveryInfoDto>> tablero() {
         return ResponseEntity.ok(deliveryService.tablero());
     }

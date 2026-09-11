@@ -14,4 +14,5 @@ public interface PagoService {
     OrdenResponseDto alertaFraude(UUID ordenId, AlertaFraudeRequestDto request);
     ArqueoCajaDto arqueo(ZonedDateTime desde, ZonedDateTime hasta);
     List<PagoResponseDto> alertasFraude();
+    List<PagoResponseDto> pagosPendientes();
 }

@@ -1,0 +1,193 @@
+/* El despacho se usa de pie, en el mostrador, con el conductor delante: las
+   comandas a la izquierda y la libreta de conductores a la derecha, porque
+   anotar a alguien nuevo ocurre justo en el momento de entregarle el pedido.
+
+   No hay mapa ni cuenta atras a proposito. El reparto lo lleva una empresa
+   externa y el local no sabe donde esta el conductor; lo unico que consta aqui
+   es a quien se le dio la comanda, con que vehiculo y a que hora salio. */
+
+.despacho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+  padding: var(--e5);
+}
+
+.tablero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: var(--e4);
+  align-items: start;
+}
+
+.pila {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+}
+
+/* --- comandas -------------------------------------------------------------- */
+.comandas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li:not(.vacio) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e2);
+    padding: var(--e3);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio-chico);
+  }
+}
+
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e3);
+}
+
+.items,
+.espera,
+.detalle {
+  font-size: 0.85rem;
+  color: var(--tenue);
+}
+
+.monto {
+  margin-left: auto;
+  font-weight: 600;
+}
+
+.conductor {
+  font-weight: 600;
+}
+
+/* La placa es lo que queda anotado de por donde salio el pedido: se lee como un
+   dato duro, no como texto corrido. */
+.placa {
+  padding: 2px var(--e2);
+  font-size: 0.85rem;
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-chico);
+}
+
+.direccion {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.entrega,
+.codigo {
+  gap: var(--e2);
+
+  select {
+    flex: 1 1 12rem;
+  }
+
+  button {
+    flex: 0 0 auto;
+  }
+}
+
+/* El codigo se teclea mirando al conductor: cifra grande y monoespaciada, que
+   es la que no se confunde al leerla en voz alta. */
+.codigo input {
+  flex: 1 1 10rem;
+  font-family: var(--f-mono);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+}
+
+/* --- libreta de conductores ------------------------------------------------ */
+.libreta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+}
+
+.conductores {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li:not(.vacio) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e2);
+    padding: var(--e3);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio-chico);
+  }
+
+  .quien {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .detalle {
+    font-size: 0.8rem;
+  }
+
+  button {
+    min-height: 2.25rem;
+    padding: 0 var(--e3);
+    font-size: 0.85rem;
+  }
+}
+
+/* Dado de baja no se esconde: las comandas que ya se llevo conservan su nombre,
+   y la empresa puede volver a mandarlo manana. */
+.conductores li.baja {
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.vehiculos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li:not(.vacio) {
+    display: flex;
+    align-items: center;
+    gap: var(--e2);
+    padding: 0;
+    border: none;
+  }
+}
+
+.chico {
+  align-self: flex-start;
+  min-height: 2rem;
+  padding: 0 var(--e2);
+  font-size: 0.8rem;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e3);
+  background: var(--hundido);
+  border-radius: var(--radio-chico);
+}
+
+@media (max-width: 60rem) {
+  .tablero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

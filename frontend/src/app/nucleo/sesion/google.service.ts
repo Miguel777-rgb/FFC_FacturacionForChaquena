@@ -1,6 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 
 import { environment } from '../../../environments/environment';
+import { I18nService } from '../i18n/i18n.service';
 
 /**
  * Trozo de Google Identity Services que se usa aqui. Se declara a mano en vez
@@ -60,6 +61,8 @@ export class GoogleService {
    */
   readonly disponible = signal(false);
 
+  private readonly t = inject(I18nService).t;
+
   private readonly clientId = environment.googleClientId;
 
   constructor() {
@@ -81,7 +84,7 @@ export class GoogleService {
   pedirAccessToken(): Promise<string> {
     return new Promise((resolver, rechazar) => {
       if (typeof google === 'undefined' || !google?.accounts?.oauth2) {
-        rechazar(new Error('No se pudo cargar el inicio de sesion de Google.'));
+        rechazar(new Error(this.t('google.noCargo')));
         return;
       }
 
@@ -92,9 +95,7 @@ export class GoogleService {
           if (respuesta.access_token) {
             resolver(respuesta.access_token);
           } else {
-            rechazar(
-              new Error(respuesta.error_description ?? 'Google no devolvio ningun token.'),
-            );
+            rechazar(new Error(respuesta.error_description ?? this.t('google.sinToken')));
           }
         },
         // Se dispara cuando la persona cierra la ventana o el navegador bloquea
@@ -102,9 +103,7 @@ export class GoogleService {
         error_callback: (error) => {
           rechazar(
             new Error(
-              error.type === 'popup_closed'
-                ? 'Cancelaste el inicio de sesion con Google.'
-                : 'No se pudo abrir la ventana de Google. Revisa el bloqueo de emergentes.',
+              this.t(error.type === 'popup_closed' ? 'google.cancelado' : 'google.emergente'),
             ),
           );
         },

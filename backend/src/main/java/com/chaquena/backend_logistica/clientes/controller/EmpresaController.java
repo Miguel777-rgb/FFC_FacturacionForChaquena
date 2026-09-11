@@ -23,13 +23,13 @@ public class EmpresaController {
     private final EmpresaService empresaService;
 
     @PostMapping
-    @Operation(summary = "Registrar empresa")
+    @Operation(operationId = "crearEmpresa", summary = "Registrar empresa")
     public ResponseEntity<EmpresaResponseDto> crear(@Valid @RequestBody EmpresaRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(empresaService.crear(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar empresas, opcionalmente filtrando por razon social")
+    @Operation(operationId = "listarEmpresas", summary = "Listar empresas, opcionalmente filtrando por razon social")
     public ResponseEntity<PageResponseDto<EmpresaResponseDto>> listar(
             @RequestParam(required = false) String q,
             @PageableDefault(size = 20) Pageable pageable) {

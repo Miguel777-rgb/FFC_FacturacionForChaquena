@@ -1,0 +1,196 @@
+<div class="seccion">
+  <!-- ---------------------------------------------------------------------- -->
+  <!-- Estos cuatro numeros no son ajustes de pantalla: gobiernan lo que hacen
+       la caja, el KDS y el POS. Por eso cada uno lleva escrito a que afecta. -->
+  <div class="formulario bloque">
+    <h2>{{ t('local.parametros') }}</h2>
+
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('local.calificacionesCupon') }}</span>
+        <input
+          type="number"
+          min="1"
+          [value]="calificaciones() ?? ''"
+          (input)="anotarCalificaciones($any($event.target).value)"
+          [attr.aria-label]="t('local.calificacionesAria')"
+        />
+        <small>{{ t('local.calificacionesAyuda') }}</small>
+      </label>
+
+      <label class="campo">
+        <span>{{ t('local.descuentoCupon') }}</span>
+        <input
+          type="number"
+          min="0"
+          max="100"
+          [value]="descuento() ?? ''"
+          (input)="anotarDescuento($any($event.target).value)"
+          [attr.aria-label]="t('local.descuentoAria')"
+        />
+        <small>{{ t('local.descuentoAyuda') }}</small>
+      </label>
+
+      <label class="campo">
+        <span>{{ t('local.vigenciaCupon') }}</span>
+        <input
+          type="number"
+          min="1"
+          [value]="vigencia() ?? ''"
+          (input)="anotarVigencia($any($event.target).value)"
+          [attr.aria-label]="t('local.vigenciaAria')"
+        />
+        <small>{{ t('local.vigenciaAyuda') }}</small>
+      </label>
+
+      <label class="campo">
+        <span>{{ t('local.objetivoCocina') }}</span>
+        <input
+          type="number"
+          min="1"
+          [value]="objetivoCocina() ?? ''"
+          (input)="anotarObjetivoCocina($any($event.target).value)"
+          [attr.aria-label]="t('local.objetivoAria')"
+        />
+        <small>{{ t('local.objetivoAyuda') }}</small>
+      </label>
+    </div>
+
+    <div class="campos">
+      <button type="button" (click)="guardar()" [disabled]="!hayCambios() || guardando()">
+        {{ t(guardando() ? 'comun.guardando' : 'local.guardarParametros') }}
+      </button>
+      @if (hayCambios()) {
+        <button type="button" class="secundario" (click)="descartar()">
+          {{ t('comun.descartar') }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------------------------- -->
+  <!-- La contrapartida de los cupones: dice si el programa esta consiguiendo
+       buenas calificaciones o solo muchas. -->
+  <div class="bloque">
+    <h2>{{ t('local.satisfaccion') }}</h2>
+
+    <div class="barra">
+      <input
+        type="date"
+        [value]="desde()"
+        (change)="anotarDesde($any($event.target).value)"
+        [attr.aria-label]="t('comun.desde')"
+      />
+      <input
+        type="date"
+        [value]="hasta()"
+        (change)="anotarHasta($any($event.target).value)"
+        [attr.aria-label]="t('comun.hasta')"
+      />
+      <button type="button" class="secundario" (click)="consultarSatisfaccion()">
+        {{ t('comun.consultar') }}
+      </button>
+    </div>
+
+    @if (satisfaccion(); as s) {
+      @if ((s.totalCalificaciones ?? 0) === 0) {
+        <p class="vacio">{{ t('local.sinCalificaciones') }}</p>
+      } @else {
+        <ul class="kpis">
+          <li>
+            <span class="cifra dato">{{ s.promedioGeneral | number: '1.1-1' }}</span>
+            <span class="rotulo">{{ t('local.general') }}</span>
+          </li>
+          <li>
+            <span class="cifra dato">{{ s.promedioComida | number: '1.1-1' }}</span>
+            <span class="rotulo">{{ t('local.comida') }}</span>
+          </li>
+          <li>
+            <span class="cifra dato">{{ s.promedioAtencion | number: '1.1-1' }}</span>
+            <span class="rotulo">{{ t('local.atencion') }}</span>
+          </li>
+          <li>
+            <span class="cifra dato">{{ s.promedioLugar | number: '1.1-1' }}</span>
+            <span class="rotulo">{{ t('local.lugar') }}</span>
+          </li>
+          <li>
+            <span class="cifra dato">{{ s.totalCalificaciones }}</span>
+            <span class="rotulo">{{ t('local.calificaciones') }}</span>
+          </li>
+        </ul>
+      }
+    } @else {
+      <p class="vacio">{{ t(cargando() ? 'comun.cargando' : 'local.sinReporte') }}</p>
+    }
+  </div>
+
+  <!-- ---------------------------------------------------------------------- -->
+  <!-- El RUC y la razon social que iran en la factura el dia que exista el
+       servicio de facturacion. Hoy solo se guardan. -->
+  <div class="bloque">
+    <h2>{{ t('local.empresas') }}</h2>
+
+    <div class="barra">
+      <button type="button" class="secundario" (click)="abrirAlta()">
+        {{ t(altaAbierta() ? 'comun.dejarlo' : 'local.registrarEmpresa') }}
+      </button>
+    </div>
+
+    @if (altaAbierta()) {
+      <div class="formulario">
+        <div class="campos">
+          <input
+            type="text"
+            inputmode="numeric"
+            [attr.placeholder]="t('local.ruc')"
+            [value]="ruc()"
+            (input)="anotarRuc($any($event.target).value)"
+            [attr.aria-label]="t('local.rucAria')"
+          />
+          <input
+            type="text"
+            [attr.placeholder]="t('local.razonSocial')"
+            [value]="razonSocial()"
+            (input)="anotarRazonSocial($any($event.target).value)"
+            [attr.aria-label]="t('local.razonSocial')"
+          />
+        </div>
+        <div class="campos">
+          <input
+            type="text"
+            [attr.placeholder]="t('local.direccionFiscal')"
+            [value]="direccionFiscal()"
+            (input)="anotarDireccionFiscal($any($event.target).value)"
+            [attr.aria-label]="t('local.direccionFiscalAria')"
+          />
+          <input
+            type="tel"
+            [attr.placeholder]="t('local.celularEmpresa')"
+            [value]="celularEmpresa()"
+            (input)="anotarCelularEmpresa($any($event.target).value)"
+            [attr.aria-label]="t('local.celularEmpresaAria')"
+          />
+          <button type="button" (click)="altaEmpresa()" [disabled]="guardando()">
+            {{ t('comun.registrar') }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <ul class="listado">
+      @for (e of empresas(); track e.id) {
+        <li>
+          <span>{{ e.razonSocial }}</span>
+          <span class="cifra tenue">{{ e.ruc }}</span>
+          @if (e.direccionFiscal) {
+            <span class="tenue">{{ e.direccionFiscal }}</span>
+          }
+        </li>
+      } @empty {
+        <li class="vacio">
+          {{ t(cargando() ? 'comun.cargando' : 'local.sinEmpresas') }}
+        </li>
+      }
+    </ul>
+  </div>
+</div>

@@ -1,166 +1,417 @@
 <section class="caja">
   <header class="cabecera">
     <div>
-      <p class="marca">Caja</p>
-      <h1>Cobrar y cerrar</h1>
+      <p class="marca">{{ t('caja.marca') }}</p>
+      <h1>{{ t('caja.titulo') }}</h1>
     </div>
     <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
-      {{ cargando() ? 'Cargando…' : 'Actualizar' }}
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
 
+  @if (arqueo(); as a) {
+    <ul class="kpis">
+      <li>
+        <span class="cifra dato">S/ {{ a.totalCobrado | number: '1.2-2' }}</span>
+        <span class="rotulo">{{ t('caja.cobradoHoy') }}</span>
+      </li>
+      <li>
+        <span class="cifra dato">{{ a.cantidadPagos }}</span>
+        <span class="rotulo">{{ t('caja.pagos') }}</span>
+      </li>
+      @for (m of a.porMetodo; track m.tipoPago) {
+        <li>
+          <span class="cifra dato">S/ {{ m.total | number: '1.2-2' }}</span>
+          <span class="rotulo">{{ tEnum('metodo', m.tipoPago) }} · {{ m.cantidad }}</span>
+        </li>
+      }
+    </ul>
+  }
+
   <div class="tablero">
-    <!-- ------------------------------------------------------------------ -->
-    <section class="bloque">
-      <h2>Comandas abiertas</h2>
+    <div class="pila">
+      <!-- ------------------------------------------------------------------ -->
+      <section class="bloque">
+        <h2>{{ t('caja.porCobrar') }}</h2>
 
-      <ul class="comandas">
-        @for (o of enSalon(); track o.id) {
-          <li>
-            <button
-              type="button"
-              class="fila"
-              [class.elegida]="seleccionada()?.id === o.id"
-              [disabled]="!seCobra(o)"
-              (click)="seleccionar(o)"
-            >
-              <span class="chip" [attr.data-estado]="o.estado">{{ o.estado }}</span>
-              <span class="mesa cifra">Mesa {{ o.mesaNumero || '—' }}</span>
+        <ul class="comandas">
+          @for (o of enSalon(); track o.id) {
+            <li>
+              <span class="chip" [attr.data-estado]="o.estado">{{
+                tEnum('estado', o.estado)
+              }}</span>
+              <span class="mesa cifra">
+                {{
+                  o.mesaNumero
+                    ? t('comun.mesa', { numero: o.mesaNumero })
+                    : tEnum('tipoOrden', o.tipoOrden)
+                }}
+              </span>
               <span class="monto cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</span>
-            </button>
-          </li>
-        } @empty {
-          <li class="vacio">
-            {{ cargando() ? 'Cargando…' : 'No hay comandas abiertas.' }}
-          </li>
-        }
-      </ul>
 
-      <p class="pie">Solo se cobra lo que ya esta ENTREGADO.</p>
-    </section>
+              @if (seCobra(o)) {
+                <button type="button" (click)="seleccionar(o)">{{ t('caja.abrirCuenta') }}</button>
+              } @else {
+                <span class="nota-estado">{{ t('caja.enCocina') }}</span>
+              }
+            </li>
+          } @empty {
+            <li class="vacio">
+              {{ t(cargando() ? 'comun.cargando' : 'caja.sinComandas') }}
+            </li>
+          }
+        </ul>
+      </section>
 
-    <!-- ------------------------------------------------------------------ -->
-    <section class="bloque cuenta">
-      @if (seleccionada(); as o) {
-        <header class="titulo">
-          <h2>Mesa {{ o.mesaNumero || '—' }}</h2>
-          <span class="chip" [attr.data-estado]="o.estado">{{ o.estado }}</span>
-        </header>
+      <!-- ------------------------------------------------------------------ -->
+      <!-- Tarjeta y billetera nacen en PENDIENTE: el dinero no esta hasta que
+           alguien lo acredita. Sin esta bandeja, un cobro olvidado no se
+           distingue de uno que nunca existio. -->
+      @if (pendientes().length > 0) {
+        <section class="bloque bandeja">
+          <h2>{{ t('caja.porAcreditar') }}</h2>
 
-        <ul class="detalles">
-          @for (d of o.detalles; track d.id) {
+          <ul class="pagos">
+            @for (p of pendientes(); track p.id) {
+              <li>
+                <span class="chip">{{ tEnum('metodo', p.tipoPago) }}</span>
+                <span class="referencia">{{ p.referencia || t('comun.sinReferencia') }}</span>
+                <span class="monto cifra">S/ {{ p.monto | number: '1.2-2' }}</span>
+                <button type="button" (click)="acreditar(p)" [disabled]="cobrando()">
+                  {{ t('caja.acreditar') }}
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+
+    <!-- -------------------------------------------------------------------- -->
+    <aside class="cuenta bloque">
+      @if (seleccionada(); as orden) {
+        <h2>
+          {{
+            t('caja.cuentaDe', {
+              destino: orden.mesaNumero
+                ? t('caja.mesaMinuscula', { numero: orden.mesaNumero })
+                : tEnum('tipoOrden', orden.tipoOrden),
+            })
+          }}
+        </h2>
+
+        <ul class="lineas">
+          @for (d of orden.detalles; track d.id) {
             <li>
               <span class="cantidad cifra">{{ d.cantidad }}×</span>
-              <span class="plato">
-                {{ d.platilloNombre }}
-                @if (d.excepcionesNota) {
-                  <span class="nota">{{ d.excepcionesNota }}</span>
-                }
-              </span>
-              <span class="importe cifra">S/ {{ d.montoSubtotal | number: '1.2-2' }}</span>
+              <span class="nombre">{{ d.platilloNombre }}</span>
+              <span class="subtotal cifra">S/ {{ d.montoSubtotal | number: '1.2-2' }}</span>
             </li>
           }
         </ul>
 
-        <dl class="totales">
-          <div>
-            <dt>Subtotal</dt>
-            <dd class="cifra">S/ {{ o.montoSubtotal | number: '1.2-2' }}</dd>
-          </div>
-          @if ((o.montoDescuento ?? 0) > 0) {
-            <div>
-              <dt>Descuento</dt>
-              <dd class="cifra">− S/ {{ o.montoDescuento | number: '1.2-2' }}</dd>
+        <div class="totales">
+          @if ((orden.montoDescuento ?? 0) > 0) {
+            <div class="linea-total tenue">
+              <span>{{ t('comun.subtotal') }}</span>
+              <span class="cifra">S/ {{ orden.montoSubtotal | number: '1.2-2' }}</span>
+            </div>
+            <div class="linea-total tenue">
+              <span>{{ orden.promocionNombre || t('caja.descuento') }}</span>
+              <span class="cifra">− S/ {{ orden.montoDescuento | number: '1.2-2' }}</span>
             </div>
           }
-          <div class="grande">
-            <dt>Total</dt>
-            <dd class="cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</dd>
+          <div class="total">
+            <span>{{ t('comun.total') }}</span>
+            <strong class="cifra">S/ {{ orden.montoTotal | number: '1.2-2' }}</strong>
           </div>
-        </dl>
+          @if (confirmado() > 0 || enEspera() > 0) {
+            <div class="linea-total tenue">
+              <span>{{ t('caja.acreditado') }}</span>
+              <span class="cifra">S/ {{ confirmado() | number: '1.2-2' }}</span>
+            </div>
+            @if (enEspera() > 0) {
+              <div class="linea-total espera">
+                <span>{{ t('caja.enEspera') }}</span>
+                <span class="cifra">S/ {{ enEspera() | number: '1.2-2' }}</span>
+              </div>
+            }
+            <div class="linea-total">
+              <span>{{ t('caja.falta') }}</span>
+              <strong class="cifra">S/ {{ porCobrar() | number: '1.2-2' }}</strong>
+            </div>
+          }
+        </div>
 
-        @if (o.estado === 'ENTREGADO') {
+        @if (pagosDeLaCuenta().length > 0) {
+          <ul class="pagos">
+            @for (p of pagosDeLaCuenta(); track p.id) {
+              <li>
+                <span class="chip" [attr.data-estado]="p.estado">{{
+                  tEnum('pago', p.estado)
+                }}</span>
+                <span class="referencia">{{ tEnum('metodo', p.tipoPago) }}</span>
+                <span class="monto cifra">S/ {{ p.monto | number: '1.2-2' }}</span>
+                @if (p.estado === 'PENDIENTE') {
+                  <button type="button" (click)="acreditar(p)" [disabled]="cobrando()">
+                    {{ t('caja.acreditar') }}
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        }
+
+        <!-- --- el cobro --- -->
+        @if (orden.estado === 'ENTREGADO') {
           <div class="cobro">
-            <label for="entregado">Efectivo recibido</label>
-            <div class="entrada">
-              <input
-                id="entregado"
-                type="number"
-                inputmode="decimal"
-                min="0"
-                step="0.10"
-                placeholder="0.00"
-                [value]="entregado() ?? ''"
-                (input)="anotarEntregado($any($event.target).value)"
-              />
-              <button type="button" class="secundario" (click)="importeExacto()">Exacto</button>
+            <div class="metodos" role="group" [attr.aria-label]="t('caja.formaPago')">
+              @for (m of ORDEN_METODOS; track m) {
+                <button
+                  type="button"
+                  [class.elegido]="metodo() === m"
+                  [attr.aria-pressed]="metodo() === m"
+                  (click)="elegirMetodo(m)"
+                >
+                  {{ tEnum('metodo', m) }}
+                </button>
+              }
             </div>
 
-            <!-- Se compara contra null y no con la verdad del numero: el pago
-                 justo da vuelto 0, y `@if (vuelto())` lo habria escondido justo
-                 en el caso mas comun. -->
-            @if (vuelto() !== null) {
-              @if ((vuelto() ?? 0) >= 0) {
-                <p class="vuelto">
-                  Vuelto <strong class="cifra">S/ {{ vuelto() | number: '1.2-2' }}</strong>
-                </p>
-              } @else {
-                <!-- El backend responde 400 si lo entregado no cubre el cobro;
-                     mejor decirlo aqui que dejar que lo diga un error. -->
-                <p class="falta" role="alert">
-                  Faltan <strong class="cifra">S/ {{ -(vuelto() ?? 0) | number: '1.2-2' }}</strong>
+            <label class="campo">
+              <span>{{ t('caja.importe') }}</span>
+              <input
+                type="number"
+                inputmode="decimal"
+                step="0.10"
+                min="0"
+                [value]="monto() ?? ''"
+                (input)="anotarMonto($any($event.target).value)"
+              />
+            </label>
+
+            @if (porCobrar() > 0) {
+              <button type="button" class="secundario" (click)="cobrarMitad()">
+                {{ t('caja.dividir') }}
+              </button>
+            }
+
+            @if (esEfectivo()) {
+              <label class="campo">
+                <span>{{ t('caja.conCuantoPaga') }}</span>
+                <input
+                  type="number"
+                  inputmode="decimal"
+                  step="0.10"
+                  min="0"
+                  [value]="entregado() ?? ''"
+                  (input)="anotarEntregado($any($event.target).value)"
+                />
+              </label>
+
+              <button type="button" class="secundario" (click)="importeExacto()">
+                {{ t('caja.pagaJusto') }}
+              </button>
+
+              @if (vuelto() !== null) {
+                <p class="vuelto" [class.falta]="(vuelto() ?? 0) < 0">
+                  @if ((vuelto() ?? 0) < 0) {
+                    {{ t('caja.faltan') }}
+                    <strong class="cifra">S/ {{ -(vuelto() ?? 0) | number: '1.2-2' }}</strong>
+                  } @else {
+                    {{ t('caja.vuelto') }}
+                    <strong class="cifra">S/ {{ vuelto() | number: '1.2-2' }}</strong>
+                  }
                 </p>
               }
+            } @else {
+              <label class="campo">
+                <span>{{ t('caja.referencia') }}</span>
+                <input
+                  type="text"
+                  [attr.placeholder]="t('caja.referenciaPlaceholder')"
+                  [value]="referencia()"
+                  (input)="anotarReferencia($any($event.target).value)"
+                />
+              </label>
+              <p class="vacio">
+                {{ t('caja.avisoPendiente', { metodo: tEnum('metodo', metodo()) }) }}
+              </p>
             }
 
             <button type="button" (click)="cobrar()" [disabled]="!puedeCobrar()">
-              {{ cobrando() ? 'Cobrando…' : 'Cobrar en efectivo' }}
-            </button>
-          </div>
-        } @else if (o.estado === 'PAGADO') {
-          <div class="cobro">
-            @if (ultimoVuelto() !== null) {
-              <p class="vuelto">
-                Vuelto entregado <strong class="cifra">S/ {{ ultimoVuelto() | number: '1.2-2' }}</strong>
-              </p>
-            }
-            <p class="pagada">Cobrada. Falta cerrar el ciclo y liberar la mesa.</p>
-            <button type="button" (click)="cerrarCiclo()" [disabled]="!puedeCerrar()">
-              {{ cobrando() ? 'Cerrando…' : 'Cerrar comanda' }}
+              {{ t(cobrando() ? 'caja.cobrando' : 'caja.cobrar') }}
             </button>
           </div>
         }
 
-        <button type="button" class="secundario" (click)="cerrarCuenta()">Dejar esta cuenta</button>
+        @if (ultimoVuelto() !== null) {
+          <p class="vuelto entregado">
+            {{ t('caja.devuelve') }}
+            <strong class="cifra">S/ {{ ultimoVuelto() | number: '1.2-2' }}</strong>
+          </p>
+        }
+
+        <!-- --- calificacion --- -->
+        <!-- Se pide con la cuenta ya pagada y antes de cerrar: es el unico rato
+             en que el comensal sigue en la mesa y ya sabe que le parecio todo.
+             Cada N calificaciones el servidor emite un cupon, y ese codigo solo
+             aparece aqui. -->
+        @if (sePuedeCalificar()) {
+          <button type="button" class="secundario" (click)="abrirCalificacion()">
+            {{ t(calificando() ? 'comun.dejarlo' : 'caja.queLeParecio') }}
+          </button>
+        }
+
+        @if (calificando()) {
+          <div class="calificacion">
+            @for (c of CRITERIOS; track c.id) {
+              <div class="criterio">
+                <span>{{ t(c.nombre) }}</span>
+                <div
+                  class="estrellas"
+                  role="group"
+                  [attr.aria-label]="t('caja.puntajeDe', { criterio: t(c.nombre) })"
+                >
+                  @for (e of ESTRELLAS; track e) {
+                    <button
+                      type="button"
+                      class="estrella"
+                      [class.marcada]="puntajes()[c.id] >= e"
+                      [attr.aria-pressed]="puntajes()[c.id] === e"
+                      [attr.aria-label]="t('caja.estrellaAria', { n: e, criterio: t(c.nombre) })"
+                      (click)="puntuar(c.id, e)"
+                    >
+                      ★
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            <input
+              type="text"
+              [attr.placeholder]="t('caja.comentario')"
+              [value]="comentario()"
+              (input)="anotarComentario($any($event.target).value)"
+              [attr.aria-label]="t('caja.comentarioAria')"
+            />
+
+            <button
+              type="button"
+              (click)="calificar()"
+              [disabled]="!puntajesCompletos() || cobrando()"
+            >
+              {{ t('caja.registrarCalificacion') }}
+            </button>
+          </div>
+        }
+
+        <!-- El codigo del cupon no se vuelve a ver: se dicta ahora o se pierde
+             hasta que el cliente lo pida en su proxima visita. -->
+        @if (calificacion(); as f) {
+          <div class="calificada">
+            <p>{{ f.mensajeFidelizacion }}</p>
+            @if (f.cuponGenerado; as cupon) {
+              <p class="cupon">
+                {{ t('caja.dictaCupon') }} <strong class="cifra">{{ cupon.codigo }}</strong>
+                @if (cupon.porcentajeDescuento; as porcentaje) {
+                  {{ t('caja.porcentajeDescuento', { n: porcentaje }) }}
+                }
+              </p>
+            }
+          </div>
+        }
+
+        @if (puedeCerrar()) {
+          <button type="button" (click)="cerrarCiclo()" [disabled]="cobrando()">
+            {{ t('caja.cerrarComanda') }}
+          </button>
+        }
+
+        <!-- --- billete falso --- -->
+        <!-- FRAUDULENTO es terminal: de ahi no se sale. Por eso el gesto va
+             contorneado, pide un motivo escrito y no se confunde con Cobrar. -->
+        <button type="button" class="destructivo" (click)="abrirAlerta()">
+          {{ t(alertando() ? 'comun.dejarlo' : 'caja.billeteFalso') }}
+        </button>
+
+        @if (alertando()) {
+          <div class="alerta">
+            <input
+              type="text"
+              [attr.placeholder]="t('caja.quePaso')"
+              [value]="motivoFraude()"
+              (input)="anotarMotivoFraude($any($event.target).value)"
+              [attr.aria-label]="t('caja.motivoAlerta')"
+            />
+            <label class="casilla">
+              <input type="checkbox" [checked]="bloquearCliente()" (change)="alternarBloqueo()" />
+              <span>{{ t('caja.bloquearCliente') }}</span>
+            </label>
+            <button
+              type="button"
+              class="destructivo"
+              (click)="alertarFraude()"
+              [disabled]="!motivoFraude().trim() || cobrando()"
+            >
+              {{ t('caja.marcarFraudulenta') }}
+            </button>
+          </div>
+        }
+
+        <button type="button" class="secundario" (click)="cerrarCuenta()">
+          {{ t('caja.cerrarCuenta') }}
+        </button>
       } @else {
-        <p class="vacio">Elige una comanda entregada para cobrarla.</p>
+        <h2>{{ t('caja.cuenta') }}</h2>
+        <p class="vacio">{{ t('caja.abreComanda') }}</p>
       }
-    </section>
+    </aside>
   </div>
 
   <!-- -------------------------------------------------------------------- -->
-  @if (arqueo(); as a) {
-    <section class="bloque">
-      <h2>Arqueo del dia</h2>
+  <section class="bloque reportes">
+    <h2>{{ t('caja.elDia') }}</h2>
 
-      <div class="arqueo">
-        <div class="grueso">
-          <span class="dato cifra">S/ {{ a.totalCobrado | number: '1.2-2' }}</span>
-          <span class="rotulo">Cobrado · {{ a.cantidadPagos }} pagos</span>
-        </div>
+    <div class="dos">
+      <div>
+        <p class="rotulo">{{ t('caja.ventasPorCanal') }}</p>
+        @if (ventas(); as v) {
+          <ul class="listado">
+            @for (c of v.porCanal; track c.canal) {
+              <li>
+                <span>{{ tEnum('canalVenta', c.canal) }}</span>
+                <span class="cifra">S/ {{ c.total | number: '1.2-2' }}</span>
+              </li>
+            } @empty {
+              <li class="vacio">{{ t('caja.sinVentas') }}</li>
+            }
+          </ul>
+          <p class="total">
+            <span>{{ t('caja.totalVendido') }}</span>
+            <strong class="cifra">S/ {{ v.totalVendido | number: '1.2-2' }}</strong>
+          </p>
+        } @else {
+          <p class="vacio">{{ t('caja.sinDatosVentas') }}</p>
+        }
+      </div>
 
-        <ul class="metodos">
-          @for (m of a.porMetodo; track m.tipoPago) {
+      <div>
+        <p class="rotulo">{{ t('caja.loMasVendido') }}</p>
+        <ul class="listado">
+          @for (p of top(); track p.platillo) {
             <li>
-              <span class="rotulo">{{ m.tipoPago }}</span>
-              <span class="cifra">S/ {{ m.total | number: '1.2-2' }}</span>
-              <span class="rotulo">{{ m.cantidad }} pagos</span>
+              <span>{{ p.platillo }}</span>
+              <span class="cifra"
+                >{{ p.unidadesVendidas }} · S/ {{ p.montoTotal | number: '1.2-2' }}</span
+              >
             </li>
           } @empty {
-            <li class="vacio">Todavia no se cobro nada hoy.</li>
+            <li class="vacio">{{ t('caja.sinPlatos') }}</li>
           }
         </ul>
       </div>
-    </section>
-  }
+    </div>
+  </section>
 </section>

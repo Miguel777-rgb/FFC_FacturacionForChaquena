@@ -52,9 +52,16 @@ public class CajaController {
         return ResponseEntity.ok(pagoService.arqueo(inicio, fin));
     }
 
+    @GetMapping("/pagos/pendientes")
+    @PreAuthorize("hasAnyRole('ADMIN','CAJA')")
+    @Operation(summary = "Cobros con billetera o tarjeta que esperan acreditacion")
+    public ResponseEntity<List<PagoResponseDto>> pendientes() {
+        return ResponseEntity.ok(pagoService.pagosPendientes());
+    }
+
     @GetMapping("/alertas-fraude")
     @PreAuthorize("hasAnyRole('ADMIN','CAJA')")
-    @Operation(summary = "Bandeja de pagos marcados como fraudulentos")
+    @Operation(operationId = "listarAlertasDeFraude", summary = "Bandeja de pagos marcados como fraudulentos")
     public ResponseEntity<List<PagoResponseDto>> alertas() {
         return ResponseEntity.ok(pagoService.alertasFraude());
     }

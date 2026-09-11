@@ -1,0 +1,293 @@
+<section class="despacho">
+  <header class="cabecera">
+    <div>
+      <p class="marca">{{ t('despacho.marca') }}</p>
+      <h1>{{ t('despacho.titulo') }}</h1>
+    </div>
+    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
+    </button>
+  </header>
+
+  <div class="tablero">
+    <div class="pila">
+      <!-- ------------------------------------------------------------------ -->
+      <section class="bloque">
+        <h2>{{ t('despacho.esperandoConductor') }}</h2>
+
+        @if (!hayConductores()) {
+          <p class="vacio">{{ t('despacho.sinConductores') }}</p>
+        }
+
+        <ul class="comandas">
+          @for (o of esperando(); track o.id) {
+            <li>
+              <div class="fila">
+                <span class="chip" [attr.data-estado]="o.estado">{{
+                  tEnum('estado', o.estado)
+                }}</span>
+                <span class="items">{{ tp('comun.items', o.cantidadItems ?? 0) }}</span>
+                <span class="monto cifra">S/ {{ o.montoTotal }}</span>
+                <span class="espera cifra"
+                  >{{ o.minutosTranscurridos }} {{ t('comun.minutos') }}</span
+                >
+              </div>
+
+              @if (puedeSalir(o)) {
+                <!-- Reconocer al conductor y darle la comanda es un solo momento
+                     en el mostrador, asi que es un solo boton. -->
+                <div class="fila entrega">
+                  <select
+                    [value]="conductorPara()[o.id ?? ''] ?? ''"
+                    (change)="elegirConductor(o.id ?? '', $any($event.target).value)"
+                    [attr.aria-label]="t('despacho.conductorAria')"
+                  >
+                    <option value="">{{ t('despacho.quienLleva') }}</option>
+                    @for (c of conductores(); track c.id) {
+                      @if (c.activo && c.vehiculos?.length) {
+                        <option [value]="c.id">
+                          {{ c.nombreCompleto }} · {{ c.empresaTransporte }}
+                        </option>
+                      }
+                    }
+                  </select>
+
+                  <select
+                    [value]="vehiculoPara()[o.id ?? ''] ?? ''"
+                    (change)="elegirVehiculo(o.id ?? '', $any($event.target).value)"
+                    [disabled]="!conductorPara()[o.id ?? '']"
+                    [attr.aria-label]="t('despacho.vehiculoAria')"
+                  >
+                    <option value="">{{ t('despacho.enQueVehiculo') }}</option>
+                    @for (v of vehiculosDe(conductorPara()[o.id ?? '']); track v.id) {
+                      <option [value]="v.id">
+                        {{ v.placa }} · {{ tEnum('vehiculo', v.tipoVehiculo) }}
+                      </option>
+                    }
+                  </select>
+
+                  <button
+                    type="button"
+                    (click)="entregarAlConductor(o)"
+                    [disabled]="!listaParaSalir(o)"
+                  >
+                    {{ t('despacho.entregarConductor') }}
+                  </button>
+                </div>
+              } @else {
+                <p class="vacio">
+                  {{ t(o.estado === 'ENCOLADO' ? 'despacho.cocinaNoTomo' : 'despacho.enCocina') }}
+                </p>
+              }
+            </li>
+          } @empty {
+            <li class="vacio">
+              {{ t(cargando() ? 'comun.cargando' : 'despacho.sinComandas') }}
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- ------------------------------------------------------------------ -->
+      <!-- Nada de mapas ni de cuenta atras: el reparto lo lleva otra empresa y
+           el local no sabe donde esta el conductor. Lo unico que consta aqui es
+           a quien se le dio la comanda y a que hora salio. -->
+      <section class="bloque">
+        <h2>{{ t('despacho.enManos') }}</h2>
+
+        <ul class="comandas">
+          @for (i of enRuta(); track i.ordenId) {
+            <li>
+              <div class="fila">
+                <span class="conductor">{{ i.transportistaNombre }}</span>
+                <span class="placa cifra">{{ i.placaVehiculo }}</span>
+                @if (desdeQueSalio(i) !== null) {
+                  <span class="espera cifra">
+                    {{ t('despacho.salioHace', { n: desdeQueSalio(i) ?? 0 }) }}
+                  </span>
+                }
+              </div>
+
+              @if (i.direccionDelivery) {
+                <p class="direccion">{{ i.direccionDelivery }}</p>
+              }
+
+              <!-- El codigo lo dicta el cliente. El conductor es de fuera: nunca
+                   lo ve en pantalla antes de que se lo digan. -->
+              <div class="fila codigo">
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  [attr.placeholder]="t('despacho.codigoPlaceholder')"
+                  [value]="codigos()[i.ordenId ?? ''] ?? ''"
+                  (input)="anotarCodigo(i.ordenId ?? '', $any($event.target).value)"
+                  [attr.aria-label]="
+                    t('despacho.codigoAria', { conductor: i.transportistaNombre ?? '' })
+                  "
+                />
+                <button
+                  type="button"
+                  (click)="cerrarEntrega(i)"
+                  [disabled]="!(codigos()[i.ordenId ?? ''] ?? '').trim() || ocupada() !== null"
+                >
+                  {{ t('despacho.confirmar') }}
+                </button>
+                <button
+                  type="button"
+                  class="secundario"
+                  (click)="reenviarCodigo(i)"
+                  [disabled]="ocupada() !== null"
+                >
+                  {{ t('despacho.reenviar') }}
+                </button>
+              </div>
+            </li>
+          } @empty {
+            <li class="vacio">
+              {{ t(cargando() ? 'comun.cargando' : 'despacho.ningunaEnCalle') }}
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    <!-- -------------------------------------------------------------------- -->
+    <aside class="libreta bloque">
+      <h2>{{ t('despacho.conductores') }}</h2>
+
+      <p class="vacio">{{ t('despacho.avisoLibreta') }}</p>
+
+      <ul class="conductores">
+        @for (c of conductores(); track c.id) {
+          <li [class.baja]="!c.activo">
+            <div class="fila">
+              <div class="quien">
+                <strong>{{ c.nombreCompleto }}</strong>
+                <span class="detalle">
+                  {{ c.empresaTransporte }} · {{ t('comun.dni') }} {{ c.dni }} · {{ c.celular }}
+                </span>
+              </div>
+              <button
+                type="button"
+                [class.destructivo]="c.activo"
+                [class.secundario]="!c.activo"
+                (click)="cambiarActivo(c)"
+                [disabled]="ocupada() !== null"
+              >
+                {{ t(c.activo ? 'comun.darDeBaja' : 'comun.reactivar') }}
+              </button>
+            </div>
+
+            <ul class="vehiculos">
+              @for (v of c.vehiculos; track v.id) {
+                <li>
+                  <span class="placa cifra">{{ v.placa }}</span>
+                  <span class="detalle">
+                    {{ tEnum('vehiculo', v.tipoVehiculo) }} {{ v.marcaModelo }}
+                  </span>
+                </li>
+              } @empty {
+                @if (c.activo) {
+                  <li class="vacio">{{ t('despacho.sinVehiculo') }}</li>
+                }
+              }
+            </ul>
+
+            <button type="button" class="secundario chico" (click)="abrirAltaVehiculo(c.id ?? '')">
+              {{ t(altaVehiculoPara() === c.id ? 'comun.dejarlo' : 'despacho.anotarVehiculo') }}
+            </button>
+
+            @if (altaVehiculoPara() === c.id) {
+              <div class="formulario">
+                <input
+                  type="text"
+                  [attr.placeholder]="t('despacho.placa')"
+                  [value]="placa()"
+                  (input)="anotarPlaca($any($event.target).value)"
+                  [attr.aria-label]="t('despacho.placa')"
+                />
+                <select
+                  [value]="tipoVehiculo()"
+                  (change)="elegirTipoVehiculo($any($event.target).value)"
+                  [attr.aria-label]="t('despacho.tipoVehiculo')"
+                >
+                  @for (tipo of TIPOS_VEHICULO; track tipo) {
+                    <option [value]="tipo">{{ tEnum('vehiculo', tipo) }}</option>
+                  }
+                </select>
+                <input
+                  type="text"
+                  [attr.placeholder]="t('despacho.marcaModelo')"
+                  [value]="marcaModelo()"
+                  (input)="anotarMarcaModelo($any($event.target).value)"
+                  [attr.aria-label]="t('despacho.marcaModeloAria')"
+                />
+                <button
+                  type="button"
+                  (click)="altaVehiculo()"
+                  [disabled]="!placa().trim() || ocupada() !== null"
+                >
+                  {{ t('despacho.guardarVehiculo') }}
+                </button>
+              </div>
+            }
+          </li>
+        } @empty {
+          <li class="vacio">
+            {{ t(cargando() ? 'comun.cargando' : 'despacho.sinConductoresAnotados') }}
+          </li>
+        }
+      </ul>
+
+      <button type="button" class="secundario" (click)="abrirAlta()">
+        {{ t(altaAbierta() ? 'comun.dejarlo' : 'despacho.anotarConductor') }}
+      </button>
+
+      @if (altaAbierta()) {
+        <div class="formulario">
+          <input
+            type="text"
+            [attr.placeholder]="t('comun.nombres')"
+            [value]="nombres()"
+            (input)="anotarNombres($any($event.target).value)"
+            [attr.aria-label]="t('comun.nombres')"
+          />
+          <input
+            type="text"
+            [attr.placeholder]="t('comun.apellidos')"
+            [value]="apellidos()"
+            (input)="anotarApellidos($any($event.target).value)"
+            [attr.aria-label]="t('comun.apellidos')"
+          />
+          <input
+            type="text"
+            inputmode="numeric"
+            [attr.placeholder]="t('comun.dni')"
+            [value]="dni()"
+            (input)="anotarDni($any($event.target).value)"
+            [attr.aria-label]="t('comun.documentoIdentidad')"
+          />
+          <input
+            type="text"
+            inputmode="tel"
+            [attr.placeholder]="t('comun.celular')"
+            [value]="celular()"
+            (input)="anotarCelular($any($event.target).value)"
+            [attr.aria-label]="t('comun.celular')"
+          />
+          <input
+            type="text"
+            [attr.placeholder]="t('despacho.empresa')"
+            [value]="empresa()"
+            (input)="anotarEmpresa($any($event.target).value)"
+            [attr.aria-label]="t('despacho.empresa')"
+          />
+          <button type="button" (click)="altaConductor()" [disabled]="ocupada() !== null">
+            {{ t('despacho.guardarConductor') }}
+          </button>
+        </div>
+      }
+    </aside>
+  </div>
+</section>

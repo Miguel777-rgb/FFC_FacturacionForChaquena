@@ -17,4 +17,8 @@
 main {
   flex: 1;
   min-width: 0;
+  /* La barra de idiomas flota en la esquina de abajo a la derecha. Sin este
+     hueco, el «Enviar a cocina» de una comanda larga acabaria justo debajo de
+     las banderas. */
+  padding-bottom: var(--hueco-barra);
 }

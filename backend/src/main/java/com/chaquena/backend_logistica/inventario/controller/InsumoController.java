@@ -30,13 +30,13 @@ public class InsumoController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Crear insumo (nace con stock cero)")
+    @Operation(operationId = "crearInsumo", summary = "Crear insumo (nace con stock cero)")
     public ResponseEntity<InsumoResponseDto> crear(@Valid @RequestBody InsumoRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(insumoService.crear(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar insumos con filtros por tipo, texto y bajo minimo")
+    @Operation(operationId = "buscarInsumos", summary = "Listar insumos con filtros por tipo, texto y bajo minimo")
     public ResponseEntity<PageResponseDto<InsumoResponseDto>> buscar(
             @RequestParam(required = false) TipoInsumoEnum tipo,
             @RequestParam(required = false) String q,
@@ -46,20 +46,20 @@ public class InsumoController {
     }
 
     @GetMapping("/alertas")
-    @Operation(summary = "Insumos en o por debajo del stock minimo")
+    @Operation(operationId = "listarAlertasDeStock", summary = "Insumos en o por debajo del stock minimo")
     public ResponseEntity<List<InsumoResponseDto>> alertas() {
         return ResponseEntity.ok(insumoService.alertas());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener insumo por id")
+    @Operation(operationId = "obtenerInsumo", summary = "Obtener insumo por id")
     public ResponseEntity<InsumoResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(insumoService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Actualizar datos maestros del insumo (no mueve stock)")
+    @Operation(operationId = "actualizarInsumo", summary = "Actualizar datos maestros del insumo (no mueve stock)")
     public ResponseEntity<InsumoResponseDto> actualizar(@PathVariable UUID id,
             @Valid @RequestBody InsumoRequestDto request) {
         return ResponseEntity.ok(insumoService.actualizar(id, request));

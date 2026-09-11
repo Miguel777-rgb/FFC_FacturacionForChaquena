@@ -26,10 +26,6 @@
 ### Java / Maven ###
 target/
 build/
-!**/src/main/**/target/
-!**/src/test/**/target/
-!**/src/main/**/build/
-!**/src/test/**/build/
 .mvn/wrapper/maven-wrapper.jar
 
 ### Node ###
@@ -44,21 +40,7 @@ coverage/
 
 ### Editores e IDE ###
 .idea/
-*.iws
-*.iml
-*.ipr
 .vscode/
-.settings/
-.project
-.classpath
-.factorypath
-.springBeans
-.sts4-cache
-.apt_generated
-/nbproject/private/
-/nbbuild/
-/nbdist/
-/.nb-gradle/
 
 ### Logs ###
 *.log

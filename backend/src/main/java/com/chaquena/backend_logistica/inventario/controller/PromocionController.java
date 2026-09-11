@@ -25,13 +25,13 @@ public class PromocionController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Crear promocion")
+    @Operation(operationId = "crearPromocion", summary = "Crear promocion")
     public ResponseEntity<PromocionResponseDto> crear(@Valid @RequestBody PromocionRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(promocionService.crear(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar promociones; por defecto solo las vigentes por fecha")
+    @Operation(operationId = "listarPromociones", summary = "Listar promociones; por defecto solo las vigentes por fecha")
     public ResponseEntity<List<PromocionResponseDto>> listar(
             @RequestParam(defaultValue = "true") boolean soloVigentes) {
         return ResponseEntity.ok(promocionService.listar(soloVigentes));
@@ -44,14 +44,14 @@ public class PromocionController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener promocion por id")
+    @Operation(operationId = "obtenerPromocion", summary = "Obtener promocion por id")
     public ResponseEntity<PromocionResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(promocionService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Actualizar promocion")
+    @Operation(operationId = "actualizarPromocion", summary = "Actualizar promocion")
     public ResponseEntity<PromocionResponseDto> actualizar(@PathVariable UUID id,
             @Valid @RequestBody PromocionRequestDto request) {
         return ResponseEntity.ok(promocionService.actualizar(id, request));

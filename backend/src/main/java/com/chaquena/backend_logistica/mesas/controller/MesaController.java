@@ -27,7 +27,7 @@ public class MesaController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Crear mesa")
+    @Operation(operationId = "crearMesa", summary = "Crear mesa")
     public ResponseEntity<MesaResponseDto> crear(@Valid @RequestBody MesaRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(mesaService.crear(request));
     }
@@ -39,14 +39,14 @@ public class MesaController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener mesa por id")
+    @Operation(operationId = "obtenerMesa", summary = "Obtener mesa por id")
     public ResponseEntity<MesaResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(mesaService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Actualizar mesa")
+    @Operation(operationId = "actualizarMesa", summary = "Actualizar mesa")
     public ResponseEntity<MesaResponseDto> actualizar(@PathVariable UUID id,
             @Valid @RequestBody MesaRequestDto request) {
         return ResponseEntity.ok(mesaService.actualizar(id, request));
@@ -54,7 +54,7 @@ public class MesaController {
 
     @PatchMapping("/{id}/estado")
     @PreAuthorize("hasAnyRole('ADMIN','MOZO','CAJA')")
-    @Operation(summary = "Cambiar el estado de la mesa")
+    @Operation(operationId = "cambiarEstadoMesa", summary = "Cambiar el estado de la mesa")
     public ResponseEntity<MesaResponseDto> cambiarEstado(@PathVariable UUID id,
             @RequestParam EstadoMesaEnum estado) {
         return ResponseEntity.ok(mesaService.cambiarEstado(id, estado));

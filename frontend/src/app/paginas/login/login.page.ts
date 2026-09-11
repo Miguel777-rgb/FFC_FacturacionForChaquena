@@ -7,6 +7,8 @@ import { AutenticacionApi, type AuthResponseDto } from '../../api';
 import { mensajeDe } from '../../nucleo/http/errores.interceptor';
 import { SesionService } from '../../nucleo/sesion/sesion.service';
 import { GoogleService } from '../../nucleo/sesion/google.service';
+import { I18nService } from '../../nucleo/i18n/i18n.service';
+import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 import { INICIO_POR_ROL } from '../../nucleo/sesion/rol';
 
 @Component({
@@ -21,6 +23,7 @@ export class LoginPage {
   private readonly auth = inject(AutenticacionApi);
   private readonly sesion = inject(SesionService);
   protected readonly google = inject(GoogleService);
+  protected readonly t = inject(I18nService).t;
   private readonly router = inject(Router);
   private readonly ruta = inject(ActivatedRoute);
 
@@ -53,7 +56,7 @@ export class LoginPage {
       // pantalla de login el error va en la propia pantalla.
       error: (e: unknown) => {
         this.enviando.set(false);
-        this.error.set(this.textoDeError(e, 'No se pudo iniciar sesion. Intenta de nuevo.'));
+        this.error.set(this.textoDeError(e, 'login.errorGenerico'));
       },
     });
   }
@@ -78,7 +81,7 @@ export class LoginPage {
       accessToken = await this.google.pedirAccessToken();
     } catch (e: unknown) {
       this.enviando.set(false);
-      this.error.set(e instanceof Error ? e.message : 'No se pudo entrar con Google.');
+      this.error.set(e instanceof Error ? e.message : this.t('login.errorGoogle'));
       return;
     }
 
@@ -86,7 +89,7 @@ export class LoginPage {
       next: (respuesta) => this.entrarConRespuesta(respuesta),
       error: (e: unknown) => {
         this.enviando.set(false);
-        this.error.set(this.textoDeError(e, 'No se pudo entrar con Google.'));
+        this.error.set(this.textoDeError(e, 'login.errorGoogle'));
       },
     });
   }
@@ -95,7 +98,7 @@ export class LoginPage {
   private entrarConRespuesta(respuesta: AuthResponseDto): void {
     if (!respuesta.token) {
       this.enviando.set(false);
-      this.error.set('El servidor no devolvio un token. Avisa al administrador.');
+      this.error.set(this.t('login.errorSinToken'));
       return;
     }
 
@@ -115,9 +118,10 @@ export class LoginPage {
    * deducia, y el mapeo quedo al reves cuando el backend empezo a distinguir la
    * cuenta dada de baja de la contrasena incorrecta.
    */
-  private textoDeError(e: unknown, porDefecto: string): string {
-    if (!(e instanceof HttpErrorResponse)) return porDefecto;
-    if (e.status === 0) return 'Sin conexion con el servidor. Revisa la red y vuelve a intentar.';
-    return mensajeDe(e, porDefecto);
+  private textoDeError(e: unknown, porDefecto: ClaveI18n): string {
+    const respaldo = this.t(porDefecto);
+    if (!(e instanceof HttpErrorResponse)) return respaldo;
+    if (e.status === 0) return this.t('errores.sinConexion');
+    return mensajeDe(e, respaldo);
   }
 }

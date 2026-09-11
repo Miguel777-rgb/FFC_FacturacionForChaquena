@@ -28,8 +28,15 @@
 -- Rellenar lo que este en NULL con el valor que le corresponde, poner las
 -- columnas en NOT NULL y dejarles un DEFAULT en la propia base para que un
 -- INSERT hecho a mano (como los que documenta bd/README.md) siga
--- funcionando. El script es idempotente: si una columna ya esta en NOT NULL
--- vuelve a ejecutarse sin efecto.
+-- funcionando. El script es idempotente: volver a ejecutarlo sobre un
+-- esquema ya corregido no cambia nada.
+--
+-- Ojo con el caso de la base recreada desde cero: ahi las columnas de
+-- auditoria nacen NOT NULL porque la entidad lo declara, pero sin DEFAULT.
+-- Por eso el recorrido del catalogo no filtra solo por is_nullable, sino
+-- tambien por column_default IS NULL; si filtrara solo por el primero, una
+-- base nueva se quedaria sin los valores por defecto y los INSERT manuales
+-- dejarian de funcionar sin que nadie lo notara.
 --
 -- QUE NO TOCA, Y POR QUE
 -- ----------------------
@@ -93,7 +100,12 @@ BEGIN
         FROM information_schema.columns c
         WHERE c.table_schema = 'public'
           AND c.column_name = 'modified_by'
-          AND c.is_nullable = 'YES'
+          -- No basta con mirar si admite NULL. Sobre una base recien creada
+          -- por Hibernate la columna ya nace NOT NULL (la entidad lo declara)
+          -- pero SIN el DEFAULT, y el DEFAULT es lo que mantiene vivos los
+          -- INSERT a mano que documenta bd/README.md. Se entra tambien en ese
+          -- caso: SET NOT NULL sobre una columna que ya lo es no hace nada.
+          AND (c.is_nullable = 'YES' OR c.column_default IS NULL)
     LOOP
         EXECUTE format(
             'UPDATE %I SET modified_by = COALESCE(created_by, ''SYSTEM'') '
@@ -110,7 +122,8 @@ BEGIN
         FROM information_schema.columns c
         WHERE c.table_schema = 'public'
           AND c.column_name = 'last_date_modified'
-          AND c.is_nullable = 'YES'
+          -- Mismo motivo que arriba: falta el DEFAULT, no el NOT NULL.
+          AND (c.is_nullable = 'YES' OR c.column_default IS NULL)
     LOOP
         EXECUTE format(
             'UPDATE %I SET last_date_modified = COALESCE(date_created, now()) '

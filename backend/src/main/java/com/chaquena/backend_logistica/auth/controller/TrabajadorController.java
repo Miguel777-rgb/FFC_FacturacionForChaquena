@@ -1,6 +1,7 @@
 package com.chaquena.backend_logistica.auth.controller;
 
 import com.chaquena.backend_logistica.auth.dto.ActualizarTrabajadorRequestDto;
+import com.chaquena.backend_logistica.auth.dto.CambiarPasswordRequestDto;
 import com.chaquena.backend_logistica.auth.dto.RegistrarTrabajadorRequestDto;
 import com.chaquena.backend_logistica.auth.dto.TrabajadorResponseDto;
 import com.chaquena.backend_logistica.auth.service.TrabajadorService;
@@ -34,7 +35,7 @@ public class TrabajadorController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Registrar trabajador")
+    @Operation(operationId = "registrarTrabajador", summary = "Registrar trabajador")
     public ResponseEntity<TrabajadorResponseDto> registrar(
             @Valid @RequestBody RegistrarTrabajadorRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(trabajadorService.registrar(request));
@@ -42,7 +43,7 @@ public class TrabajadorController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Listar trabajadores")
+    @Operation(operationId = "listarTrabajadores", summary = "Listar trabajadores")
     public ResponseEntity<PageResponseDto<TrabajadorResponseDto>> listar(
             @RequestParam(required = false) Integer cargoId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -50,21 +51,21 @@ public class TrabajadorController {
     }
 
     @GetMapping("/activos")
-    @Operation(summary = "Trabajadores activos, para asignar mozo o responsable")
+    @Operation(operationId = "listarTrabajadoresActivos", summary = "Trabajadores activos, para asignar mozo o responsable")
     public ResponseEntity<List<TrabajadorResponseDto>> activos() {
         return ResponseEntity.ok(trabajadorService.activos());
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Obtener trabajador por id")
+    @Operation(operationId = "obtenerTrabajador", summary = "Obtener trabajador por id")
     public ResponseEntity<TrabajadorResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(trabajadorService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Actualizar datos y cargo del trabajador")
+    @Operation(operationId = "actualizarTrabajador", summary = "Actualizar datos y cargo del trabajador")
     public ResponseEntity<TrabajadorResponseDto> actualizar(@PathVariable UUID id,
             @Valid @RequestBody ActualizarTrabajadorRequestDto request) {
         return ResponseEntity.ok(trabajadorService.actualizar(id, request));
@@ -72,9 +73,20 @@ public class TrabajadorController {
 
     @PatchMapping("/{id}/activo")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Dar de alta o de baja al trabajador")
+    @Operation(operationId = "cambiarActivoTrabajador", summary = "Dar de alta o de baja al trabajador")
     public ResponseEntity<TrabajadorResponseDto> cambiarActivo(@PathVariable UUID id,
             @RequestParam boolean activo) {
         return ResponseEntity.ok(trabajadorService.cambiarActivo(id, activo));
+    }
+
+    @PatchMapping("/{id}/password")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(operationId = "restablecerPasswordTrabajador",
+            summary = "Restablecer la contrasena de un trabajador",
+            description = "No pide la contrasena anterior: es la puerta que usa administracion "
+                    + "cuando alguien pierde el acceso a mitad de turno.")
+    public ResponseEntity<TrabajadorResponseDto> restablecerPassword(@PathVariable UUID id,
+            @Valid @RequestBody CambiarPasswordRequestDto request) {
+        return ResponseEntity.ok(trabajadorService.cambiarPassword(id, request));
     }
 }

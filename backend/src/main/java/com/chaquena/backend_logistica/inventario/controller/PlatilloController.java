@@ -28,13 +28,13 @@ public class PlatilloController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Crear platillo")
+    @Operation(operationId = "crearPlatillo", summary = "Crear platillo")
     public ResponseEntity<PlatilloResponseDto> crear(@Valid @RequestBody PlatilloRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(platilloService.crear(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar platillos con filtros y paginacion")
+    @Operation(operationId = "buscarPlatillos", summary = "Listar platillos con filtros y paginacion")
     public ResponseEntity<PageResponseDto<PlatilloResponseDto>> buscar(
             @RequestParam(required = false) Integer categoriaId,
             @RequestParam(required = false) Boolean activo,
@@ -54,14 +54,14 @@ public class PlatilloController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener platillo con su receta")
+    @Operation(operationId = "obtenerPlatillo", summary = "Obtener platillo con su receta")
     public ResponseEntity<PlatilloResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(platilloService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Actualizar platillo")
+    @Operation(operationId = "actualizarPlatillo", summary = "Actualizar platillo")
     public ResponseEntity<PlatilloResponseDto> actualizar(@PathVariable UUID id,
             @Valid @RequestBody PlatilloRequestDto request) {
         return ResponseEntity.ok(platilloService.actualizar(id, request));
@@ -69,7 +69,7 @@ public class PlatilloController {
 
     @PatchMapping("/{id}/activo")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN','COCINA')")
-    @Operation(summary = "Sacar de carta o reponer sin borrar el historico de ventas")
+    @Operation(operationId = "cambiarActivoPlatillo", summary = "Sacar de carta o reponer sin borrar el historico de ventas")
     public ResponseEntity<PlatilloResponseDto> cambiarActivo(@PathVariable UUID id,
             @RequestParam boolean activo) {
         return ResponseEntity.ok(platilloService.cambiarActivo(id, activo));

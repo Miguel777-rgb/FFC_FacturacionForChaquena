@@ -24,26 +24,26 @@ public class CategoriaController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Crear categoria")
+    @Operation(operationId = "crearCategoria", summary = "Crear categoria")
     public ResponseEntity<CategoriaResponseDto> crear(@Valid @RequestBody CategoriaRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoriaService.crear(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar categorias de la carta")
+    @Operation(operationId = "listarCategorias", summary = "Listar categorias de la carta")
     public ResponseEntity<List<CategoriaResponseDto>> listar() {
         return ResponseEntity.ok(categoriaService.listarTodas());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener categoria por id")
+    @Operation(operationId = "obtenerCategoria", summary = "Obtener categoria por id")
     public ResponseEntity<CategoriaResponseDto> obtener(@PathVariable Integer id) {
         return ResponseEntity.ok(categoriaService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Actualizar categoria")
+    @Operation(operationId = "actualizarCategoria", summary = "Actualizar categoria")
     public ResponseEntity<CategoriaResponseDto> actualizar(@PathVariable Integer id,
             @Valid @RequestBody CategoriaRequestDto request) {
         return ResponseEntity.ok(categoriaService.actualizar(id, request));

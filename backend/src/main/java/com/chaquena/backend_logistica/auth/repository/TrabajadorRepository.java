@@ -38,6 +38,17 @@ public interface TrabajadorRepository extends JpaRepository<Trabajador, UUID> {
     @Query("SELECT t FROM Trabajador t WHERE t.celular = :celular OR t.celular = CONCAT('+', :celular) OR CONCAT('+', t.celular) = :celular")
     Optional<Trabajador> findByPersonaCelular(@Param("celular") String celular);
 
+    /**
+     * Quienes ya ataron su cuenta del proveedor de mensajeria. Trae el cargo
+     * cargado porque la pantalla de bots lo muestra junto al nombre.
+     */
+    @EntityGraph(attributePaths = { "cargo" })
+    java.util.List<Trabajador> findByDiscordUserIdIsNotNullOrderByUsernameAsc();
+
+    long countByDiscordUserIdIsNotNull();
+
+    long countByActivoTrue();
+
     boolean existsByUsername(String username);
 
     java.util.List<Trabajador> findByActivoTrue();

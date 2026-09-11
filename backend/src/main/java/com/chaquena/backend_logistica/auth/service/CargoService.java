@@ -1,5 +1,6 @@
 package com.chaquena.backend_logistica.auth.service;
 
+import com.chaquena.backend_logistica.auth.dto.ActualizarCargoRequestDto;
 import com.chaquena.backend_logistica.auth.dto.CargoResponseDto;
 import com.chaquena.backend_logistica.auth.dto.CrearCargoRequestDto;
 
@@ -11,4 +12,6 @@ public interface CargoService {
     List<CargoResponseDto> listarTodos();
 
     CargoResponseDto obtenerPorId(Integer id);
+
+    CargoResponseDto actualizar(Integer id, ActualizarCargoRequestDto request);
 }

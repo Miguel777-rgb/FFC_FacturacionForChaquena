@@ -19,4 +19,9 @@ public interface MesaRepository extends JpaRepository<Mesa, UUID> {
     List<Mesa> findByActivaTrueOrderByZonaAscNumeroAsc();
 
     List<Mesa> findByEstado(EstadoMesaEnum estado);
+
+    long countByEstado(EstadoMesaEnum estado);
+
+    /** Solo las mesas en servicio: una mesa inhabilitada no es aforo disponible. */
+    long countByActivaTrue();
 }

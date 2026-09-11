@@ -1,0 +1,279 @@
+<div class="seccion">
+  @if (resumen(); as r) {
+    <ul class="kpis">
+      <li>
+        <span class="cifra dato">{{ r.totalInsumos }}</span>
+        <span class="rotulo">{{ t('inventario.insumos') }}</span>
+      </li>
+      <li [class.alerta]="(r.insumosBajoMinimo ?? 0) > 0">
+        <span class="cifra dato">{{ r.insumosBajoMinimo }}</span>
+        <span class="rotulo">{{ t('inventario.bajoMinimo') }}</span>
+      </li>
+      @for (m of r.movimientos; track m.tipoControl) {
+        <li>
+          <span class="cifra dato">{{ m.cantidadMovimientos }}</span>
+          <span class="rotulo">{{ tEnum('movimiento', m.tipoControl) }}</span>
+        </li>
+      }
+    </ul>
+  }
+
+  <div class="barra">
+    <input
+      type="search"
+      [attr.placeholder]="t('inventario.buscar')"
+      [value]="filtro()"
+      (input)="anotarFiltro($any($event.target).value)"
+      [attr.aria-label]="t('inventario.buscar')"
+    />
+    <button
+      type="button"
+      [class.secundario]="!soloAlertas()"
+      [class.destructivo]="soloAlertas()"
+      (click)="alternarAlertas()"
+    >
+      {{ t(soloAlertas() ? 'inventario.viendoAlertas' : 'inventario.soloBajoMinimo') }}
+    </button>
+    <button type="button" class="secundario" (click)="abrirAlta()">
+      {{ t(altaAbierta() ? 'comun.dejarlo' : 'inventario.nuevoInsumo') }}
+    </button>
+    <button type="button" class="secundario" (click)="abrirConteo()">
+      {{ t(contando() ? 'inventario.dejarConteo' : 'inventario.conteoFisico') }}
+    </button>
+  </div>
+
+  @if (altaAbierta()) {
+    <div class="formulario bloque">
+      <h2>{{ t('inventario.nuevoInsumo') }}</h2>
+      <p class="vacio">{{ t('inventario.stockCero') }}</p>
+      <div class="campos">
+        <input
+          type="text"
+          [attr.placeholder]="t('carta.nombre')"
+          [value]="nombre()"
+          (input)="anotarNombre($any($event.target).value)"
+          [attr.aria-label]="t('inventario.nombreInsumo')"
+        />
+        <input
+          type="text"
+          [attr.placeholder]="t('inventario.unidad')"
+          [value]="unidad()"
+          (input)="anotarUnidad($any($event.target).value)"
+          [attr.aria-label]="t('inventario.unidadAria')"
+        />
+        <select
+          [value]="tipo()"
+          (change)="elegirTipo($any($event.target).value)"
+          [attr.aria-label]="t('inventario.tipoInsumo')"
+        >
+          @for (tipoInsumo of TIPOS_INSUMO; track tipoInsumo) {
+            <option [value]="tipoInsumo">{{ tEnum('insumo', tipoInsumo) }}</option>
+          }
+        </select>
+        <input
+          type="number"
+          step="0.001"
+          min="0"
+          [attr.placeholder]="t('inventario.stockMinimo')"
+          [value]="stockMinimo() ?? ''"
+          (input)="anotarStockMinimo($any($event.target).value)"
+          [attr.aria-label]="t('inventario.stockMinimo')"
+        />
+        <button type="button" (click)="altaInsumo()" [disabled]="guardando()">
+          {{ t('comun.guardar') }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- El conteo fisico manda sobre el sistema: lo que se escribe aqui pasa a ser
+       el stock, y la diferencia queda como ajuste con su autor. -->
+  @if (contando()) {
+    <div class="formulario bloque">
+      <h2>{{ t('inventario.conteoFisico') }}</h2>
+      <p class="vacio">{{ t('inventario.avisoConteo') }}</p>
+      <input
+        type="text"
+        [attr.placeholder]="t('inventario.observacionConteo')"
+        [value]="observacionConteo()"
+        (input)="anotarObservacionConteo($any($event.target).value)"
+        [attr.aria-label]="t('inventario.observacionConteoAria')"
+      />
+      <button type="button" (click)="enviarConteo()" [disabled]="contadas() === 0 || guardando()">
+        {{ tp('inventario.aplicar', contadas()) }}
+      </button>
+    </div>
+  }
+
+  <!-- El ajuste ya se aplico: esto no es una confirmacion, es la lista de lo que
+       no cuadraba. Es el unico momento en que se ve junto lo que decia el
+       sistema y lo que habia de verdad. -->
+  @if (descuadres().length > 0) {
+    <div class="bloque">
+      <h2>{{ t('inventario.noCuadraba') }}</h2>
+      <div class="desplazable">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>{{ t('inventario.insumo') }}</th>
+              <th class="num">{{ t('inventario.sistema') }}</th>
+              <th class="num">{{ t('inventario.contado') }}</th>
+              <th class="num">{{ t('inventario.diferencia') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of descuadres(); track d.insumoId) {
+              <tr>
+                <td>{{ d.insumoNombre }}</td>
+                <td class="num cifra">{{ d.stockSistema | number: '1.0-3' }}</td>
+                <td class="num cifra">{{ d.stockContado | number: '1.0-3' }}</td>
+                <td class="num cifra" [class.negativo]="(d.diferencia ?? 0) < 0">
+                  {{ (d.diferencia ?? 0) > 0 ? '+' : '' }}{{ d.diferencia | number: '1.0-3' }}
+                  {{ d.unidadMedida }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <div class="desplazable">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>{{ t('inventario.insumo') }}</th>
+          <th>{{ t('inventario.tipo') }}</th>
+          <th class="num">{{ t('inventario.stock') }}</th>
+          <th class="num">{{ t('inventario.minimo') }}</th>
+          @if (contando()) {
+            <th class="num">{{ t('inventario.contado') }}</th>
+          }
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (i of visibles(); track i.id) {
+          <tr [class.bajo]="i.bajoMinimo">
+            <td>{{ i.nombre }}</td>
+            <td class="tenue">{{ tEnum('insumo', i.tipoInsumo) }}</td>
+            <td class="num cifra">{{ i.stockActual | number: '1.0-3' }} {{ i.unidadMedida }}</td>
+            <td class="num cifra tenue">{{ i.stockMinimo | number: '1.0-3' }}</td>
+            @if (contando()) {
+              <td class="num">
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  class="contado"
+                  [value]="conteo()[i.id ?? ''] ?? ''"
+                  (input)="anotarConteo(i.id ?? '', $any($event.target).value)"
+                  [attr.aria-label]="
+                    t('inventario.cantidadContadaAria', { insumo: i.nombre ?? '' })
+                  "
+                />
+              </td>
+            }
+            <td class="acciones">
+              <button type="button" class="secundario chico" (click)="abrirMovimiento(i)">
+                {{ t(moviendo()?.id === i.id ? 'comun.dejarlo' : 'inventario.mover') }}
+              </button>
+              <button type="button" class="secundario chico" (click)="verKardex(i)">
+                {{ t(kardexDe()?.id === i.id ? 'comun.cerrar' : 'inventario.kardex') }}
+              </button>
+            </td>
+          </tr>
+
+          @if (moviendo()?.id === i.id) {
+            <tr class="expandida">
+              <td [attr.colspan]="contando() ? 6 : 5">
+                <div class="campos">
+                  <select
+                    [value]="motivo()"
+                    (change)="elegirMotivo($any($event.target).value)"
+                    [attr.aria-label]="t('inventario.motivoMovimiento')"
+                  >
+                    @for (m of MOTIVOS_MANUALES; track m) {
+                      <option [value]="m">{{ tEnum('movimiento', m) }}</option>
+                    }
+                  </select>
+                  <!-- Siempre en positivo: el signo lo pone el motivo. -->
+                  <input
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    [attr.placeholder]="
+                      t('inventario.cantidadEn', { unidad: i.unidadMedida ?? '' })
+                    "
+                    [value]="cantidad() ?? ''"
+                    (input)="anotarCantidad($any($event.target).value)"
+                    [attr.aria-label]="t('comun.cantidad')"
+                  />
+                  <input
+                    type="text"
+                    [attr.placeholder]="t('inventario.motivoObservacion')"
+                    [value]="observacion()"
+                    (input)="anotarObservacion($any($event.target).value)"
+                    [attr.aria-label]="t('comun.observacion')"
+                  />
+                  <button
+                    type="button"
+                    (click)="registrarMovimiento()"
+                    [disabled]="!cantidad() || !observacion().trim() || guardando()"
+                  >
+                    {{ t('comun.registrar') }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+
+          @if (kardexDe()?.id === i.id) {
+            <tr class="expandida">
+              <td [attr.colspan]="contando() ? 6 : 5">
+                <table class="tabla interna">
+                  <thead>
+                    <tr>
+                      <th>{{ t('comun.fecha') }}</th>
+                      <th>{{ t('inventario.movimiento') }}</th>
+                      <th class="num">{{ t('comun.cantidad') }}</th>
+                      <th class="num">{{ t('inventario.antesDespues') }}</th>
+                      <th>{{ t('inventario.quien') }}</th>
+                      <th>{{ t('comun.motivo') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (m of kardex(); track m.id) {
+                      <tr>
+                        <td class="cifra tenue">{{ fecha(m.fecha) }}</td>
+                        <td>{{ tEnum('movimiento', m.tipoControl) }}</td>
+                        <td class="num cifra">{{ m.cantidad | number: '1.0-3' }}</td>
+                        <td class="num cifra tenue">
+                          {{ m.stockAnterior | number: '1.0-3' }} →
+                          {{ m.stockNuevo | number: '1.0-3' }}
+                        </td>
+                        <td class="tenue">{{ m.registradoPor }}</td>
+                        <td class="tenue">{{ m.motivoObservacion }}</td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="6" class="vacio">{{ t('inventario.sinMovimientos') }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          }
+        } @empty {
+          <tr>
+            <td colspan="6" class="vacio">
+              {{ t(cargando() ? 'inventario.cargandoInsumos' : 'inventario.ningunoCoincide') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

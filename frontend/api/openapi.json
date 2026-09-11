@@ -1,6 +1,29 @@
 {
   "components": {
     "schemas": {
+      "ActualizarCargoRequestDto": {
+        "properties": {
+          "descripcion": {
+            "type": "string"
+          },
+          "nombre": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "rolIds": {
+            "items": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "nombre",
+          "rolIds"
+        ],
+        "type": "object"
+      },
       "ActualizarTrabajadorRequestDto": {
         "properties": {
           "apellidos": {
@@ -28,6 +51,43 @@
           "cargoId",
           "nombres"
         ],
+        "type": "object"
+      },
+      "AhoraMismo": {
+        "properties": {
+          "alertasDeFraude": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "comandasAbiertas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "eventosOutboxEnError": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "eventosOutboxPendientes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "insumosBajoMinimo": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "mesasActivas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "mesasOcupadas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pagosPorAcreditar": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
         "type": "object"
       },
       "AlertaFraudeRequestDto": {
@@ -189,6 +249,19 @@
         ],
         "type": "object"
       },
+      "CambiarPasswordRequestDto": {
+        "properties": {
+          "passwordNueva": {
+            "maxLength": 2147483647,
+            "minLength": 8,
+            "type": "string"
+          }
+        },
+        "required": [
+          "passwordNueva"
+        ],
+        "type": "object"
+      },
       "CambioEstadoRequestDto": {
         "properties": {
           "estado": {
@@ -290,6 +363,11 @@
             "type": "string"
           },
           "direccionHabitual": {
+            "type": "string"
+          },
+          "discordUserId": {
+            "maxLength": 32,
+            "minLength": 0,
             "type": "string"
           },
           "nombreReferencia": {
@@ -432,6 +510,10 @@
           "recibida": {
             "format": "date-time",
             "type": "string"
+          },
+          "tiempoEstimadoCocinaMinutos": {
+            "format": "int32",
+            "type": "integer"
           },
           "tipoOrden": {
             "enum": [
@@ -646,6 +728,7 @@
             "enum": [
               "POS",
               "WHATSAPP_BOT",
+              "DISCORD_BOT",
               "WEB"
             ],
             "type": "string"
@@ -904,6 +987,96 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "EstadoBotsDto": {
+        "properties": {
+          "canales": {
+            "items": {
+              "$ref": "#/components/schemas/EstadoCanalBot"
+            },
+            "type": "array"
+          },
+          "disponible": {
+            "type": "boolean"
+          },
+          "maxOpciones": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "proveedorActivo": {
+            "type": "string"
+          },
+          "proveedorPedido": {
+            "type": "string"
+          },
+          "proveedoresDisponibles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sesionesClienteAbiertas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "trabajadoresActivos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "trabajadoresVinculados": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "vinculaciones": {
+            "items": {
+              "$ref": "#/components/schemas/VinculacionBotDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "EstadoCanalBot": {
+        "properties": {
+          "canal": {
+            "enum": [
+              "IN",
+              "OUT"
+            ],
+            "type": "string"
+          },
+          "conectado": {
+            "type": "boolean"
+          },
+          "configurado": {
+            "type": "boolean"
+          },
+          "detalle": {
+            "type": "string"
+          },
+          "identidad": {
+            "type": "string"
+          },
+          "latenciaMs": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "EstimarTiempoRequestDto": {
+        "properties": {
+          "minutos": {
+            "format": "int32",
+            "maximum": 240,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "minutos"
+        ],
         "type": "object"
       },
       "Faltante": {
@@ -1239,10 +1412,17 @@
             "format": "uuid",
             "type": "string"
           },
+          "listo": {
+            "type": "boolean"
+          },
           "nota": {
             "type": "string"
           },
           "platillo": {
+            "type": "string"
+          },
+          "tiempoListo": {
+            "format": "date-time",
             "type": "string"
           }
         },
@@ -1466,6 +1646,27 @@
         },
         "type": "object"
       },
+      "Operacion": {
+        "properties": {
+          "comandasCanceladas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "comandasFraudulentas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "minutosObjetivoCocina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "minutosPromedioCocina": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
       "OrdenDetalleDto": {
         "properties": {
           "cantidad": {
@@ -1507,6 +1708,7 @@
             "enum": [
               "POS",
               "WHATSAPP_BOT",
+              "DISCORD_BOT",
               "WEB"
             ],
             "type": "string"
@@ -1532,6 +1734,9 @@
           },
           "direccionDelivery": {
             "type": "string"
+          },
+          "editable": {
+            "type": "boolean"
           },
           "estado": {
             "enum": [
@@ -1601,6 +1806,10 @@
             "format": "date-time",
             "type": "string"
           },
+          "tiempoEstimadoCocinaMinutos": {
+            "format": "int32",
+            "type": "integer"
+          },
           "tiempoFinGlobal": {
             "format": "date-time",
             "type": "string"
@@ -1628,6 +1837,22 @@
               "TARJETA"
             ],
             "type": "string"
+          },
+          "transicionesPermitidas": {
+            "items": {
+              "enum": [
+                "ENCOLADO",
+                "EN_PREPARACION",
+                "EN_DESPACHO",
+                "ENTREGADO",
+                "PAGADO",
+                "CONCLUIDO",
+                "CANCELADO",
+                "FRAUDULENTO"
+              ],
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -1638,6 +1863,7 @@
             "enum": [
               "POS",
               "WHATSAPP_BOT",
+              "DISCORD_BOT",
               "WEB"
             ],
             "type": "string"
@@ -1648,6 +1874,9 @@
           },
           "clienteNombre": {
             "type": "string"
+          },
+          "editable": {
+            "type": "boolean"
           },
           "estado": {
             "enum": [
@@ -1699,6 +1928,22 @@
               "TARJETA"
             ],
             "type": "string"
+          },
+          "transicionesPermitidas": {
+            "items": {
+              "enum": [
+                "ENCOLADO",
+                "EN_PREPARACION",
+                "EN_DESPACHO",
+                "ENTREGADO",
+                "PAGADO",
+                "CONCLUIDO",
+                "CANCELADO",
+                "FRAUDULENTO"
+              ],
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -2232,6 +2477,7 @@
             "enum": [
               "POS",
               "WHATSAPP_BOT",
+              "DISCORD_BOT",
               "WEB"
             ],
             "type": "string"
@@ -2239,6 +2485,31 @@
           "cantidadComandas": {
             "format": "int64",
             "type": "integer"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "PorEstado": {
+        "properties": {
+          "comandas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "estado": {
+            "enum": [
+              "ENCOLADO",
+              "EN_PREPARACION",
+              "EN_DESPACHO",
+              "ENTREGADO",
+              "PAGADO",
+              "CONCLUIDO",
+              "CANCELADO",
+              "FRAUDULENTO"
+            ],
+            "type": "string"
           },
           "total": {
             "type": "number"
@@ -2394,6 +2665,22 @@
           },
           "requiereInsumoExtra": {
             "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "Punto": {
+        "properties": {
+          "comandas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "inicio": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "total": {
+            "type": "number"
           }
         },
         "type": "object"
@@ -2632,6 +2919,75 @@
         },
         "type": "object"
       },
+      "RolResponseDto": {
+        "properties": {
+          "descripcion": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SerieVentasDto": {
+        "properties": {
+          "desde": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "granularidad": {
+            "enum": [
+              "HORA",
+              "DIA"
+            ],
+            "type": "string"
+          },
+          "hasta": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "puntos": {
+            "items": {
+              "$ref": "#/components/schemas/Punto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "TableroDto": {
+        "properties": {
+          "ahoraMismo": {
+            "$ref": "#/components/schemas/AhoraMismo"
+          },
+          "desde": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "hasta": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "operacion": {
+            "$ref": "#/components/schemas/Operacion"
+          },
+          "porEstado": {
+            "items": {
+              "$ref": "#/components/schemas/PorEstado"
+            },
+            "type": "array"
+          },
+          "ventas": {
+            "$ref": "#/components/schemas/Ventas"
+          }
+        },
+        "type": "object"
+      },
       "TicketCocinaDto": {
         "properties": {
           "clienteNombre": {
@@ -2675,6 +3031,10 @@
           },
           "apellidos": {
             "type": "string"
+          },
+          "cargoId": {
+            "format": "int32",
+            "type": "integer"
           },
           "cargoNombre": {
             "type": "string"
@@ -2873,6 +3233,43 @@
         },
         "type": "object"
       },
+      "Ventas": {
+        "properties": {
+          "comandas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "ticketPromedio": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "VentasPorMozoDto": {
+        "properties": {
+          "comandas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "mozo": {
+            "type": "string"
+          },
+          "mozoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "ticketPromedio": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
       "VerificarOtpRequestDto": {
         "properties": {
           "codigo": {
@@ -2884,6 +3281,33 @@
         "required": [
           "codigo"
         ],
+        "type": "object"
+      },
+      "VinculacionBotDto": {
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "cargoNombre": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "discordUserId": {
+            "type": "string"
+          },
+          "nombreCompleto": {
+            "type": "string"
+          },
+          "trabajadorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "VincularEmpresaRequestDto": {
@@ -3010,9 +3434,64 @@
         ]
       }
     },
+    "/api/v1/bots/estado": {
+      "get": {
+        "description": "No envia nada al proveedor: lee el estado que el adaptador ya tiene en memoria, de modo que abrir la pantalla no cuesta ni una llamada externa.",
+        "operationId": "estadoBots",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoBotsDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Proveedor en servicio, conexion de cada bot y cuentas vinculadas",
+        "tags": [
+          "Bots"
+        ]
+      }
+    },
+    "/api/v1/bots/vinculaciones/{trabajadorId}": {
+      "delete": {
+        "description": "El trabajador sigue de alta y sigue entrando al front; solo pierde el acceso por chat. Es lo que hay que hacer cuando alguien se vinculo con la cuenta equivocada o deja el local.",
+        "operationId": "desvincularCuentaBot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trabajadorId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculacionBotDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Liberar la cuenta de mensajeria de un trabajador",
+        "tags": [
+          "Bots"
+        ]
+      }
+    },
     "/api/v1/caja/alertas-fraude": {
       "get": {
-        "operationId": "alertas_1",
+        "operationId": "listarAlertasDeFraude",
         "responses": {
           "200": {
             "content": {
@@ -3117,6 +3596,30 @@
         ]
       }
     },
+    "/api/v1/caja/pagos/pendientes": {
+      "get": {
+        "operationId": "pendientes",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PagoResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cobros con billetera o tarjeta que esperan acreditacion",
+        "tags": [
+          "Caja - Arqueo y fraude"
+        ]
+      }
+    },
     "/api/v1/caja/pagos/{pagoId}/confirmar": {
       "post": {
         "operationId": "confirmar",
@@ -3151,7 +3654,7 @@
     },
     "/api/v1/cargos": {
       "get": {
-        "operationId": "listarTodos",
+        "operationId": "listarCargos",
         "responses": {
           "200": {
             "content": {
@@ -3167,12 +3670,13 @@
             "description": "OK"
           }
         },
+        "summary": "Cargos definidos con sus roles",
         "tags": [
           "Cargos"
         ]
       },
       "post": {
-        "operationId": "crear_10",
+        "operationId": "crearCargo",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3195,6 +3699,7 @@
             "description": "OK"
           }
         },
+        "summary": "Crear cargo con los roles que agrupa",
         "tags": [
           "Cargos"
         ]
@@ -3202,7 +3707,7 @@
     },
     "/api/v1/cargos/{id}": {
       "get": {
-        "operationId": "obtenerPorId",
+        "operationId": "obtenerCargo",
         "parameters": [
           {
             "in": "path",
@@ -3226,6 +3731,48 @@
             "description": "OK"
           }
         },
+        "summary": "Obtener cargo por id",
+        "tags": [
+          "Cargos"
+        ]
+      },
+      "put": {
+        "description": "Quien ya inicio sesion conserva sus permisos hasta que vuelva a entrar: los roles viajan dentro del JWT.",
+        "operationId": "actualizarCargo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarCargoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CargoResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cambiar el nombre y el conjunto de roles del cargo",
         "tags": [
           "Cargos"
         ]
@@ -3233,7 +3780,7 @@
     },
     "/api/v1/categorias": {
       "get": {
-        "operationId": "listar_7",
+        "operationId": "listarCategorias",
         "responses": {
           "200": {
             "content": {
@@ -3255,7 +3802,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_9",
+        "operationId": "crearCategoria",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3309,7 +3856,7 @@
         ]
       },
       "get": {
-        "operationId": "obtener_7",
+        "operationId": "obtenerCategoria",
         "parameters": [
           {
             "in": "path",
@@ -3339,7 +3886,7 @@
         ]
       },
       "put": {
-        "operationId": "actualizar_8",
+        "operationId": "actualizarCategoria",
         "parameters": [
           {
             "in": "path",
@@ -3381,7 +3928,7 @@
     },
     "/api/v1/clientes": {
       "get": {
-        "operationId": "listar_6",
+        "operationId": "listarClientes",
         "parameters": [
           {
             "in": "query",
@@ -3410,7 +3957,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_8",
+        "operationId": "crearCliente",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3472,7 +4019,7 @@
     },
     "/api/v1/clientes/buscar": {
       "get": {
-        "operationId": "buscar_3",
+        "operationId": "buscarClientes",
         "parameters": [
           {
             "in": "query",
@@ -3573,7 +4120,7 @@
     },
     "/api/v1/clientes/{id}": {
       "get": {
-        "operationId": "obtener_6",
+        "operationId": "obtenerCliente",
         "parameters": [
           {
             "in": "path",
@@ -3603,7 +4150,7 @@
         ]
       },
       "put": {
-        "operationId": "actualizar_7",
+        "operationId": "actualizarCliente",
         "parameters": [
           {
             "in": "path",
@@ -3835,7 +4382,7 @@
     },
     "/api/v1/complementos": {
       "get": {
-        "operationId": "listar_5",
+        "operationId": "listarComplementos",
         "parameters": [
           {
             "in": "query",
@@ -3884,7 +4431,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_7",
+        "operationId": "crearComplemento",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3915,7 +4462,7 @@
     },
     "/api/v1/complementos/{id}": {
       "get": {
-        "operationId": "obtener_5",
+        "operationId": "obtenerComplemento",
         "parameters": [
           {
             "in": "path",
@@ -3945,7 +4492,7 @@
         ]
       },
       "put": {
-        "operationId": "actualizar_6",
+        "operationId": "actualizarComplemento",
         "parameters": [
           {
             "in": "path",
@@ -3987,7 +4534,7 @@
     },
     "/api/v1/complementos/{id}/activo": {
       "patch": {
-        "operationId": "cambiarActivo_3",
+        "operationId": "cambiarActivoComplemento",
         "parameters": [
           {
             "in": "path",
@@ -4141,7 +4688,7 @@
     },
     "/api/v1/empresas": {
       "get": {
-        "operationId": "listar_4",
+        "operationId": "listarEmpresas",
         "parameters": [
           {
             "in": "query",
@@ -4178,7 +4725,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_6",
+        "operationId": "crearEmpresa",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4240,7 +4787,7 @@
     },
     "/api/v1/insumos": {
       "get": {
-        "operationId": "buscar_2",
+        "operationId": "buscarInsumos",
         "parameters": [
           {
             "in": "query",
@@ -4298,7 +4845,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_5",
+        "operationId": "crearInsumo",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4329,7 +4876,7 @@
     },
     "/api/v1/insumos/alertas": {
       "get": {
-        "operationId": "alertas",
+        "operationId": "listarAlertasDeStock",
         "responses": {
           "200": {
             "content": {
@@ -4353,7 +4900,7 @@
     },
     "/api/v1/insumos/{id}": {
       "get": {
-        "operationId": "obtener_4",
+        "operationId": "obtenerInsumo",
         "parameters": [
           {
             "in": "path",
@@ -4383,7 +4930,7 @@
         ]
       },
       "put": {
-        "operationId": "actualizar_5",
+        "operationId": "actualizarInsumo",
         "parameters": [
           {
             "in": "path",
@@ -4527,7 +5074,7 @@
     },
     "/api/v1/inventario/movimientos": {
       "post": {
-        "operationId": "registrar_3",
+        "operationId": "registrarMovimiento",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4708,6 +5255,48 @@
         ]
       }
     },
+    "/api/v1/kds/ordenes/{id}/estimar": {
+      "patch": {
+        "operationId": "estimar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EstimarTiempoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdenResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cocina promete un tiempo de preparacion en minutos",
+        "tags": [
+          "Cocina (KDS)"
+        ]
+      }
+    },
     "/api/v1/kds/ordenes/{id}/listo": {
       "patch": {
         "operationId": "listo",
@@ -4838,7 +5427,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_4",
+        "operationId": "crearMesa",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4869,7 +5458,7 @@
     },
     "/api/v1/mesas/{id}": {
       "get": {
-        "operationId": "obtener_3",
+        "operationId": "obtenerMesa",
         "parameters": [
           {
             "in": "path",
@@ -4899,7 +5488,7 @@
         ]
       },
       "put": {
-        "operationId": "actualizar_4",
+        "operationId": "actualizarMesa",
         "parameters": [
           {
             "in": "path",
@@ -4941,7 +5530,7 @@
     },
     "/api/v1/mesas/{id}/estado": {
       "patch": {
-        "operationId": "cambiarEstado_1",
+        "operationId": "cambiarEstadoMesa",
         "parameters": [
           {
             "in": "path",
@@ -5061,7 +5650,7 @@
     },
     "/api/v1/ordenes": {
       "get": {
-        "operationId": "buscar_1",
+        "operationId": "buscarOrdenes",
         "parameters": [
           {
             "in": "query",
@@ -5089,6 +5678,7 @@
               "enum": [
                 "POS",
                 "WHATSAPP_BOT",
+                "DISCORD_BOT",
                 "WEB"
               ],
               "type": "string"
@@ -5169,7 +5759,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_3",
+        "operationId": "crearOrden",
         "requestBody": {
           "content": {
             "application/json": {
@@ -5224,7 +5814,7 @@
     },
     "/api/v1/ordenes/{id}": {
       "get": {
-        "operationId": "obtener_10",
+        "operationId": "obtenerOrden",
         "parameters": [
           {
             "in": "path",
@@ -5430,7 +6020,7 @@
     },
     "/api/v1/ordenes/{id}/estado": {
       "patch": {
-        "operationId": "cambiarEstado",
+        "operationId": "cambiarEstadoOrden",
         "parameters": [
           {
             "in": "path",
@@ -5687,7 +6277,7 @@
             "description": "OK"
           }
         },
-        "summary": "Sale a ruta: sella la hora y avisa al cliente por WhatsApp",
+        "summary": "Sale a ruta: sella la hora y avisa al cliente por el bot",
         "tags": [
           "Despacho - Reparto"
         ]
@@ -5769,7 +6359,7 @@
     },
     "/api/v1/ordenes/{ordenId}/feedback": {
       "get": {
-        "operationId": "obtener_8",
+        "operationId": "obtenerFeedbackDeOrden",
         "parameters": [
           {
             "in": "path",
@@ -5799,7 +6389,7 @@
         ]
       },
       "post": {
-        "operationId": "registrar_2",
+        "operationId": "registrarFeedbackDeOrden",
         "parameters": [
           {
             "in": "path",
@@ -5841,7 +6431,7 @@
     },
     "/api/v1/ordenes/{ordenId}/pagos": {
       "get": {
-        "operationId": "listar_3",
+        "operationId": "listarPagosDeOrden",
         "parameters": [
           {
             "in": "path",
@@ -5874,7 +6464,7 @@
         ]
       },
       "post": {
-        "operationId": "registrar_1",
+        "operationId": "registrarPagoDeOrden",
         "parameters": [
           {
             "in": "path",
@@ -5916,7 +6506,7 @@
     },
     "/api/v1/outbox/eventos": {
       "get": {
-        "operationId": "listar_8",
+        "operationId": "listarEventosOutbox",
         "parameters": [
           {
             "in": "query",
@@ -5961,7 +6551,7 @@
     },
     "/api/v1/outbox/eventos/{id}": {
       "get": {
-        "operationId": "obtener_9",
+        "operationId": "obtenerEventoOutbox",
         "parameters": [
           {
             "in": "path",
@@ -6050,7 +6640,7 @@
     },
     "/api/v1/platillos": {
       "get": {
-        "operationId": "buscar",
+        "operationId": "buscarPlatillos",
         "parameters": [
           {
             "in": "query",
@@ -6104,7 +6694,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_2",
+        "operationId": "crearPlatillo",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6159,7 +6749,7 @@
     },
     "/api/v1/platillos/{id}": {
       "get": {
-        "operationId": "obtener_2",
+        "operationId": "obtenerPlatillo",
         "parameters": [
           {
             "in": "path",
@@ -6189,7 +6779,7 @@
         ]
       },
       "put": {
-        "operationId": "actualizar_3",
+        "operationId": "actualizarPlatillo",
         "parameters": [
           {
             "in": "path",
@@ -6231,7 +6821,7 @@
     },
     "/api/v1/platillos/{id}/activo": {
       "patch": {
-        "operationId": "cambiarActivo_2",
+        "operationId": "cambiarActivoPlatillo",
         "parameters": [
           {
             "in": "path",
@@ -6349,7 +6939,7 @@
     },
     "/api/v1/promociones": {
       "get": {
-        "operationId": "listar_2",
+        "operationId": "listarPromociones",
         "parameters": [
           {
             "in": "query",
@@ -6382,7 +6972,7 @@
         ]
       },
       "post": {
-        "operationId": "crear_1",
+        "operationId": "crearPromocion",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6437,7 +7027,7 @@
     },
     "/api/v1/promociones/{id}": {
       "get": {
-        "operationId": "obtener_1",
+        "operationId": "obtenerPromocion",
         "parameters": [
           {
             "in": "path",
@@ -6467,7 +7057,7 @@
         ]
       },
       "put": {
-        "operationId": "actualizar_2",
+        "operationId": "actualizarPromocion",
         "parameters": [
           {
             "in": "path",
@@ -6642,6 +7232,102 @@
         ]
       }
     },
+    "/api/v1/reportes/serie-ventas": {
+      "get": {
+        "operationId": "serieVentas",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "granularidad",
+            "required": false,
+            "schema": {
+              "default": "DIA",
+              "enum": [
+                "HORA",
+                "DIA"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SerieVentasDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Ventas repartidas por hora o por dia, con los bloques vacios incluidos",
+        "tags": [
+          "Reportes"
+        ]
+      }
+    },
+    "/api/v1/reportes/tablero": {
+      "get": {
+        "description": "Sin rango responde por el dia en curso. Las cifras del bloque 'ahoraMismo' son una foto del presente y no dependen del rango pedido.",
+        "operationId": "tableroLocal",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableroDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "El local de un vistazo: venta, cocina, salon, caja y eventos",
+        "tags": [
+          "Reportes"
+        ]
+      }
+    },
     "/api/v1/reportes/ventas": {
       "get": {
         "operationId": "ventas",
@@ -6683,9 +7369,77 @@
         ]
       }
     },
+    "/api/v1/reportes/ventas-por-mozo": {
+      "get": {
+        "operationId": "ventasPorMozo",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VentasPorMozoDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cuanto vendio cada mozo en el rango",
+        "tags": [
+          "Reportes"
+        ]
+      }
+    },
+    "/api/v1/roles": {
+      "get": {
+        "operationId": "listarRoles",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RolResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Roles disponibles para armar un cargo",
+        "tags": [
+          "Roles"
+        ]
+      }
+    },
     "/api/v1/trabajadores": {
       "get": {
-        "operationId": "listar_1",
+        "operationId": "listarTrabajadores",
         "parameters": [
           {
             "in": "query",
@@ -6723,7 +7477,7 @@
         ]
       },
       "post": {
-        "operationId": "registrar",
+        "operationId": "registrarTrabajador",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6754,7 +7508,7 @@
     },
     "/api/v1/trabajadores/activos": {
       "get": {
-        "operationId": "activos_1",
+        "operationId": "listarTrabajadoresActivos",
         "responses": {
           "200": {
             "content": {
@@ -6778,7 +7532,7 @@
     },
     "/api/v1/trabajadores/{id}": {
       "get": {
-        "operationId": "obtener",
+        "operationId": "obtenerTrabajador",
         "parameters": [
           {
             "in": "path",
@@ -6808,7 +7562,7 @@
         ]
       },
       "put": {
-        "operationId": "actualizar_1",
+        "operationId": "actualizarTrabajador",
         "parameters": [
           {
             "in": "path",
@@ -6850,7 +7604,7 @@
     },
     "/api/v1/trabajadores/{id}/activo": {
       "patch": {
-        "operationId": "cambiarActivo_1",
+        "operationId": "cambiarActivoTrabajador",
         "parameters": [
           {
             "in": "path",
@@ -6888,9 +7642,52 @@
         ]
       }
     },
+    "/api/v1/trabajadores/{id}/password": {
+      "patch": {
+        "description": "No pide la contrasena anterior: es la puerta que usa administracion cuando alguien pierde el acceso a mitad de turno.",
+        "operationId": "restablecerPasswordTrabajador",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarPasswordRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrabajadorResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Restablecer la contrasena de un trabajador",
+        "tags": [
+          "Trabajadores"
+        ]
+      }
+    },
     "/api/v1/transportistas": {
       "get": {
-        "operationId": "listar",
+        "operationId": "listarTransportistas",
         "parameters": [
           {
             "in": "query",
@@ -6927,7 +7724,7 @@
         ]
       },
       "post": {
-        "operationId": "crear",
+        "operationId": "crearTransportista",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6958,7 +7755,7 @@
     },
     "/api/v1/transportistas/activos": {
       "get": {
-        "operationId": "activos",
+        "operationId": "listarTransportistasActivos",
         "responses": {
           "200": {
             "content": {
@@ -6982,7 +7779,7 @@
     },
     "/api/v1/transportistas/{id}": {
       "put": {
-        "operationId": "actualizar",
+        "operationId": "actualizarTransportista",
         "parameters": [
           {
             "in": "path",
@@ -7024,7 +7821,7 @@
     },
     "/api/v1/transportistas/{id}/activo": {
       "patch": {
-        "operationId": "cambiarActivo",
+        "operationId": "cambiarActivoTransportista",
         "parameters": [
           {
             "in": "path",
@@ -7185,6 +7982,10 @@
       "name": "Comandas"
     },
     {
+      "description": "Catalogo fijo de roles que reconoce la autorizacion del backend",
+      "name": "Roles"
+    },
+    {
       "description": "Login, Google OAuth y alta del primer administrador",
       "name": "Autenticacion"
     },
@@ -7197,8 +7998,8 @@
       "name": "Despacho - Transportistas"
     },
     {
-      "description": "Ventas y platillos mas vendidos",
-      "name": "Reportes"
+      "description": "Estado del proveedor de mensajeria y cuentas vinculadas",
+      "name": "Bots"
     },
     {
       "description": "Cargos del personal y los roles que llevan asociados",
@@ -7227,6 +8028,10 @@
     {
       "description": "Descuentos y promociones con insumo extra",
       "name": "Catalogo - Promociones"
+    },
+    {
+      "description": "Tablero, ventas, series y ranking de personal",
+      "name": "Reportes"
     }
   ]
 }

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 71PJlu1V74g1RoT8Ig5kMfCfedvgXAjleOQJpzOmxERFZk3NDAnLhuxBQ04ChdI
+\restrict CkhlYg2l2gHUZKke5mDg8MUu0UiMc5UpX4C3xBwuf5N5QrlCpOhTfltwf5wRBTp
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -434,7 +434,9 @@ CREATE TABLE public.orden_detalles (
     monto_subtotal numeric(10,2) NOT NULL,
     precio_venta_producto numeric(10,2) NOT NULL,
     orden_id uuid NOT NULL,
-    platillo_id uuid NOT NULL
+    platillo_id uuid NOT NULL,
+    listo boolean DEFAULT false NOT NULL,
+    tiempo_listo timestamp with time zone
 );
 
 
@@ -447,6 +449,7 @@ CREATE TABLE public.ordenes (
     canal_origen character varying(20) NOT NULL,
     codigo_otp_entrega character varying(6),
     created_by character varying(50) NOT NULL,
+    cupon_codigo character varying(20),
     date_created timestamp(6) with time zone NOT NULL,
     direccion_delivery text,
     estado character varying(20) NOT NULL,
@@ -459,23 +462,22 @@ CREATE TABLE public.ordenes (
     monto_descuento numeric(10,2) DEFAULT 0 NOT NULL,
     monto_subtotal numeric(10,2) NOT NULL,
     monto_total numeric(10,2) NOT NULL,
+    motivo_cancelacion text,
     mozo_id uuid,
     scoring_riesgo_orden integer DEFAULT 0 NOT NULL,
+    tiempo_cierre_despacho timestamp(6) with time zone,
+    tiempo_cierre_platillo timestamp(6) with time zone,
+    tiempo_cierre_recepcion timestamp(6) with time zone,
+    tiempo_estimado_cocina_minutos integer,
     tiempo_fin_global timestamp(6) with time zone,
+    tiempo_inicio_cocina timestamp(6) with time zone,
     tiempo_inicio_global timestamp(6) with time zone,
     tipo_orden character varying(20) NOT NULL,
     tipo_pago character varying(20) NOT NULL,
     cliente_id uuid,
-    cupon_codigo character varying(20),
-    motivo_cancelacion text,
-    tiempo_cierre_despacho timestamp(6) with time zone,
-    tiempo_cierre_platillo timestamp(6) with time zone,
-    tiempo_cierre_recepcion timestamp(6) with time zone,
-    tiempo_inicio_cocina timestamp(6) with time zone,
     mesa_id uuid,
     promocion_id uuid,
-    tiempo_estimado_cocina_minutos integer,
-    CONSTRAINT ordenes_canal_origen_check CHECK (((canal_origen)::text = ANY ((ARRAY['POS'::character varying, 'WHATSAPP_BOT'::character varying, 'WEB'::character varying])::text[]))),
+    CONSTRAINT ordenes_canal_origen_check CHECK (((canal_origen)::text = ANY ((ARRAY['POS'::character varying, 'WHATSAPP_BOT'::character varying, 'DISCORD_BOT'::character varying, 'WEB'::character varying])::text[]))),
     CONSTRAINT ordenes_estado_check CHECK (((estado)::text = ANY ((ARRAY['ENCOLADO'::character varying, 'EN_PREPARACION'::character varying, 'EN_DESPACHO'::character varying, 'ENTREGADO'::character varying, 'PAGADO'::character varying, 'CONCLUIDO'::character varying, 'CANCELADO'::character varying, 'FRAUDULENTO'::character varying])::text[]))),
     CONSTRAINT ordenes_tipo_orden_check CHECK (((tipo_orden)::text = ANY ((ARRAY['MESA'::character varying, 'RETIRO_LOCAL'::character varying, 'DELIVERY'::character varying])::text[]))),
     CONSTRAINT ordenes_tipo_pago_check CHECK (((tipo_pago)::text = ANY ((ARRAY['EFECTIVO'::character varying, 'E_WALLET'::character varying, 'TARJETA'::character varying])::text[])))
@@ -569,12 +571,12 @@ CREATE TABLE public.personas (
     correo character varying(100),
     created_by character varying(50) NOT NULL,
     date_created timestamp(6) with time zone NOT NULL,
+    discord_user_id character varying(32),
     dni character varying(15) NOT NULL,
     fecha_ultimo_cambio_correo timestamp(6) with time zone,
     last_date_modified timestamp(6) with time zone DEFAULT now() NOT NULL,
     modified_by character varying(50) DEFAULT 'SYSTEM'::character varying NOT NULL,
-    nombres character varying(100) NOT NULL,
-    discord_user_id character varying(32)
+    nombres character varying(100) NOT NULL
 );
 
 
@@ -623,13 +625,13 @@ CREATE TABLE public.promociones (
 --
 
 CREATE TABLE public.rol_permisos (
-    permiso_id integer NOT NULL,
-    rol_id integer NOT NULL,
     id integer NOT NULL,
     created_by character varying(50) NOT NULL,
     date_created timestamp(6) with time zone NOT NULL,
     last_date_modified timestamp(6) with time zone DEFAULT now() NOT NULL,
-    modified_by character varying(50) DEFAULT 'SYSTEM'::character varying NOT NULL
+    modified_by character varying(50) DEFAULT 'SYSTEM'::character varying NOT NULL,
+    permiso_id integer NOT NULL,
+    rol_id integer NOT NULL
 );
 
 
@@ -701,11 +703,11 @@ CREATE TABLE public.sesiones_bot (
 --
 
 CREATE TABLE public.trabajadores (
-    persona_id uuid NOT NULL,
     activo boolean DEFAULT true NOT NULL,
-    cargo_id integer NOT NULL,
     password_hash character varying(255) NOT NULL,
-    username character varying(50) NOT NULL
+    username character varying(50) NOT NULL,
+    persona_id uuid NOT NULL,
+    cargo_id integer NOT NULL
 );
 
 
@@ -736,24 +738,6 @@ CREATE TABLE public.vehiculos (
     tipo_vehiculo character varying(20) NOT NULL,
     transportista_id uuid NOT NULL,
     CONSTRAINT vehiculos_tipo_vehiculo_check CHECK (((tipo_vehiculo)::text = ANY ((ARRAY['MOTO'::character varying, 'TAXI_AUTO'::character varying, 'BICICLETA'::character varying])::text[])))
-);
-
-
---
--- Name: whatsapp_sesiones; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.whatsapp_sesiones (
-    id uuid NOT NULL,
-    carrito_json jsonb NOT NULL,
-    created_by character varying(50) NOT NULL,
-    date_created timestamp(6) with time zone NOT NULL,
-    expira_en timestamp(6) with time zone NOT NULL,
-    last_date_modified timestamp(6) with time zone DEFAULT now() NOT NULL,
-    modified_by character varying(50) DEFAULT 'SYSTEM'::character varying NOT NULL,
-    paso_actual character varying(50) NOT NULL,
-    telefono_whatsapp character varying(20) NOT NULL,
-    cliente_id uuid
 );
 
 
@@ -954,7 +938,7 @@ ALTER TABLE ONLY public.promociones
 --
 
 ALTER TABLE ONLY public.rol_permisos
-    ADD CONSTRAINT rol_permisos_pkey PRIMARY KEY (permiso_id, rol_id);
+    ADD CONSTRAINT rol_permisos_pkey PRIMARY KEY (id);
 
 
 --
@@ -1011,14 +995,6 @@ ALTER TABLE ONLY public.trabajadores
 
 ALTER TABLE ONLY public.personas
     ADD CONSTRAINT uk60805t6wtrmol5sdqy36buyry UNIQUE (celular);
-
-
---
--- Name: whatsapp_sesiones uk851u5s4sq0tq9umuopi8mmsnb; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.whatsapp_sesiones
-    ADD CONSTRAINT uk851u5s4sq0tq9umuopi8mmsnb UNIQUE (telefono_whatsapp);
 
 
 --
@@ -1123,14 +1099,6 @@ ALTER TABLE ONLY public.orden_delivery_info
 
 ALTER TABLE ONLY public.vehiculos
     ADD CONSTRAINT vehiculos_pkey PRIMARY KEY (id);
-
-
---
--- Name: whatsapp_sesiones whatsapp_sesiones_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.whatsapp_sesiones
-    ADD CONSTRAINT whatsapp_sesiones_pkey PRIMARY KEY (id);
 
 
 --
@@ -1326,14 +1294,6 @@ ALTER TABLE ONLY public.ordenes
 
 
 --
--- Name: whatsapp_sesiones fkmt2ni1gqfq9nj57ki9a1t60rn; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.whatsapp_sesiones
-    ADD CONSTRAINT fkmt2ni1gqfq9nj57ki9a1t60rn FOREIGN KEY (cliente_id) REFERENCES public.clientes(persona_id);
-
-
---
 -- Name: insumos_platillo fko0pmftyjjiolej50ky5c8f3rc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1401,5 +1361,5 @@ ALTER TABLE ONLY public.cliente_empresas
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 71PJlu1V74g1RoT8Ig5kMfCfedvgXAjleOQJpzOmxERFZk3NDAnLhuxBQ04ChdI
+\unrestrict CkhlYg2l2gHUZKke5mDg8MUu0UiMc5UpX4C3xBwuf5N5QrlCpOhTfltwf5wRBTp
 

@@ -26,13 +26,13 @@ public class ComplementoController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Crear complemento")
+    @Operation(operationId = "crearComplemento", summary = "Crear complemento")
     public ResponseEntity<ComplementoResponseDto> crear(@Valid @RequestBody ComplementoRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(complementoService.crear(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar complementos, opcionalmente por tipo")
+    @Operation(operationId = "listarComplementos", summary = "Listar complementos, opcionalmente por tipo")
     public ResponseEntity<List<ComplementoResponseDto>> listar(
             @RequestParam(required = false) TipoComplementoEnum tipo,
             @RequestParam(defaultValue = "true") boolean soloActivos) {
@@ -40,14 +40,14 @@ public class ComplementoController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener complemento por id")
+    @Operation(operationId = "obtenerComplemento", summary = "Obtener complemento por id")
     public ResponseEntity<ComplementoResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(complementoService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Actualizar complemento")
+    @Operation(operationId = "actualizarComplemento", summary = "Actualizar complemento")
     public ResponseEntity<ComplementoResponseDto> actualizar(@PathVariable UUID id,
             @Valid @RequestBody ComplementoRequestDto request) {
         return ResponseEntity.ok(complementoService.actualizar(id, request));
@@ -55,7 +55,7 @@ public class ComplementoController {
 
     @PatchMapping("/{id}/activo")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN','COCINA')")
-    @Operation(summary = "Habilitar o deshabilitar complemento")
+    @Operation(operationId = "cambiarActivoComplemento", summary = "Habilitar o deshabilitar complemento")
     public ResponseEntity<ComplementoResponseDto> cambiarActivo(@PathVariable UUID id,
             @RequestParam boolean activo) {
         return ResponseEntity.ok(complementoService.cambiarActivo(id, activo));

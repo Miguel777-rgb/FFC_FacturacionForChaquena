@@ -77,6 +77,12 @@
   /* Minimo tactil. El mozo trabaja de pie y con prisa: nada por debajo. */
   --toque: 44px;
 
+  /* Lo que ocupa la barra de idiomas en la esquina inferior derecha: su boton,
+     el marco y el hueco hasta el borde. Lo reservan el contenido —para que
+     ningun boton termine debajo de las banderas— y la pila de avisos, que se
+     apila encima. Es la unica pieza fija sobre la que hay que contar. */
+  --hueco-barra: calc(var(--e4) + var(--toque) + var(--e1) * 2 + var(--e2));
+
   /* Sombra unica y corta. Una herramienta de trabajo no flota. */
   --sombra: 0 1px 2px rgb(28 22 21 / 0.06), 0 1px 3px rgb(28 22 21 / 0.04);
 }

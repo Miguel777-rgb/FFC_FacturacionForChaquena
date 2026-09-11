@@ -1,0 +1,157 @@
+<div class="seccion">
+  <div class="barra">
+    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
+    </button>
+  </div>
+
+  @if (estado(); as e) {
+    <!-- Primero el proveedor: si aqui hay un desajuste, lo de abajo no importa. -->
+    @if (!proveedorCoincide()) {
+      <!-- La propiedad va al final y fuera de la frase: en ingles y en
+           portugues el orden de las palabras no es el del espanol, y un
+           <code> incrustado en medio obligaria a partir la traduccion. -->
+      <p class="fallo">
+        {{
+          t('bots.desajuste', {
+            pedido: e.proveedorPedido ?? '',
+            activo: e.proveedorActivo ?? '',
+            disponibles: e.proveedoresDisponibles?.join(', ') ?? '',
+          })
+        }}
+        <code>app.mensajeria.proveedor</code>
+      </p>
+    } @else if (!e.disponible) {
+      <p class="fallo">
+        {{ t('bots.sinCredenciales', { activo: e.proveedorActivo ?? '' }) }}
+        <code>.env</code>
+      </p>
+    }
+
+    <ul class="kpis">
+      <li>
+        <span class="cifra dato">{{ e.proveedorActivo }}</span>
+        <span class="rotulo">{{ t('bots.proveedor') }}</span>
+      </li>
+      <li [class.alerta]="caidos() > 0">
+        <span class="cifra dato">{{ caidos() }}</span>
+        <span class="rotulo">{{ t('bots.caidos') }}</span>
+      </li>
+      <li>
+        <span class="cifra dato">{{ e.trabajadoresVinculados ?? 0 }}</span>
+        <span class="rotulo">{{ t('bots.vinculadas') }}</span>
+      </li>
+      <li [class.alerta]="sinVincular() > 0">
+        <span class="cifra dato">{{ sinVincular() }}</span>
+        <span class="rotulo">{{ t('bots.sinVincular') }}</span>
+      </li>
+      <li>
+        <span class="cifra dato">{{ e.sesionesClienteAbiertas ?? 0 }}</span>
+        <span class="rotulo">{{ t('bots.sesiones') }}</span>
+      </li>
+      <li>
+        <span class="cifra dato">{{ e.maxOpciones ?? 0 }}</span>
+        <span class="rotulo">{{ t('bots.maxOpciones') }}</span>
+      </li>
+    </ul>
+
+    <!-- Una tarjeta por identidad. Son dos cuentas distintas y confundirlas es
+         mandarle a un comensal el OTP desde la cuenta del personal. -->
+    <div class="bloque">
+      <h2>{{ t('bots.identidades') }}</h2>
+      <ul class="canales">
+        @for (c of e.canales; track c.canal) {
+          <li [class.conectado]="c.conectado" [class.caido]="c.configurado && !c.conectado">
+            <div class="titulo">
+              <span>{{ tEnum('canalBot', c.canal) }}</span>
+              <span
+                class="chip"
+                [attr.data-estado]="
+                  c.conectado ? 'CONECTADO' : c.configurado ? 'CAIDO' : 'SIN_TOKEN'
+                "
+              >
+                {{
+                  t(
+                    c.conectado
+                      ? 'bots.conectado'
+                      : c.configurado
+                        ? 'bots.sinConexion'
+                        : 'bots.sinConfigurar'
+                  )
+                }}
+              </span>
+            </div>
+            <p class="detalle">{{ audienciaDe(c.canal) }}</p>
+            <p class="detalle">{{ c.detalle }}</p>
+            @if (c.identidad || c.latenciaMs != null) {
+              <p class="detalle cifra">
+                @if (c.identidad) {
+                  {{ c.identidad }}
+                }
+                @if (c.latenciaMs != null) {
+                  · {{ c.latenciaMs }} ms
+                }
+              </p>
+            }
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Quien puede darle ordenes al bot interno. Discord no entrega el correo
+         de quien escribe, solo un identificador de cuenta, asi que sin una fila
+         aqui esa persona es un desconocido por mucho que este en el servidor. -->
+    <div class="bloque">
+      <h2>{{ t('bots.vinculadas') }}</h2>
+      @if (sinVincular() > 0) {
+        <p class="vacio">{{ tp('bots.pendientes', sinVincular()) }}</p>
+      }
+      <div class="desplazable">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>{{ t('comun.persona') }}</th>
+              <th>{{ t('comun.usuario') }}</th>
+              <th>{{ t('comun.cargo') }}</th>
+              <th>{{ t('bots.cuenta') }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of e.vinculaciones; track v.trabajadorId) {
+              <tr [class.baja]="!v.activo">
+                <td>
+                  {{ v.nombreCompleto }}
+                  @if (!v.activo) {
+                    <span class="tenue"> {{ t('bots.deBaja') }}</span>
+                  }
+                </td>
+                <td class="cifra">{{ v.username }}</td>
+                <td>{{ v.cargoNombre }}</td>
+                <td class="cifra tenue">{{ v.discordUserId }}</td>
+                <td class="acciones">
+                  <button
+                    type="button"
+                    class="chico destructivo"
+                    (click)="desvincular(v)"
+                    [disabled]="guardando()"
+                  >
+                    {{ t('bots.liberar') }}
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="vacio">
+                  {{ t(cargando() ? 'comun.cargando' : 'bots.nadieVinculado') }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  } @else if (!cargando()) {
+    <p class="vacio">{{ t('bots.sinEstado') }}</p>
+  }
+</div>

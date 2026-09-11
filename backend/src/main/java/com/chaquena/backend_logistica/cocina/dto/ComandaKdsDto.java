@@ -43,5 +43,8 @@ public class ComandaKdsDto {
         private String platillo;
         private List<String> complementos;
         private String nota;
+        /** Si cocina ya despacho esta linea, y a que hora. */
+        private Boolean listo;
+        private ZonedDateTime tiempoListo;
     }
 }

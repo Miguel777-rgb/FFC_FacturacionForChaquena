@@ -2,6 +2,7 @@ package com.chaquena.backend_logistica.auth.service;
 
 import com.chaquena.backend_logistica.auth.dto.ActualizarTrabajadorRequestDto;
 import com.chaquena.backend_logistica.auth.dto.BootstrapAdminRequestDto;
+import com.chaquena.backend_logistica.auth.dto.CambiarPasswordRequestDto;
 import com.chaquena.backend_logistica.auth.dto.RegistrarTrabajadorRequestDto;
 import com.chaquena.backend_logistica.auth.dto.TrabajadorResponseDto;
 import com.chaquena.backend_logistica.shared.dto.PageResponseDto;
@@ -26,4 +27,7 @@ public interface TrabajadorService {
     TrabajadorResponseDto actualizar(UUID id, ActualizarTrabajadorRequestDto request);
 
     TrabajadorResponseDto cambiarActivo(UUID id, boolean activo);
+
+    /** Reemplaza la contrasena del trabajador; no pide la anterior. */
+    TrabajadorResponseDto cambiarPassword(UUID id, CambiarPasswordRequestDto request);
 }

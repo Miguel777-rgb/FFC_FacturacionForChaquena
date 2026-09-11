@@ -12,4 +12,11 @@ import java.util.UUID;
 public interface SesionBotRepository extends JpaRepository<SesionBot, UUID> {
 
     Optional<SesionBot> findByCanalAndRemitenteId(CanalBot canal, String remitenteId);
+
+    /**
+     * Conversaciones a medio hacer que todavia no han caducado. Las vencidas
+     * siguen en la tabla hasta que alguien las pisa, asi que contarlas todas
+     * daria una cifra que solo sube.
+     */
+    long countByExpiraEnAfter(java.time.ZonedDateTime instante);
 }

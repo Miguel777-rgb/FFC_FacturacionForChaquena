@@ -14,81 +14,110 @@
 
 .tablero {
   display: grid;
-  grid-template-columns: 20rem minmax(0, 1fr);
+  grid-template-columns: 22rem minmax(0, 1fr);
   gap: var(--e4);
   align-items: start;
 }
 
-/* --- lista ---------------------------------------------------------------- */
-.comandas {
+.pila {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+}
+
+/* --- arqueo del dia -------------------------------------------------------- */
+/* Cifra grande arriba y rotulo debajo: en una barra de KPIs lo que se compara
+   son los numeros, y llevan la vista si no compiten con su etiqueta. */
+.kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e5);
+  margin: 0;
+  padding: var(--e4);
+  list-style: none;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+
+  li {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dato {
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .rotulo {
+    font-size: 0.75rem;
+    color: var(--tenue);
+  }
+}
+
+/* --- listas de comandas y de pagos ----------------------------------------- */
+.comandas,
+.pagos {
   display: flex;
   flex-direction: column;
   gap: var(--e2);
   margin: 0;
   padding: 0;
   list-style: none;
-}
 
-/* Borde en vez de fondo hundido: el chip de estado lleva su propio tinte suave
-   y sobre otro fondo se emborrona. */
-.fila {
-  display: flex;
-  align-items: center;
-  gap: var(--e2);
-  width: 100%;
-  padding: var(--e2) var(--e3);
-  color: var(--tinta);
-  background: var(--superficie);
-  border: 1px solid var(--linea);
-  text-align: left;
+  /* Borde en vez de fondo hundido: el chip de estado lleva su propio tinte
+     suave y sobre otro fondo se emborrona. */
+  li:not(.vacio) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--e2);
+    padding: var(--e2) var(--e3);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio-chico);
+  }
 
-  .mesa {
-    font-weight: 600;
+  .mesa,
+  .referencia {
+    font-weight: 500;
   }
 
   .monto {
     margin-left: auto;
+    font-weight: 600;
+  }
+
+  .nota-estado {
+    font-size: 0.85rem;
+    color: var(--tenue);
+  }
+
+  button {
+    min-height: 2.25rem;
+    padding: 0 var(--e3);
+    font-size: 0.85rem;
   }
 }
 
-.fila:hover:not(:disabled) {
-  border-color: var(--acento);
+/* La bandeja de acreditacion se distingue con el tinte de aviso: es dinero que
+   se dio por cobrado y todavia no ha llegado. */
+.bandeja {
+  border-color: var(--aviso);
+
+  > h2 {
+    color: var(--aviso);
+  }
 }
 
-.fila.elegida {
-  background: var(--acento-suave);
-  border-color: var(--acento);
-}
-
-.pie {
-  margin: var(--e3) 0 0;
-  font-size: 0.8rem;
-  color: var(--tenue);
-}
-
-/* --- cuenta --------------------------------------------------------------- */
+/* --- la cuenta ------------------------------------------------------------- */
 .cuenta {
   display: flex;
   flex-direction: column;
-  gap: var(--e4);
-}
-
-.titulo {
-  display: flex;
-  align-items: center;
   gap: var(--e3);
-
-  h2 {
-    margin: 0;
-    font-family: var(--f-texto);
-    font-size: 1.2rem;
-    letter-spacing: normal;
-    text-transform: none;
-    color: var(--tinta);
-  }
 }
 
-.detalles {
+.lineas {
   display: flex;
   flex-direction: column;
   gap: var(--e2);
@@ -106,19 +135,8 @@
     color: var(--tenue);
   }
 
-  .plato {
-    display: flex;
-    flex-direction: column;
+  .nombre {
     flex: 1;
-  }
-
-  .nota {
-    font-size: 0.8rem;
-    color: var(--tenue);
-  }
-
-  .importe {
-    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -126,40 +144,41 @@
   display: flex;
   flex-direction: column;
   gap: var(--e1);
-  margin: 0;
   padding-top: var(--e3);
   border-top: 1px solid var(--linea);
+}
 
-  div {
-    display: flex;
-    justify-content: space-between;
-  }
+.linea-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e3);
+  font-size: 0.9rem;
+}
 
-  dt,
-  dd {
-    margin: 0;
-  }
+.linea-total.tenue {
+  color: var(--tenue);
+}
 
-  dt {
-    color: var(--tenue);
-  }
+/* Lo que espera acreditacion se pinta en aviso, no en critico: no es un error,
+   es dinero en transito. */
+.linea-total.espera {
+  color: var(--aviso);
+}
 
-  .grande {
-    margin-top: var(--e2);
+.total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e3);
+  margin: var(--e1) 0 0;
 
-    dt {
-      color: var(--tinta);
-      font-weight: 600;
-    }
-
-    dd {
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
+  strong {
+    font-size: 1.5rem;
   }
 }
 
-/* --- cobro ---------------------------------------------------------------- */
+/* --- cobro ----------------------------------------------------------------- */
 .cobro {
   display: flex;
   flex-direction: column;
@@ -168,23 +187,42 @@
   background: var(--hundido);
   border-radius: var(--radio);
 
-  label {
-    font-size: 0.85rem;
-    color: var(--tenue);
-  }
-}
-
-.entrada {
-  display: flex;
-  gap: var(--e2);
-
-  input {
+  input[type='number'] {
     font-family: var(--f-mono);
     font-size: 1.2rem;
   }
+}
+
+/* Tres formas de pago, siempre visibles. Un desplegable esconderia justo la
+   decision que cambia el resto del formulario. */
+.metodos {
+  display: flex;
+  gap: var(--e2);
 
   button {
-    flex: none;
+    flex: 1;
+    color: var(--acento);
+    background: transparent;
+    font-size: 0.9rem;
+  }
+
+  button.elegido {
+    color: #ffffff;
+    background: var(--acento);
+  }
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+
+  > span {
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tenue);
   }
 }
 
@@ -197,57 +235,143 @@
   }
 }
 
-.falta {
-  margin: 0;
+.vuelto.falta {
   color: var(--critico);
 }
 
-.pagada {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--tenue);
+.vuelto.entregado {
+  padding: var(--e2) var(--e3);
+  background: var(--ok-suave);
+  border-radius: var(--radio-chico);
 }
 
-/* --- arqueo --------------------------------------------------------------- */
-.arqueo {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e5);
-}
-
-.grueso {
+/* --- calificacion ----------------------------------------------------------- */
+.calificacion {
   display: flex;
   flex-direction: column;
+  gap: var(--e3);
+  padding: var(--e3);
+  background: var(--hundido);
+  border-radius: var(--radio-chico);
+}
 
-  .dato {
-    font-size: 1.8rem;
-    font-weight: 600;
-    line-height: 1.1;
+.criterio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  font-size: 0.9rem;
+}
+
+.estrellas {
+  display: flex;
+  gap: 2px;
+}
+
+/* Botones de verdad y no un input range: en una caja se puntua con el dedo o
+   con un clic, y hace falta que el area sea grande y el estado se vea desde
+   lejos. Se anulan los estilos globales del boton, que pintan el rojo relleno
+   de la accion principal. */
+.estrella {
+  min-height: 2rem;
+  min-width: 2rem;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--linea);
+  background: transparent;
+  border: none;
+}
+
+.estrella.marcada {
+  color: var(--aviso);
+}
+
+.estrella:hover {
+  color: var(--aviso);
+}
+
+/* El cupon recien emitido. Va en verde y no en rojo: es una buena noticia que
+   hay que leer en voz alta, no una advertencia. */
+.calificada {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e3);
+  font-size: 0.9rem;
+  background: var(--ok-suave);
+  border: 1px solid var(--ok);
+  border-radius: var(--radio-chico);
+
+  p {
+    margin: 0;
+  }
+
+  .cupon strong {
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
   }
 }
 
-.metodos {
+/* --- alerta de fraude ------------------------------------------------------ */
+.alerta {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--e4);
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e3);
+  background: var(--critico-suave);
+  border: 1px solid var(--critico);
+  border-radius: var(--radio-chico);
+}
+
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  font-size: 0.9rem;
+
+  input {
+    width: auto;
+    min-height: auto;
+  }
+}
+
+/* --- reportes del dia ------------------------------------------------------ */
+.dos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e5);
+}
+
+.rotulo {
+  margin: 0 0 var(--e2);
+  font-family: var(--f-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.listado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
   margin: 0;
   padding: 0;
   list-style: none;
 
-  li {
+  li:not(.vacio) {
     display: flex;
-    flex-direction: column;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--e3);
+    font-size: 0.9rem;
   }
 }
 
-.rotulo {
-  font-size: 0.75rem;
-  color: var(--tenue);
-}
-
 @media (max-width: 60rem) {
-  .tablero {
+  .tablero,
+  .dos {
     grid-template-columns: minmax(0, 1fr);
   }
 }

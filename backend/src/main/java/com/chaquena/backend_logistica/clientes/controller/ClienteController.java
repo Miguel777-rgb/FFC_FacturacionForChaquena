@@ -31,20 +31,20 @@ public class ClienteController {
     private final OrdenService ordenService;
 
     @GetMapping("/buscar")
-    @Operation(summary = "Busqueda rapida por telefono, documento, nombre o correo")
+    @Operation(operationId = "buscarClientes", summary = "Busqueda rapida por telefono, documento, nombre o correo")
     public ResponseEntity<List<ClienteResponseDto>> buscar(@RequestParam("q") String termino) {
         return ResponseEntity.ok(clienteService.buscar(termino));
     }
 
     @GetMapping
-    @Operation(summary = "Listado paginado de clientes")
+    @Operation(operationId = "listarClientes", summary = "Listado paginado de clientes")
     public ResponseEntity<PageResponseDto<ClienteResponseDto>> listar(
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(clienteService.listar(pageable));
     }
 
     @PostMapping
-    @Operation(summary = "Registrar cliente identificado")
+    @Operation(operationId = "crearCliente", summary = "Registrar cliente identificado")
     public ResponseEntity<ClienteResponseDto> crear(@Valid @RequestBody ClienteRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.crear(request));
     }
@@ -57,13 +57,13 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Ficha del cliente")
+    @Operation(operationId = "obtenerCliente", summary = "Ficha del cliente")
     public ResponseEntity<ClienteResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(clienteService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar datos del cliente")
+    @Operation(operationId = "actualizarCliente", summary = "Actualizar datos del cliente")
     public ResponseEntity<ClienteResponseDto> actualizar(@PathVariable UUID id,
             @Valid @RequestBody ClienteRequestDto request) {
         return ResponseEntity.ok(clienteService.actualizar(id, request));

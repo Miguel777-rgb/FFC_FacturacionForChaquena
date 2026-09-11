@@ -3,6 +3,7 @@ package com.chaquena.backend_logistica.shared.mensajeria.whatsapp;
 import com.chaquena.backend_logistica.shared.mensajeria.BotonBot;
 import com.chaquena.backend_logistica.shared.mensajeria.CanalBot;
 import com.chaquena.backend_logistica.shared.mensajeria.DestinoBot;
+import com.chaquena.backend_logistica.shared.mensajeria.EstadoCanalBot;
 import com.chaquena.backend_logistica.shared.mensajeria.MensajeriaPort;
 import com.chaquena.backend_logistica.shared.mensajeria.OpcionBot;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,30 @@ public class WhatsAppMensajeriaAdapter implements MensajeriaPort {
     @Override
     public boolean disponible() {
         return credenciales.values().stream().anyMatch(CredencialesWhatsApp::completas);
+    }
+
+    /**
+     * Aqui "conectado" quiere decir lo mismo que "configurado".
+     *
+     * <p>La Cloud API no mantiene nada abierto: cada mensaje es una llamada HTTP
+     * suelta, asi que no hay una conexion viva que mirar. Comprobarlo de verdad
+     * exigiria gastar una llamada contra Meta cada vez que alguien abre la
+     * pantalla, y eso convierte una pantalla de monitoreo en una factura.
+     */
+    @Override
+    public List<EstadoCanalBot> estado() {
+        return List.of(estadoDe(CanalBot.IN, "al personal"), estadoDe(CanalBot.OUT, "a los clientes"));
+    }
+
+    private EstadoCanalBot estadoDe(CanalBot canal, String audiencia) {
+        CredencialesWhatsApp credencial = credenciales.get(canal);
+        if (credencial == null || !credencial.completas()) {
+            return EstadoCanalBot.sinConfigurar(canal,
+                    "Faltan el phone-number-id o el token: no atiende " + audiencia + ".");
+        }
+        return new EstadoCanalBot(canal, true, true, credencial.phoneNumberId(), null,
+                "Credenciales completas. Sin conexión persistente: cada mensaje sale por HTTP, "
+                        + "y depende de un túnel público que reciba el webhook de Meta.");
     }
 
     @Override

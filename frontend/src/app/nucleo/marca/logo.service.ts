@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+
+import { I18nService } from '../i18n/i18n.service';
 
 const CLAVE = 'chaquena.logo';
 
@@ -25,6 +27,8 @@ const TIPOS = ['image/webp', 'image/png', 'image/jpeg', 'image/svg+xml'];
  */
 @Injectable({ providedIn: 'root' })
 export class LogoService {
+  private readonly t = inject(I18nService).t;
+
   private readonly _logo = signal<string | null>(this.leer());
 
   /** Data URI del logo, o null si no se ha cargado ninguno. */
@@ -36,17 +40,17 @@ export class LogoService {
    */
   async cargar(archivo: File): Promise<string | null> {
     if (!TIPOS.includes(archivo.type)) {
-      return 'Formato no admitido. Usa WEBP, PNG, JPG o SVG.';
+      return this.t('logo.formato');
     }
     if (archivo.size > MAX_BYTES) {
-      return `El archivo pesa ${Math.round(archivo.size / 1024)} KB. El maximo es 512 KB.`;
+      return this.t('logo.peso', { kb: Math.round(archivo.size / 1024) });
     }
 
     let dataUri: string;
     try {
       dataUri = await this.leerComoDataUri(archivo);
     } catch {
-      return 'No se pudo leer el archivo.';
+      return this.t('logo.noSePudoLeer');
     }
 
     try {

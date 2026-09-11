@@ -1,46 +1,160 @@
 <section class="pos">
   <header class="cabecera">
     <div>
-      <p class="marca">Punto de venta</p>
-      <h1>Tomar comanda</h1>
+      <p class="marca">{{ t('pos.marca') }}</p>
+      <h1>{{ t('pos.titulo') }}</h1>
     </div>
     <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
-      {{ cargando() ? 'Cargando…' : 'Actualizar' }}
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
+
+  <!-- El codigo de entrega solo llega una vez, al crear la comanda: ninguna
+       lectura posterior lo devuelve. Se queda en pantalla hasta que el mozo lo
+       haya dictado y lo cierre a mano. -->
+  @if (entregaPendiente(); as entrega) {
+    <section class="bloque entrega" role="status">
+      <div>
+        <h2>{{ t('pos.otpTitulo', { correlativo: entrega.correlativo }) }}</h2>
+        <p class="dictar">{{ t('pos.otpDictar') }}</p>
+        <p class="direccion">{{ entrega.direccion }}</p>
+      </div>
+      <strong class="otp cifra">{{ entrega.otp }}</strong>
+      <button type="button" class="secundario" (click)="cerrarEntrega()">
+        {{ t('pos.otpCerrar') }}
+      </button>
+    </section>
+  }
 
   <div class="tablero">
     <div class="eleccion">
       <!-- ---------------------------------------------------------------- -->
       <section class="bloque">
-        <h2>Mesa</h2>
+        <h2>{{ t('pos.destino') }}</h2>
 
-        <div class="mesas">
-          @for (m of mesas(); track m.id) {
-            <button
-              type="button"
-              class="mesa"
-              [class.elegida]="esMesaElegida(m)"
-              [class.ocupada]="m.estado === 'OCUPADA'"
-              [disabled]="m.estado === 'INHABILITADA'"
-              [attr.aria-pressed]="esMesaElegida(m)"
-              (click)="elegirMesa(m)"
-            >
-              <span class="numero cifra">{{ m.numero }}</span>
-              <span class="detalle">{{ m.zona || 'sin zona' }}</span>
-              <span class="estado">{{ m.estado }}</span>
-            </button>
-          } @empty {
-            <p class="vacio">
-              {{ cargando() ? 'Cargando el mapa de mesas…' : 'No hay mesas dadas de alta.' }}
-            </p>
-          }
+        <div class="tipos" role="group" [attr.aria-label]="t('pos.tipoComanda')">
+          <button
+            type="button"
+            [class.elegido]="tipoOrden() === TIPOS.MESA"
+            [attr.aria-pressed]="tipoOrden() === TIPOS.MESA"
+            (click)="elegirTipo(TIPOS.MESA)"
+          >
+            {{ t('pos.enMesa') }}
+          </button>
+          <button
+            type="button"
+            [class.elegido]="tipoOrden() === TIPOS.RETIRO_LOCAL"
+            [attr.aria-pressed]="tipoOrden() === TIPOS.RETIRO_LOCAL"
+            (click)="elegirTipo(TIPOS.RETIRO_LOCAL)"
+          >
+            {{ t('pos.retiro') }}
+          </button>
+          <button
+            type="button"
+            [class.elegido]="tipoOrden() === TIPOS.DELIVERY"
+            [attr.aria-pressed]="tipoOrden() === TIPOS.DELIVERY"
+            (click)="elegirTipo(TIPOS.DELIVERY)"
+          >
+            {{ t('pos.delivery') }}
+          </button>
         </div>
+
+        @if (esMesa()) {
+          <div class="mesas">
+            @for (m of mesas(); track m.id) {
+              <button
+                type="button"
+                class="mesa"
+                [class.elegida]="esMesaElegida(m)"
+                [class.ocupada]="m.estado === 'OCUPADA'"
+                [disabled]="m.estado === 'INHABILITADA'"
+                [attr.aria-pressed]="esMesaElegida(m)"
+                (click)="elegirMesa(m)"
+              >
+                <span class="numero cifra">{{ m.numero }}</span>
+                <span class="detalle">{{ m.zona || t('comun.sinZona') }}</span>
+                <span class="estado">{{ tEnum('mesa', m.estado) }}</span>
+              </button>
+            } @empty {
+              <p class="vacio">
+                {{ t(cargando() ? 'pos.cargandoMesas' : 'pos.sinMesas') }}
+              </p>
+            }
+          </div>
+        } @else if (esDelivery()) {
+          <label class="campo">
+            <span>{{ t('pos.direccionEntrega') }}</span>
+            <input
+              type="text"
+              [attr.placeholder]="t('pos.direccionEjemplo')"
+              [value]="direccion()"
+              (input)="anotarDireccion($any($event.target).value)"
+            />
+          </label>
+          <p class="vacio">{{ t('pos.avisoDelivery') }}</p>
+        } @else {
+          <p class="vacio">{{ t('pos.avisoRetiro') }}</p>
+        }
       </section>
 
       <!-- ---------------------------------------------------------------- -->
       <section class="bloque">
-        <h2>Carta</h2>
+        <h2>{{ t('pos.cliente') }}</h2>
+
+        @if (cliente(); as c) {
+          <div class="cliente-elegido">
+            <div>
+              <strong>{{ c.nombreCompleto || c.nombres || t('pos.cliente') }}</strong>
+              @if (c.celular) {
+                <span class="detalle cifra">{{ c.celular }}</span>
+              }
+              @if (c.puntosFidelidad) {
+                <span class="detalle">{{ t('pos.puntos', { n: c.puntosFidelidad }) }}</span>
+              }
+            </div>
+            <button type="button" class="secundario" (click)="soltarCliente()">
+              {{ t('comun.quitar') }}
+            </button>
+          </div>
+        } @else {
+          <div class="buscador">
+            <input
+              type="search"
+              [attr.placeholder]="t('pos.buscarClientePlaceholder')"
+              [value]="busqueda()"
+              (input)="anotarBusqueda($any($event.target).value)"
+              (keydown.enter)="buscarCliente()"
+              [attr.aria-label]="t('pos.buscarCliente')"
+            />
+            <button type="button" (click)="buscarCliente()" [disabled]="buscandoCliente()">
+              {{ buscandoCliente() ? '…' : t('comun.buscar') }}
+            </button>
+          </div>
+
+          @if (resultados().length > 0) {
+            <ul class="resultados">
+              @for (r of resultados(); track r.id) {
+                <li>
+                  <button type="button" class="secundario" (click)="elegirCliente(r)">
+                    <span>{{ r.nombreCompleto || r.nombres }}</span>
+                    <span class="detalle cifra">{{ r.dni || r.celular || '—' }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else if (busqueda().trim().length > 0) {
+            <button type="button" class="secundario" (click)="anotarClienteNuevo()">
+              {{ t('pos.anotarNuevo', { nombre: busqueda() }) }}
+            </button>
+          } @else {
+            <p class="vacio">{{ t('pos.sinIdentificar') }}</p>
+          }
+        }
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="bloque">
+        <h2>{{ t('pos.carta') }}</h2>
 
         <div class="carta">
           @for (p of carta(); track p.id) {
@@ -59,14 +173,20 @@
                 <!-- El servidor manda la carta entera con la bandera puesta: el
                      plato agotado se ve en gris y dice que le falta, en vez de
                      desaparecer y dejar al mozo preguntandose donde esta. -->
-                <span class="falta">Agotado · falta {{ p.insumosFaltantes?.join(', ') }}</span>
-              } @else if (p.porcionesPosibles !== null && p.porcionesPosibles !== undefined && p.porcionesPosibles <= 5) {
-                <span class="quedan">Quedan {{ p.porcionesPosibles }}</span>
+                <span class="falta">
+                  {{ t('pos.agotado', { insumos: p.insumosFaltantes?.join(', ') ?? '' }) }}
+                </span>
+              } @else if (
+                p.porcionesPosibles !== null &&
+                p.porcionesPosibles !== undefined &&
+                p.porcionesPosibles <= 5
+              ) {
+                <span class="quedan">{{ t('pos.quedan', { n: p.porcionesPosibles ?? 0 }) }}</span>
               }
             </button>
           } @empty {
             <p class="vacio">
-              {{ cargando() ? 'Cargando la carta…' : 'La carta no tiene platillos activos.' }}
+              {{ t(cargando() ? 'pos.cargandoCarta' : 'pos.sinCarta') }}
             </p>
           }
         </div>
@@ -75,12 +195,29 @@
 
     <!-- ------------------------------------------------------------------ -->
     <aside class="comanda bloque">
-      <h2>La comanda</h2>
+      <h2>{{ t('pos.laComanda') }}</h2>
 
-      @if (mesaElegida(); as mesa) {
-        <p class="destino">Mesa <strong class="cifra">{{ mesa.numero }}</strong> · {{ mesa.zona || 'sin zona' }}</p>
+      @if (esMesa()) {
+        @if (mesaElegida(); as mesa) {
+          <p class="destino">
+            {{
+              t('pos.mesaZona', {
+                numero: mesa.numero ?? '',
+                zona: mesa.zona || t('comun.sinZona'),
+              })
+            }}
+          </p>
+        } @else {
+          <p class="destino sin">{{ t('pos.elegirMesa') }}</p>
+        }
+      } @else if (esDelivery()) {
+        @if (direccion().trim()) {
+          <p class="destino">{{ t('pos.deliveryDireccion', { direccion: direccion() }) }}</p>
+        } @else {
+          <p class="destino sin">{{ t('pos.escribirDireccion') }}</p>
+        }
       } @else {
-        <p class="destino sin">Elige una mesa para empezar.</p>
+        <p class="destino">{{ t('pos.retiro') }}</p>
       }
 
       <ul class="lineas">
@@ -88,10 +225,12 @@
           <li>
             <div class="fila">
               <span class="nombre">{{ l.platillo.nombre }}</span>
-              <span class="subtotal cifra">
-                S/ {{ (l.platillo.precioVentaBase ?? 0) * l.cantidad | number: '1.2-2' }}
-              </span>
+              <span class="subtotal cifra">S/ {{ precioDeLinea(l) | number: '1.2-2' }}</span>
             </div>
+
+            @if (l.complementos.length > 0) {
+              <p class="extras">{{ resumenComplementos(l) }}</p>
+            }
 
             <div class="fila controles">
               <div class="contador">
@@ -99,7 +238,7 @@
                   type="button"
                   class="paso"
                   (click)="cambiarCantidad(l, -1)"
-                  [attr.aria-label]="'Quitar una unidad de ' + l.platillo.nombre"
+                  [attr.aria-label]="t('pos.quitarUnidad', { platillo: l.platillo.nombre ?? '' })"
                 >
                   −
                 </button>
@@ -108,43 +247,158 @@
                   type="button"
                   class="paso"
                   (click)="cambiarCantidad(l, 1)"
-                  [attr.aria-label]="'Agregar una unidad de ' + l.platillo.nombre"
+                  [attr.aria-label]="t('pos.agregarUnidad', { platillo: l.platillo.nombre ?? '' })"
                 >
                   +
                 </button>
               </div>
 
-              <button type="button" class="destructivo quitar" (click)="quitar(l)">Quitar</button>
+              @if (complementos().length > 0) {
+                <button type="button" class="secundario extra" (click)="abrirComplementos(l)">
+                  {{ t(lineaEnComplementos() === l ? 'pos.listo' : 'pos.complementos') }}
+                </button>
+              }
+
+              <button type="button" class="destructivo quitar" (click)="quitar(l)">
+                {{ t('comun.quitar') }}
+              </button>
             </div>
+
+            <!-- El complemento se cobra por plato: dos lomos con una gaseosa
+                 cada uno son dos gaseosas. El servidor multiplica por la
+                 cantidad de la linea, y la estimacion de aqui hace lo mismo. -->
+            @if (lineaEnComplementos() === l) {
+              <ul class="complementos">
+                @for (c of complementos(); track c.id) {
+                  <li>
+                    <span class="nombre">{{ c.nombre }}</span>
+                    <span class="precio cifra">+ S/ {{ c.precioAdicional | number: '1.2-2' }}</span>
+                    <div class="contador">
+                      <button
+                        type="button"
+                        class="paso"
+                        (click)="cambiarComplemento(l, c, -1)"
+                        [disabled]="cantidadDeComplemento(l, c) === 0"
+                        [attr.aria-label]="t('pos.quitarComplemento', { nombre: c.nombre ?? '' })"
+                      >
+                        −
+                      </button>
+                      <span class="cantidad cifra">{{ cantidadDeComplemento(l, c) }}</span>
+                      <button
+                        type="button"
+                        class="paso"
+                        (click)="cambiarComplemento(l, c, 1)"
+                        [attr.aria-label]="t('pos.agregarComplemento', { nombre: c.nombre ?? '' })"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
 
             <!-- La nota es la personalizacion del comensal: "sin cebolla", "bien
                  cocido". Viaja como `excepcionesNota` y sale impresa en cocina. -->
             <input
               type="text"
               class="nota"
-              placeholder="Sin cebolla, bien cocido…"
+              [attr.placeholder]="t('pos.notaPlaceholder')"
               [value]="l.nota"
               (change)="anotar(l, $any($event.target).value)"
-              [attr.aria-label]="'Nota para ' + l.platillo.nombre"
+              [attr.aria-label]="t('pos.notaAria', { platillo: l.platillo.nombre ?? '' })"
             />
           </li>
         } @empty {
-          <li class="vacio">Toca un platillo de la carta para agregarlo.</li>
+          <li class="vacio">{{ t('pos.vacio') }}</li>
         }
       </ul>
 
+      @if (lineas().length > 0) {
+        <div class="descuentos">
+          @if (promociones().length > 0) {
+            <label class="campo">
+              <span>{{ t('pos.promocion') }}</span>
+              <select
+                [value]="promocionId() ?? ''"
+                (change)="elegirPromocion($any($event.target).value)"
+              >
+                <option value="">{{ t('pos.sinPromocion') }}</option>
+                @for (p of promociones(); track p.id) {
+                  <option [value]="p.id">{{ p.nombre }}</option>
+                }
+              </select>
+            </label>
+          }
+
+          <!-- El cupon esta ligado a un cliente: sin cliente el servidor lo
+               rechaza siempre, asi que el campo ni se ofrece. -->
+          @if (puedeUsarCupon()) {
+            <label class="campo">
+              <span>{{ t('pos.cupon') }}</span>
+              <input
+                type="text"
+                [attr.placeholder]="t('pos.cuponPlaceholder')"
+                [value]="cupon()"
+                (input)="anotarCupon($any($event.target).value)"
+              />
+            </label>
+
+            <!-- Los que ya tiene, para no teclear a ciegas un codigo que se le
+                 dicto hace semanas. El campo sigue ahi por si trae uno en el
+                 telefono que la lista no alcanza. -->
+            @if (cupones().length > 0) {
+              <div class="cupones">
+                @for (c of cupones(); track c.id) {
+                  <button
+                    type="button"
+                    class="cupon-suyo"
+                    [class.elegido]="cupon() === c.codigo"
+                    [attr.aria-pressed]="cupon() === c.codigo"
+                    (click)="alternarCupon(c.codigo)"
+                  >
+                    <span class="cifra">{{ c.codigo }}</span>
+                    @if (c.porcentajeDescuento) {
+                      <span class="detalle">{{ c.porcentajeDescuento }}%</span>
+                    } @else if (c.montoDescuento) {
+                      <span class="detalle">S/ {{ c.montoDescuento }}</span>
+                    }
+                  </button>
+                }
+              </div>
+              <p class="vacio">{{ t('pos.avisoCupones') }}</p>
+            }
+          }
+        </div>
+      }
+
       <footer class="cierre">
+        @if (descuento() > 0) {
+          <div class="linea-total tenue">
+            <span>{{ t('comun.subtotal') }}</span>
+            <span class="cifra">S/ {{ subtotal() | number: '1.2-2' }}</span>
+          </div>
+          <div class="linea-total tenue">
+            <span>{{ promocionElegida()?.nombre }}</span>
+            <span class="cifra">− S/ {{ descuento() | number: '1.2-2' }}</span>
+          </div>
+        }
+
         <div class="total">
-          <span>Total estimado</span>
+          <span>{{ t('pos.totalEstimado') }}</span>
           <strong class="cifra">S/ {{ total() | number: '1.2-2' }}</strong>
         </div>
 
+        @if (puedeUsarCupon() && cupon().trim()) {
+          <p class="vacio">{{ t('pos.avisoCuponCaja') }}</p>
+        }
+
         <button type="button" (click)="enviar()" [disabled]="!puedeEnviar()">
-          {{ enviando() ? 'Enviando…' : 'Enviar a cocina' }}
+          {{ t(enviando() ? 'pos.enviando' : 'pos.enviar') }}
         </button>
 
         @if (lineas().length > 0) {
-          <button type="button" class="secundario" (click)="vaciar()">Vaciar</button>
+          <button type="button" class="secundario" (click)="vaciar()">{{ t('pos.vaciar') }}</button>
         }
       </footer>
     </aside>
@@ -152,28 +406,154 @@
 
   <!-- -------------------------------------------------------------------- -->
   <section class="bloque salon">
-    <h2>En el salon</h2>
+    <h2>{{ t('pos.enElSalon') }}</h2>
 
     <ul class="comandas">
       @for (o of enSalon(); track o.id) {
         <li>
-          <span class="chip" [attr.data-estado]="o.estado">{{ o.estado }}</span>
-          <span class="mesa cifra">Mesa {{ o.mesaNumero || '—' }}</span>
-          <span class="items">{{ o.cantidadItems }} items</span>
-          <span class="monto cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</span>
-          <span class="espera cifra">{{ o.minutosTranscurridos }} min</span>
-
-          @if (sePuedeEntregar(o)) {
-            <button type="button" (click)="entregar(o)">Entregar</button>
-          } @else {
-            <span class="nota-estado">
-              {{ o.estado === 'ENCOLADO' ? 'Esperando a cocina' : 'Lista para cobrar' }}
+          <div class="fila">
+            <span class="chip" [attr.data-estado]="o.estado">{{ tEnum('estado', o.estado) }}</span>
+            <span class="mesa cifra">
+              {{
+                o.mesaNumero
+                  ? t('comun.mesa', { numero: o.mesaNumero })
+                  : tEnum('tipoOrden', o.tipoOrden)
+              }}
             </span>
+            <span class="items">{{ tp('comun.items', o.cantidadItems ?? 0) }}</span>
+            <span class="monto cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</span>
+            <span class="espera cifra">{{ o.minutosTranscurridos }} {{ t('comun.minutos') }}</span>
+
+            <!-- Los gestos salen de `transicionesPermitidas`, que calcula el
+                 servidor con la misma tabla que despues valida el cambio. -->
+            @if (sePuedeEntregar(o)) {
+              <button type="button" (click)="entregar(o)">{{ t('pos.entregar') }}</button>
+            }
+            @if (sePuedeEditar(o)) {
+              <button type="button" class="secundario" (click)="abrirEdicion(o)">
+                {{ t(editando()?.id === o.id ? 'comun.cerrar' : 'comun.editar') }}
+              </button>
+            }
+            @if (sePuedeCancelar(o)) {
+              <button type="button" class="destructivo" (click)="pedirMotivo(o)">
+                {{ t(cancelando() === o.id ? 'comun.dejarlo' : 'pos.cancelar') }}
+              </button>
+            }
+            @if (!sePuedeEntregar(o) && !sePuedeCancelar(o) && !sePuedeEditar(o)) {
+              <span class="nota-estado">{{ t('pos.listaParaCobrar') }}</span>
+            }
+          </div>
+
+          <!-- Corregir una comanda ya enviada. Solo aparece mientras el
+               servidor la declare `editable`; en cuanto cocina la toma, el
+               panel se cierra solo en el siguiente refresco. -->
+          @if (editando(); as edicion) {
+            @if (edicion.id === o.id) {
+              <div class="edicion">
+                <ul class="detalles">
+                  @for (d of edicion.detalles; track d.id) {
+                    <li>
+                      <span class="nombre">{{ d.platilloNombre }}</span>
+                      @if (d.excepcionesNota) {
+                        <span class="extras">{{ d.excepcionesNota }}</span>
+                      }
+                      <div class="contador">
+                        <button
+                          type="button"
+                          class="paso"
+                          [disabled]="guardandoLinea()"
+                          (click)="cambiarCantidadDetalle(d, -1)"
+                          [attr.aria-label]="
+                            t('pos.quitarUnidad', { platillo: d.platilloNombre ?? '' })
+                          "
+                        >
+                          −
+                        </button>
+                        <span class="cantidad cifra">{{ d.cantidad }}</span>
+                        <button
+                          type="button"
+                          class="paso"
+                          [disabled]="guardandoLinea()"
+                          (click)="cambiarCantidadDetalle(d, 1)"
+                          [attr.aria-label]="
+                            t('pos.agregarUnidad', { platillo: d.platilloNombre ?? '' })
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span class="monto cifra">S/ {{ d.montoSubtotal | number: '1.2-2' }}</span>
+                      <button
+                        type="button"
+                        class="destructivo quitar"
+                        [disabled]="guardandoLinea()"
+                        (click)="quitarDetalle(d)"
+                      >
+                        {{ t('comun.quitar') }}
+                      </button>
+                    </li>
+                  } @empty {
+                    <li class="vacio">{{ t('pos.sinLineas') }}</li>
+                  }
+                </ul>
+
+                <div class="fila agregar">
+                  <select
+                    [value]="platilloParaAgregar()"
+                    (change)="elegirPlatilloParaAgregar($any($event.target).value)"
+                    [attr.aria-label]="t('pos.platilloAgregar')"
+                  >
+                    <option value="">{{ t('pos.agregarPlatillo') }}</option>
+                    @for (p of carta(); track p.id) {
+                      <option [value]="p.id" [disabled]="!p.disponible">
+                        {{ p.nombre }} · S/ {{ p.precioVentaBase | number: '1.2-2' }}
+                        {{ p.disponible ? '' : t('pos.agotadoCorto') }}
+                      </option>
+                    }
+                  </select>
+                  <button
+                    type="button"
+                    (click)="agregarDetalle()"
+                    [disabled]="!platilloParaAgregar() || guardandoLinea()"
+                  >
+                    {{ t('comun.agregar') }}
+                  </button>
+                </div>
+
+                <p class="vacio">
+                  {{ t('pos.totalRecalculado') }}
+                  <strong class="cifra">S/ {{ edicion.montoTotal | number: '1.2-2' }}</strong>
+                </p>
+              </div>
+            }
+          }
+
+          @if (cancelando() === o.id) {
+            <div class="fila cancelacion">
+              <input
+                type="text"
+                [attr.placeholder]="t('pos.motivoCancelacion')"
+                [value]="motivo()"
+                (input)="anotarMotivo($any($event.target).value)"
+                [attr.aria-label]="t('pos.motivoCancelacion')"
+              />
+              <button
+                type="button"
+                class="destructivo"
+                (click)="cancelar(o)"
+                [disabled]="!motivo().trim()"
+              >
+                {{ t('pos.cancelarReponer') }}
+              </button>
+              <button type="button" class="secundario" (click)="desistirCancelacion()">
+                {{ t('comun.dejarlo') }}
+              </button>
+            </div>
           }
         </li>
       } @empty {
         <li class="vacio">
-          {{ cargando() ? 'Cargando…' : 'No hay comandas abiertas.' }}
+          {{ t(cargando() ? 'comun.cargando' : 'pos.sinComandas') }}
         </li>
       }
     </ul>

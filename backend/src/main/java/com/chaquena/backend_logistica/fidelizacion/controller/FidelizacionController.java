@@ -27,7 +27,7 @@ public class FidelizacionController {
     private final ConfiguracionService configuracionService;
 
     @PostMapping("/ordenes/{ordenId}/feedback")
-    @Operation(summary = "Registrar calificacion y evaluar la regla de las N calificaciones")
+    @Operation(operationId = "registrarFeedbackDeOrden", summary = "Registrar calificacion y evaluar la regla de las N calificaciones")
     public ResponseEntity<FeedbackResponseDto> registrar(@PathVariable UUID ordenId,
             @Valid @RequestBody FeedbackRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -35,7 +35,7 @@ public class FidelizacionController {
     }
 
     @GetMapping("/ordenes/{ordenId}/feedback")
-    @Operation(summary = "Calificacion de una comanda")
+    @Operation(operationId = "obtenerFeedbackDeOrden", summary = "Calificacion de una comanda")
     public ResponseEntity<FeedbackResponseDto> obtener(@PathVariable UUID ordenId) {
         return ResponseEntity.ok(fidelizacionService.feedbackDeOrden(ordenId));
     }

@@ -205,6 +205,22 @@ public class PagoServiceImpl implements PagoService {
     }
 
     /**
+     * Lo que la caja tiene pendiente de acreditar.
+     *
+     * Un cobro con billetera o tarjeta nace en PENDIENTE: el dinero todavia no
+     * esta, y la comanda no pasa a PAGADO hasta que alguien confirma que llego.
+     * Sin esta lista, esos pagos solo se veian abriendo la comanda que los
+     * origino, y un cobro olvidado no se distingue de uno que nunca existio.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<PagoResponseDto> pagosPendientes() {
+        return pagoRepository.findByEstadoOrderByDateCreatedAsc(EstadoPagoEnum.PENDIENTE).stream()
+                .map(PagoResponseDto::fromEntity)
+                .toList();
+    }
+
+    /**
      * Cuando lo confirmado alcanza el total de la comanda, la orden pasa a
      * PAGADO. Solo aplica si ya fue entregada: no se cierra una comanda que
      * todavia esta en cocina.

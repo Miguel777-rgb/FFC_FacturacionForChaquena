@@ -78,6 +78,8 @@ public class KdsServiceImpl implements KdsService {
                                                     .map(c -> c.getComplemento().getNombre())
                                                     .toList())
                                             .nota(d.getExcepcionesNota())
+                                            .listo(d.getListo())
+                                            .tiempoListo(d.getTiempoListo())
                                             .build())
                                     .toList())
                             .build();
@@ -128,8 +130,15 @@ public class KdsServiceImpl implements KdsService {
     public MensajeDto marcarDetalleListo(UUID detalleId) {
         OrdenDetalle detalle = ordenDetalleRepository.findById(detalleId)
                 .orElseThrow(() -> RecursoNoEncontradoException.de("la linea de comanda", detalleId));
-        detalle.setModifiedBy(UsuarioActual.username());
-        ordenDetalleRepository.save(detalle);
+
+        // Idempotente: volver a marcar una linea ya lista no mueve la hora en
+        // que salio de verdad, que es el dato que interesa medir.
+        if (!Boolean.TRUE.equals(detalle.getListo())) {
+            detalle.setListo(true);
+            detalle.setTiempoListo(ZonedDateTime.now());
+            detalle.setModifiedBy(UsuarioActual.username());
+            ordenDetalleRepository.save(detalle);
+        }
         return MensajeDto.de("Platillo " + detalle.getPlatillo().getNombre() + " marcado como listo.");
     }
 

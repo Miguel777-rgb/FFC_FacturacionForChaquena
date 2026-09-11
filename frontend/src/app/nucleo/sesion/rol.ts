@@ -33,7 +33,7 @@ export function normalizarRol(valor: string): string {
  *
  * El administrador aterriza en el POS y no en la trastienda porque es quien
  * recorre el flujo principal entero por si solo, y ese recorrido empieza
- * tomando una comanda. La trastienda, ademas, sigue siendo un marcador.
+ * tomando una comanda.
  */
 export const INICIO_POR_ROL: Record<Rol, string> = {
   ADMIN: '/pos',

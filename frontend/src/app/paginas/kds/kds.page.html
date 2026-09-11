@@ -1,11 +1,11 @@
 <section class="kds">
   <header class="cabecera">
     <div>
-      <p class="marca">Cocina</p>
-      <h1>Cola de comandas</h1>
+      <p class="marca">{{ t('kds.marca') }}</p>
+      <h1>{{ t('kds.titulo') }}</h1>
     </div>
     <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
-      {{ cargando() ? 'Cargando…' : 'Actualizar' }}
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
 
@@ -13,76 +13,197 @@
     <ul class="kpis">
       <li>
         <span class="cifra dato">{{ k.comandasEnCola }}</span>
-        <span class="rotulo">En cola</span>
+        <span class="rotulo">{{ t('kds.enCola') }}</span>
       </li>
       <li>
         <span class="cifra dato">{{ k.comandasEnPreparacion }}</span>
-        <span class="rotulo">En fuego</span>
+        <span class="rotulo">{{ t('kds.enFuego') }}</span>
       </li>
+      <!-- El promedio llega del servidor como un doble sin redondear. Sin el
+           pipe se pinta "1.3333333333333333": una cadena de diecinueve
+           caracteres que no puede partirse, que ensancha su celda de la rejilla
+           y que acaba empujando la pagina entera a lo ancho. -->
       <li>
-        <span class="cifra dato">{{ k.minutosPromedioCocina ?? '—' }}</span>
-        <span class="rotulo">Min. de cocina</span>
+        <span class="cifra dato">
+          @if (k.minutosPromedioCocina != null) {
+            {{ k.minutosPromedioCocina | number: '1.0-1' }}
+          } @else {
+            —
+          }
+        </span>
+        <span class="rotulo">{{ t('kds.minCocina') }}</span>
       </li>
       <li [class.alerta]="(k.comandasFueraDeObjetivo ?? 0) > 0">
         <span class="cifra dato">{{ k.comandasFueraDeObjetivo }}</span>
-        <span class="rotulo">Fuera de objetivo ({{ k.minutosObjetivo }} min)</span>
+        <span class="rotulo">{{ t('kds.fueraObjetivo', { min: k.minutosObjetivo ?? 0 }) }}</span>
       </li>
     </ul>
   }
 
-  <div class="tablero">
-    @for (c of cola(); track c.ordenId) {
-      <article class="comanda" [class.tarde]="c.fueraDeObjetivo">
-        <header>
-          <div class="quien">
-            <span class="correlativo cifra">{{ c.correlativo }}</span>
-            <span class="donde">
-              {{ c.tipoOrden === 'MESA' ? 'Mesa ' + (c.mesaNumero || '—') : c.tipoOrden }}
-            </span>
-          </div>
+  <!-- Tres columnas y no una cola plana: de lejos, lo que un cocinero necesita
+       saber es que espera, que esta en fuego y que ya salio. -->
+  <div class="columnas">
+    @for (
+      columna of [
+        { titulo: 'kds.esperando', comandas: esperando() },
+        { titulo: 'kds.enFuego', comandas: enFuego() },
+        { titulo: 'kds.listas', comandas: listas() },
+      ];
+      track columna.titulo
+    ) {
+      <section class="columna">
+        <h2>
+          {{ t($any(columna.titulo)) }}
+          <span class="cifra">{{ columna.comandas.length }}</span>
+        </h2>
 
-          <!-- El cronometro es el dato que se lee desde lejos: va grande y en
-               cifra tabular para que no baile al pasar de 9 a 10. -->
-          <span class="reloj cifra">{{ c.minutosEnCola }}′</span>
-        </header>
+        @for (c of columna.comandas; track c.ordenId) {
+          <article class="comanda" [class.tarde]="vaTarde(c)">
+            <header>
+              <div class="quien">
+                <span class="correlativo cifra">{{ c.correlativo }}</span>
+                <span class="donde">
+                  {{
+                    c.tipoOrden === 'MESA'
+                      ? t('comun.mesa', { numero: c.mesaNumero || '—' })
+                      : tEnum('tipoOrden', c.tipoOrden)
+                  }}
+                </span>
+              </div>
 
-        <ul class="lineas">
-          @for (l of c.lineas; track l.detalleId) {
-            <li>
-              <span class="cantidad cifra">{{ l.cantidad }}×</span>
-              <span class="plato">
-                {{ l.platillo }}
+              <!-- El cronometro es el dato que se lee desde lejos: va grande y en
+                   cifra tabular para que no baile al pasar de 9 a 10. Lo calcula
+                   el cliente cada segundo, no el servidor cada quince. -->
+              <span class="reloj cifra">{{ minutos(c) }}′</span>
+            </header>
 
-                @if (l.complementos?.length) {
-                  <span class="complementos">+ {{ l.complementos?.join(', ') }}</span>
+            @if (c.tiempoEstimadoCocinaMinutos) {
+              <p class="promesa" [class.incumplida]="vaTarde(c)">
+                {{ t('kds.prometido', { min: c.tiempoEstimadoCocinaMinutos ?? 0 }) }}
+              </p>
+            }
+
+            <ul class="lineas">
+              @for (l of c.lineas; track l.detalleId) {
+                <li [class.servido]="l.listo">
+                  <!-- El tilde por platillo se guarda en la linea, asi que
+                       sobrevive al refresco. Es lo que hace util marcar una
+                       comanda que sale por partes. -->
+                  <button
+                    type="button"
+                    class="tilde"
+                    [disabled]="l.listo || ocupada() !== null"
+                    [attr.aria-label]="t('kds.marcarListo', { platillo: l.platillo ?? '' })"
+                    [attr.aria-pressed]="l.listo"
+                    (click)="marcarPlatillo(c, l)"
+                  >
+                    {{ l.listo ? '✓' : '' }}
+                  </button>
+
+                  <span class="cantidad cifra">{{ l.cantidad }}×</span>
+                  <span class="plato">
+                    {{ l.platillo }}
+
+                    @if (l.complementos?.length) {
+                      <span class="complementos">+ {{ l.complementos?.join(', ') }}</span>
+                    }
+
+                    <!-- La nota del comensal es lo unico que cambia como se cocina:
+                         va destacada, no como texto secundario. -->
+                    @if (l.nota) {
+                      <span class="nota">{{ l.nota }}</span>
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+
+            <!-- La promesa se pide cuando la comanda ya esta en fuego: prometer
+                 sin haber mirado lo que hay pendiente es prometer a ciegas. -->
+            @if (
+              c.estado === 'EN_PREPARACION' &&
+              !c.tiempoEstimadoCocinaMinutos &&
+              !c.flagCierrePlatillo
+            ) {
+              <div class="prometer">
+                <span class="rotulo">{{ t('kds.cuantoTarda') }}</span>
+                @for (m of MINUTOS_SUGERIDOS; track m) {
+                  <button
+                    type="button"
+                    class="secundario minutos"
+                    [disabled]="ocupada() !== null"
+                    (click)="prometer(c, m)"
+                  >
+                    {{ m }}′
+                  </button>
                 }
+              </div>
+            }
 
-                <!-- La nota del comensal es lo unico que cambia como se cocina:
-                     va destacada, no como texto secundario. -->
-                @if (l.nota) {
-                  <span class="nota">{{ l.nota }}</span>
-                }
-              </span>
-            </li>
-          }
-        </ul>
+            <footer>
+              <span class="chip" [attr.data-estado]="c.estado">{{
+                tEnum('estado', c.estado)
+              }}</span>
 
-        <footer>
-          <span class="chip" [attr.data-estado]="c.estado">{{ c.estado }}</span>
+              @if (c.estado === 'ENCOLADO') {
+                <button type="button" (click)="tomar(c)" [disabled]="ocupada() !== null">
+                  {{ t('kds.tomar') }}
+                </button>
+              } @else if (!c.flagCierrePlatillo) {
+                <button type="button" (click)="listo(c)" [disabled]="ocupada() !== null">
+                  {{ t('kds.listo') }}
+                </button>
+              } @else {
+                <span class="servida">{{ t('kds.servida') }}</span>
+              }
 
-          @if (esperando(c)) {
-            <button type="button" (click)="tomar(c)" [disabled]="ocupada() !== null">Tomar</button>
-          } @else if (enFuego(c) && !c.flagCierrePlatillo) {
-            <button type="button" (click)="listo(c)" [disabled]="ocupada() !== null">Listo</button>
-          } @else {
-            <span class="servida">Lista · esperando al mozo</span>
-          }
-        </footer>
-      </article>
-    } @empty {
-      <p class="vacio">
-        {{ cargando() ? 'Cargando la cola…' : 'Nada en cola. La cocina esta al dia.' }}
-      </p>
+              @if (!c.flagCierrePlatillo) {
+                <button
+                  type="button"
+                  class="destructivo falta"
+                  [disabled]="ocupada() !== null"
+                  (click)="pedirFaltante(c)"
+                >
+                  {{ t(reportando() === c.ordenId ? 'comun.dejarlo' : 'kds.faltaAlgo') }}
+                </button>
+              }
+            </footer>
+
+            @if (reportando() === c.ordenId) {
+              <div class="faltante">
+                <select
+                  [value]="insumoFaltante()"
+                  (change)="elegirInsumo($any($event.target).value)"
+                  [attr.aria-label]="t('kds.insumoFalta')"
+                >
+                  <option value="">{{ t('kds.queInsumoFalta') }}</option>
+                  @for (i of insumos(); track i.id) {
+                    <option [value]="i.id">{{ i.nombre }}</option>
+                  }
+                </select>
+                <input
+                  type="text"
+                  [attr.placeholder]="t('kds.queHacer')"
+                  [value]="detalleFaltante()"
+                  (input)="anotarDetalleFaltante($any($event.target).value)"
+                  [attr.aria-label]="t('kds.detalleAviso')"
+                />
+                <button
+                  type="button"
+                  (click)="reportarFaltante(c)"
+                  [disabled]="!insumoFaltante() || !detalleFaltante().trim() || ocupada() !== null"
+                >
+                  {{ t('kds.avisarMozo') }}
+                </button>
+              </div>
+            }
+          </article>
+        } @empty {
+          <p class="vacio">
+            {{ t(cargando() ? 'comun.cargando' : 'comun.nadaAqui') }}
+          </p>
+        }
+      </section>
     }
   </div>
 </section>

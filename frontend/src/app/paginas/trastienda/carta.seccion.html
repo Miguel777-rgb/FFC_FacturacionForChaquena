@@ -1,0 +1,203 @@
+<div class="seccion">
+  <div class="barra">
+    <input
+      type="search"
+      [attr.placeholder]="t('carta.buscar')"
+      [value]="filtro()"
+      (input)="anotarFiltro($any($event.target).value)"
+      [attr.aria-label]="t('carta.buscar')"
+    />
+    <select
+      [value]="categoriaFiltro() ?? ''"
+      (change)="filtrarPorCategoria($any($event.target).value)"
+      [attr.aria-label]="t('carta.filtrarSeccion')"
+    >
+      <option value="">{{ t('carta.todasSecciones') }}</option>
+      @for (c of categorias(); track c.id) {
+        <option [value]="c.id">{{ c.nombre }}</option>
+      }
+    </select>
+    <button type="button" class="secundario" (click)="abrirAlta()">
+      {{ t(altaAbierta() ? 'comun.dejarlo' : 'carta.nuevoPlatillo') }}
+    </button>
+    <button type="button" class="secundario" (click)="abrirCategoria()">
+      {{ t(categoriaAbierta() ? 'comun.dejarlo' : 'carta.nuevaSeccion') }}
+    </button>
+  </div>
+
+  @if (categoriaAbierta()) {
+    <div class="formulario bloque">
+      <h2>{{ t('carta.nuevaSeccionTitulo') }}</h2>
+      <div class="campos">
+        <input
+          type="text"
+          [attr.placeholder]="t('carta.seccionEjemplo')"
+          [value]="nombreCategoria()"
+          (input)="anotarNombreCategoria($any($event.target).value)"
+          [attr.aria-label]="t('carta.nombreSeccion')"
+        />
+        <button type="button" (click)="altaCategoria()" [disabled]="guardando()">
+          {{ t('comun.guardar') }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (altaAbierta()) {
+    <div class="formulario bloque">
+      <h2>{{ t('carta.nuevoPlatillo') }}</h2>
+      <p class="vacio">{{ t('carta.avisoReceta') }}</p>
+      <div class="campos">
+        <input
+          type="text"
+          [attr.placeholder]="t('carta.nombre')"
+          [value]="nombre()"
+          (input)="anotarNombre($any($event.target).value)"
+          [attr.aria-label]="t('carta.nombrePlatillo')"
+        />
+        <select
+          [value]="categoriaId() ?? ''"
+          (change)="elegirCategoria($any($event.target).value)"
+          [attr.aria-label]="t('carta.seccionCarta')"
+        >
+          <option value="">{{ t('carta.seccionPlaceholder') }}</option>
+          @for (c of categorias(); track c.id) {
+            <option [value]="c.id">{{ c.nombre }}</option>
+          }
+        </select>
+        <input
+          type="number"
+          step="0.10"
+          min="0"
+          [attr.placeholder]="t('comun.precio')"
+          [value]="precio() ?? ''"
+          (input)="anotarPrecio($any($event.target).value)"
+          [attr.aria-label]="t('carta.precioVenta')"
+        />
+        <input
+          type="text"
+          [attr.placeholder]="t('carta.descripcion')"
+          [value]="descripcion()"
+          (input)="anotarDescripcion($any($event.target).value)"
+          [attr.aria-label]="t('carta.descripcionAria')"
+        />
+        <button type="button" (click)="altaPlatillo()" [disabled]="guardando()">
+          {{ t('comun.guardar') }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="desplazable">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>{{ t('carta.platillo') }}</th>
+          <th>{{ t('carta.seccion') }}</th>
+          <th class="num">{{ t('comun.precio') }}</th>
+          <th>{{ t('comun.estado') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of visibles(); track p.id) {
+          <tr [class.baja]="!p.activo">
+            <td>
+              {{ p.nombre }}
+              @if (p.descripcion) {
+                <span class="tenue"> · {{ p.descripcion }}</span>
+              }
+            </td>
+            <td class="tenue">{{ p.categoriaNombre || nombreCategoriaDe(p.categoriaId) }}</td>
+            <td class="num cifra">S/ {{ p.precioVentaBase | number: '1.2-2' }}</td>
+            <td>
+              <span class="chip">{{ t(p.activo ? 'carta.enCarta' : 'carta.fuera') }}</span>
+            </td>
+            <td class="acciones">
+              <button type="button" class="secundario chico" (click)="abrirReceta(p)">
+                {{ t(recetaDe()?.id === p.id ? 'comun.cerrar' : 'carta.receta') }}
+              </button>
+              <button
+                type="button"
+                class="chico"
+                [class.destructivo]="p.activo"
+                [class.secundario]="!p.activo"
+                (click)="cambiarActivo(p)"
+                [disabled]="guardando()"
+              >
+                {{ t(p.activo ? 'carta.sacar' : 'carta.reponer') }}
+              </button>
+            </td>
+          </tr>
+
+          <!-- La receta se guarda entera de una vez: `PUT` reemplaza, no parchea.
+               Lo que no este en esta lista deja de formar parte del plato. -->
+          @if (recetaDe()?.id === p.id) {
+            <tr class="expandida">
+              <td colspan="5">
+                <ul class="listado">
+                  @for (i of receta(); track i.insumoId) {
+                    <li>
+                      <span>{{ i.insumoNombre }}</span>
+                      <span class="cifra tenue">
+                        {{ i.cantidadRequerida | number: '1.0-3' }} {{ i.unidadMedida }}
+                      </span>
+                      <button
+                        type="button"
+                        class="destructivo chico"
+                        (click)="quitarIngrediente(i)"
+                      >
+                        {{ t('comun.quitar') }}
+                      </button>
+                    </li>
+                  } @empty {
+                    <li class="vacio">{{ t('carta.sinReceta') }}</li>
+                  }
+                </ul>
+
+                <div class="campos">
+                  <select
+                    [value]="insumoNuevo()"
+                    (change)="elegirInsumo($any($event.target).value)"
+                    [attr.aria-label]="t('carta.insumoAgregar')"
+                  >
+                    <option value="">{{ t('carta.agregarInsumo') }}</option>
+                    @for (i of insumosDisponibles(); track i.id) {
+                      <option [value]="i.id">{{ i.nombre }} ({{ i.unidadMedida }})</option>
+                    }
+                  </select>
+                  <input
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    [attr.placeholder]="t('carta.cantidadPorPlato')"
+                    [value]="cantidadNueva() ?? ''"
+                    (input)="anotarCantidad($any($event.target).value)"
+                    [attr.aria-label]="t('carta.cantidadRequerida')"
+                  />
+                  <button
+                    type="button"
+                    class="secundario"
+                    (click)="agregarIngrediente()"
+                    [disabled]="!insumoNuevo() || !cantidadNueva()"
+                  >
+                    {{ t('comun.agregar') }}
+                  </button>
+                  <button type="button" (click)="guardarReceta()" [disabled]="guardando()">
+                    {{ t('carta.guardarReceta') }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        } @empty {
+          <tr>
+            <td colspan="5" class="vacio">
+              {{ t(cargando() ? 'carta.cargandoCarta' : 'carta.ningunoCoincide') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

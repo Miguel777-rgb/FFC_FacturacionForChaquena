@@ -1,10 +1,12 @@
 package com.chaquena.backend_logistica.pedidos.dto;
 
 import com.chaquena.backend_logistica.pedidos.domain.*;
+import com.chaquena.backend_logistica.pedidos.service.MaquinaEstadosOrden;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /** Fila de listado: lo justo para pintar una tabla o el mapa de mesas. */
@@ -27,6 +29,13 @@ public class OrdenResumenDto {
     private Integer cantidadItems;
     private ZonedDateTime tiempoInicioGlobal;
     private Long minutosTranscurridos;
+
+    /**
+     * Misma razon que en OrdenResponseDto: el mapa de mesas y el tablero del
+     * salon pintan botones sobre estas filas sin volver a pedir el detalle.
+     */
+    private List<EstadoOrdenEnum> transicionesPermitidas;
+    private Boolean editable;
 
     /**
      * Los detalles pueden no estar cargados segun la consulta de origen; en ese
@@ -63,6 +72,9 @@ public class OrdenResumenDto {
                 .cantidadItems(contarItems(o))
                 .tiempoInicioGlobal(inicio)
                 .minutosTranscurridos(minutos)
+                .transicionesPermitidas(
+                        List.copyOf(MaquinaEstadosOrden.transicionesDesde(o.getEstado())))
+                .editable(MaquinaEstadosOrden.esEditable(o.getEstado()))
                 .build();
     }
 }

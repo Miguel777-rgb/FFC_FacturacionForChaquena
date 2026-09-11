@@ -33,6 +33,19 @@ public interface MensajeriaPort {
     /** Si el adaptador tiene credenciales y esta listo para enviar. */
     boolean disponible();
 
+    /**
+     * Estado de cada identidad, para la pantalla de administracion.
+     *
+     * <p>Es lo unico del puerto que no sirve para conversar, y esta aqui por la
+     * misma razon que {@link #disponible()}: quien sabe si el bot del personal
+     * llego a conectarse es el adaptador, y preguntarselo a Discord o a Meta
+     * desde fuera obligaria a la trastienda a conocer el proveedor, que es
+     * justo lo que este puerto existe para evitar.
+     *
+     * <p>Nunca lanza: un diagnostico que revienta no diagnostica nada.
+     */
+    List<EstadoCanalBot> estado();
+
     void enviarTexto(CanalBot bot, DestinoBot destino, String texto);
 
     /**

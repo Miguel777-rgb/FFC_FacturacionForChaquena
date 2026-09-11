@@ -27,7 +27,7 @@ public class TransportistaController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','DELIVERY')")
-    @Operation(summary = "Registrar transportista con DNI, empresa y telefono")
+    @Operation(operationId = "crearTransportista", summary = "Registrar transportista con DNI, empresa y telefono")
     public ResponseEntity<TransportistaResponseDto> crear(
             @Valid @RequestBody TransportistaRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -35,7 +35,7 @@ public class TransportistaController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar transportistas")
+    @Operation(operationId = "listarTransportistas", summary = "Listar transportistas")
     public ResponseEntity<PageResponseDto<TransportistaResponseDto>> listar(
             @RequestParam(required = false) String empresa,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -43,14 +43,14 @@ public class TransportistaController {
     }
 
     @GetMapping("/activos")
-    @Operation(summary = "Transportistas activos con sus vehiculos, para asignar un reparto")
+    @Operation(operationId = "listarTransportistasActivos", summary = "Transportistas activos con sus vehiculos, para asignar un reparto")
     public ResponseEntity<List<TransportistaResponseDto>> activos() {
         return ResponseEntity.ok(deliveryService.transportistasActivos());
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','DELIVERY')")
-    @Operation(summary = "Actualizar datos del transportista")
+    @Operation(operationId = "actualizarTransportista", summary = "Actualizar datos del transportista")
     public ResponseEntity<TransportistaResponseDto> actualizar(@PathVariable UUID id,
             @Valid @RequestBody TransportistaRequestDto request) {
         return ResponseEntity.ok(deliveryService.actualizarTransportista(id, request));
@@ -58,7 +58,7 @@ public class TransportistaController {
 
     @PatchMapping("/{id}/activo")
     @PreAuthorize("hasAnyRole('ADMIN','DELIVERY')")
-    @Operation(summary = "Habilitar o dar de baja al transportista")
+    @Operation(operationId = "cambiarActivoTransportista", summary = "Habilitar o dar de baja al transportista")
     public ResponseEntity<TransportistaResponseDto> cambiarActivo(@PathVariable UUID id,
             @RequestParam boolean activo) {
         return ResponseEntity.ok(deliveryService.cambiarActivoTransportista(id, activo));

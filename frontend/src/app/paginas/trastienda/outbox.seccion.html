@@ -1,0 +1,137 @@
+<div class="seccion">
+  @if (salud(); as s) {
+    <ul class="kpis">
+      <li>
+        <span class="cifra dato">{{ s['pendientes'] ?? 0 }}</span>
+        <span class="rotulo">{{ t('outbox.pendientes') }}</span>
+      </li>
+      <li>
+        <span class="cifra dato">{{ s['procesados'] ?? 0 }}</span>
+        <span class="rotulo">{{ t('outbox.procesados') }}</span>
+      </li>
+      <li [class.alerta]="(s['errores'] ?? 0) > 0">
+        <span class="cifra dato">{{ s['errores'] ?? 0 }}</span>
+        <span class="rotulo">{{ t('outbox.conError') }}</span>
+      </li>
+      <li [class.alerta]="(s['colaMuerta'] ?? 0) > 0">
+        <span class="cifra dato">{{ s['colaMuerta'] ?? 0 }}</span>
+        <span class="rotulo">{{ t('outbox.colaMuerta') }}</span>
+      </li>
+    </ul>
+  }
+
+  <!-- Un evento pendiente no es una averia mientras no haya a donde mandarlo.
+       Decirlo aqui evita que alguien reintente cien veces algo que no tiene
+       destino. -->
+  <p class="vacio">
+    @if (atascados() === 0) {
+      {{ t('outbox.nadaAtascado') }}
+    } @else {
+      {{ tp('outbox.atascados', atascados()) }}
+    }
+  </p>
+
+  <div class="barra">
+    <select
+      [value]="filtro()"
+      (change)="filtrar($any($event.target).value)"
+      [attr.aria-label]="t('outbox.filtrarEstado')"
+    >
+      @for (f of FILTROS; track f.id) {
+        <option [value]="f.id">{{ t(f.nombre) }}</option>
+      }
+    </select>
+    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
+    </button>
+  </div>
+
+  <div class="desplazable">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>{{ t('outbox.cuando') }}</th>
+          <th>{{ t('outbox.evento') }}</th>
+          <th>{{ t('outbox.sobre') }}</th>
+          <th>{{ t('comun.estado') }}</th>
+          <th class="num">{{ t('outbox.intentos') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of eventos(); track e.id) {
+          <tr [class.bajo]="e.status === ESTADOS.DEAD_LETTER">
+            <td class="tenue">{{ fecha(e.fecha) }}</td>
+            <td>{{ e.eventType }}</td>
+            <td class="cifra tenue">{{ e.aggregateType }}</td>
+            <td>
+              <span class="chip" [attr.data-estado]="e.status">
+                {{ tEnum('outboxEstado', e.status) }}
+              </span>
+            </td>
+            <td class="num cifra">{{ e.retryCount ?? 0 }}</td>
+            <td class="acciones">
+              <button type="button" class="secundario chico" (click)="abrirDetalle(e)">
+                {{ t(detalleDe()?.id === e.id ? 'comun.cerrar' : 'outbox.ver') }}
+              </button>
+              @if (sePuedeReintentar(e)) {
+                <button
+                  type="button"
+                  class="chico"
+                  (click)="reintentar(e)"
+                  [disabled]="guardando()"
+                >
+                  {{ t('outbox.reintentar') }}
+                </button>
+              }
+            </td>
+          </tr>
+
+          @if (detalleDe()?.id === e.id) {
+            <tr class="expandida">
+              <td colspan="6">
+                <!-- El mensaje del servidor explica por que fallo. No se
+                     reescribe: quien lo lee necesita el texto exacto. -->
+                @if (detalleDe()?.errorMessage; as fallo) {
+                  <p class="fallo">{{ fallo }}</p>
+                }
+
+                <dl class="detalle">
+                  <div>
+                    <dt>{{ t('comun.identificador') }}</dt>
+                    <dd class="cifra">{{ detalleDe()?.id }}</dd>
+                  </div>
+                  <div>
+                    <dt>{{ t('outbox.sobre') }}</dt>
+                    <dd class="cifra">{{ detalleDe()?.aggregateId }}</dd>
+                  </div>
+                  @if (detalleDe()?.nextRetryAt; as proximo) {
+                    <div>
+                      <dt>{{ t('outbox.proximoIntento') }}</dt>
+                      <dd class="cifra">{{ fecha(proximo, 'larga') }}</dd>
+                    </div>
+                  }
+                </dl>
+
+                <!-- El cuerpo tal cual se mandaria. Es lo unico que permite
+                     saber si el evento vale la pena reintentar o si lo que va
+                     dentro esta mal. -->
+                @if (payload(); as cuerpo) {
+                  <pre class="payload">{{ cuerpo }}</pre>
+                } @else {
+                  <p class="vacio">{{ t('outbox.sinCuerpo') }}</p>
+                }
+              </td>
+            </tr>
+          }
+        } @empty {
+          <tr>
+            <td colspan="6" class="vacio">
+              {{ t(cargando() ? 'outbox.cargandoBandeja' : 'outbox.sinEventos') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

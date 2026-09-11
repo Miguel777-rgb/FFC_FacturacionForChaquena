@@ -29,7 +29,7 @@ public class InventarioController {
 
     @PostMapping("/movimientos")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN','COCINA')")
-    @Operation(summary = "Registrar entrada por compra o merma")
+    @Operation(operationId = "registrarMovimiento", summary = "Registrar entrada por compra o merma")
     public ResponseEntity<MovimientoResponseDto> registrar(
             @Valid @RequestBody MovimientoRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -13,9 +13,12 @@
    porque las tres superficies los pintan igual. */
 
 /* --- kpis ----------------------------------------------------------------- */
+/* `min()` en el suelo del minmax: sin el, una columna de 9rem no baja de 144px
+   aunque la pantalla mida menos, y la rejilla empuja la pagina a lo ancho en
+   lugar de encogerse. */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
   gap: var(--e2);
   margin: 0;
   padding: 0;
@@ -24,6 +27,10 @@
   li {
     display: flex;
     flex-direction: column;
+    /* Una celda de rejilla no se encoge por debajo de su contenido salvo que se
+       le diga. Un dato largo del servidor no puede decidir el ancho de la
+       pantalla. */
+    min-width: 0;
     padding: var(--e3);
     background: var(--superficie);
     border: 1px solid var(--linea);
@@ -43,6 +50,7 @@
     font-size: 1.6rem;
     font-weight: 600;
     line-height: 1.1;
+    overflow-wrap: anywhere;
   }
 
   .rotulo {
@@ -52,11 +60,40 @@
 }
 
 /* --- tablero -------------------------------------------------------------- */
-.tablero {
+/* Tres columnas fijas: la posicion de una comanda dentro de la pantalla pasa a
+   significar en que fase esta. Con `auto-fill` esa lectura se perderia en cuanto
+   la pantalla cambiara de ancho. */
+.columnas {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--e3);
   align-items: start;
+}
+
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+  min-width: 0;
+
+  > h2 {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--e2);
+    margin: 0;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tenue);
+  }
+}
+
+@media (max-width: 60rem) {
+  .columnas {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .comanda {
@@ -176,4 +213,90 @@
   border: 1px dashed var(--linea);
   border-radius: var(--radio);
   grid-column: 1 / -1;
+}
+
+/* --- promesa de tiempo ----------------------------------------------------- */
+/* Se pide de un toque y no escribiendo: en cocina se trabaja con las manos
+   ocupadas y un teclado numerico es un gesto de mas. */
+.prometer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e2);
+
+  .rotulo {
+    flex: 1 1 100%;
+    font-size: 0.8rem;
+    color: var(--tenue);
+  }
+}
+
+.minutos {
+  min-height: 2.25rem;
+  padding: 0 var(--e3);
+}
+
+.promesa {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--tenue);
+}
+
+/* Incumplida no se pinta en rojo relleno: el filete del borde ya avisa, y dos
+   alarmas para el mismo hecho se anulan entre si. */
+.promesa.incumplida {
+  color: var(--critico);
+  font-weight: 500;
+}
+
+/* --- tilde por platillo ---------------------------------------------------- */
+.lineas li {
+  align-items: flex-start;
+}
+
+.tilde {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--ok);
+  background: transparent;
+  border-color: var(--linea);
+  border-radius: var(--radio-chico);
+}
+
+.tilde:hover:not(:disabled) {
+  background: var(--ok-suave);
+  border-color: var(--ok);
+}
+
+/* Servido no se tacha: en una pantalla de cocina el texto tachado se vuelve
+   ilegible a dos metros. Se baja el contraste y el tilde queda de testigo. */
+.lineas li.servido {
+  opacity: 0.5;
+
+  .tilde {
+    background: var(--ok-suave);
+    border-color: var(--ok);
+    opacity: 1;
+  }
+}
+
+/* --- aviso de faltante ----------------------------------------------------- */
+.falta {
+  min-height: 2.25rem;
+  padding: 0 var(--e2);
+  font-size: 0.8rem;
+}
+
+.faltante {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e3);
+  background: var(--critico-suave);
+  border: 1px solid var(--critico);
+  border-radius: var(--radio-chico);
 }

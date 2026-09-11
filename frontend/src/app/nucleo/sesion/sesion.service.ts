@@ -1,5 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 
+import { I18nService } from '../i18n/i18n.service';
 import { normalizarRol, type Rol, esRol } from './rol';
 
 /**
@@ -53,6 +54,8 @@ const CLAVE = 'chaquena.sesion';
  */
 @Injectable({ providedIn: 'root' })
 export class SesionService {
+  private readonly t = inject(I18nService).t;
+
   private readonly _sesion = signal<Sesion | null>(this.leerDeStorage());
 
   readonly sesion = this._sesion.asReadonly();
@@ -76,7 +79,7 @@ export class SesionService {
   /** Guarda la sesion a partir de la respuesta de `/api/v1/auth/login`. */
   abrir(token: string, nombreLegible?: string): void {
     const claims = this.decodificar(token);
-    if (!claims) throw new Error('El servidor devolvio un token que no se puede leer.');
+    if (!claims) throw new Error(this.t('sesion.tokenIlegible'));
 
     const delToken = [claims.nombres, claims.apellidos].filter(Boolean).join(' ').trim();
 

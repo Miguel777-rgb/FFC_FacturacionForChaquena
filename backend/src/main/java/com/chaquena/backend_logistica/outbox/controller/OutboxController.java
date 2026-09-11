@@ -32,7 +32,7 @@ public class OutboxController {
 
     @GetMapping("/eventos")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Eventos por estado, para ver que no llego a facturacion")
+    @Operation(operationId = "listarEventosOutbox", summary = "Eventos por estado, para ver que no llego a facturacion")
     public ResponseEntity<PageResponseDto<OutboxEventDto>> listar(
             @RequestParam(required = false) EstadoOutboxEnum status,
             @PageableDefault(size = 30) Pageable pageable) {
@@ -47,7 +47,7 @@ public class OutboxController {
 
     @GetMapping("/eventos/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Detalle del evento con su payload completo")
+    @Operation(operationId = "obtenerEventoOutbox", summary = "Detalle del evento con su payload completo")
     public ResponseEntity<OutboxEventDto> obtener(@PathVariable UUID id) {
         OutboxEvent evento = outboxEventRepository.findById(id)
                 .orElseThrow(() -> RecursoNoEncontradoException.de("el evento de outbox", id));

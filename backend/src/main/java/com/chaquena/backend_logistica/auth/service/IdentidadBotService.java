@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Ata una cuenta de Discord a un trabajador ya dado de alta.
@@ -117,5 +118,36 @@ public class IdentidadBotService {
         log.info("Cuenta de Discord {} ({}) vinculada al trabajador {}.",
                 discordUserId, discordTag, trabajador.getUsername());
         return trabajador;
+    }
+
+    /**
+     * Suelta la cuenta de mensajeria de un trabajador.
+     *
+     * <p>Es la contraparte que le faltaba a {@link #vincular}: cuando alguien
+     * deja el local, o cuando se vinculo con la cuenta equivocada, el mensaje
+     * que da el sistema es "pide al administrador que la libere", y hasta ahora
+     * el administrador no tenia con que hacerlo salvo entrando a la base de
+     * datos.
+     *
+     * <p>Desvincular no da de baja al trabajador: sigue entrando al front con su
+     * usuario. Lo unico que pierde es el atajo por chat.
+     */
+    @Transactional
+    public Trabajador desvincular(UUID trabajadorId) {
+        Trabajador trabajador = trabajadorRepository.findById(trabajadorId)
+                .orElseThrow(() -> com.chaquena.backend_logistica.shared.exception
+                        .RecursoNoEncontradoException.de("el trabajador", trabajadorId));
+
+        if (trabajador.getDiscordUserId() == null) {
+            throw new ConflictoException(
+                    "El trabajador " + trabajador.getUsername() + " no tiene ninguna cuenta vinculada.");
+        }
+
+        log.info("Se libera la cuenta de Discord {} del trabajador {}.",
+                trabajador.getDiscordUserId(), trabajador.getUsername());
+
+        trabajador.setDiscordUserId(null);
+        trabajador.setModifiedBy(com.chaquena.backend_logistica.shared.security.UsuarioActual.username());
+        return trabajadorRepository.save(trabajador);
     }
 }

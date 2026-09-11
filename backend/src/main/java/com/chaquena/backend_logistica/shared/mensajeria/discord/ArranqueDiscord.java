@@ -55,8 +55,8 @@ public class ArranqueDiscord implements ApplicationListener<ApplicationReadyEven
             return;
         }
 
-        abrir(CanalBot.IN, propiedades.botIn(), "el personal");
-        abrir(CanalBot.OUT, propiedades.botOut(), "los clientes");
+        abrir(CanalBot.IN, propiedades.botIn(), "al personal");
+        abrir(CanalBot.OUT, propiedades.botOut(), "a los clientes");
 
         if (!clientes.alguno()) {
             log.warn("⚠️ Ningun bot de Discord tiene token. Define DISCORD_BOT_IN_TOKEN y "
@@ -66,7 +66,7 @@ public class ArranqueDiscord implements ApplicationListener<ApplicationReadyEven
 
     private void abrir(CanalBot canal, DiscordProperties.Bot bot, String audiencia) {
         if (!bot.configurado()) {
-            log.warn("⚠️ El bot {} de Discord no tiene token: no atendera a {}.", canal, audiencia);
+            log.warn("⚠️ El bot {} de Discord no tiene token: no atendera {}.", canal, audiencia);
             return;
         }
 
@@ -76,7 +76,7 @@ public class ArranqueDiscord implements ApplicationListener<ApplicationReadyEven
         try {
             JDA jda = JDABuilder
                     .createLight(bot.token(), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
-                    .setActivity(Activity.customStatus("Chaquena · " + audiencia))
+                    .setActivity(Activity.customStatus("Chaquena · atiende " + audiencia))
                     .addEventListeners(propios.toArray())
                     .addEventListeners(new RegistradorDeComandos(canal, bot.guildId(), comandos))
                     .build();

@@ -1,0 +1,10 @@
+/* El personal comparte el lenguaje denso de las pantallas administrativas
+   —tablas, formularios desplegables, listas— que vive en
+   `disenio/secciones.scss`. Aqui solo queda el marco de la superficie. */
+
+.personal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+  padding: var(--e5);
+}

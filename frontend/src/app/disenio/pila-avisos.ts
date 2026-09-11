@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { AvisosService } from '../nucleo/http/avisos.service';
+import { I18nService } from '../nucleo/i18n/i18n.service';
 
 /**
  * Avisos apilados en una esquina. `role="status"` con `aria-live="polite"`
@@ -15,7 +16,12 @@ import { AvisosService } from '../nucleo/http/avisos.service';
       @for (a of avisos.avisos(); track a.id) {
         <div class="aviso" [class]="a.tono">
           <p>{{ a.texto }}</p>
-          <button type="button" class="cerrar" (click)="avisos.cerrar(a.id)" aria-label="Cerrar aviso">
+          <button
+            type="button"
+            class="cerrar"
+            (click)="avisos.cerrar(a.id)"
+            aria-label="Cerrar aviso"
+          >
             &times;
           </button>
         </div>
@@ -26,7 +32,10 @@ import { AvisosService } from '../nucleo/http/avisos.service';
     .pila {
       position: fixed;
       right: var(--e4);
-      bottom: var(--e4);
+      /* Por encima de la barra de idiomas, que ocupa esta misma esquina: un
+         aviso tapando las banderas dejaria sin idioma justo a quien no entiende
+         el aviso. */
+      bottom: var(--hueco-barra);
       z-index: 100;
       display: flex;
       flex-direction: column;
@@ -83,4 +92,5 @@ import { AvisosService } from '../nucleo/http/avisos.service';
 })
 export class PilaAvisos {
   protected readonly avisos = inject(AvisosService);
+  protected readonly t = inject(I18nService).t;
 }

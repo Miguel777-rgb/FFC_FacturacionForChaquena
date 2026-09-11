@@ -43,11 +43,29 @@ public class MaquinaEstadosOrden {
     public static final Set<EstadoOrdenEnum> VENTA_EFECTIVA = EnumSet.of(
             EstadoOrdenEnum.ENTREGADO, EstadoOrdenEnum.PAGADO, EstadoOrdenEnum.CONCLUIDO);
 
+    /**
+     * Los estados a los que se puede pasar desde {@code actual}, en el orden en
+     * que estan declarados en el enum.
+     *
+     * Es estatica a proposito: los DTO la publican para que el frontend pinte
+     * sus botones desde la respuesta en vez de duplicar esta tabla. Un cliente
+     * que la copie se desincroniza en la primera regla nueva, y el sintoma seria
+     * un boton que promete algo que el servidor va a negar con un 409.
+     */
+    public static Set<EstadoOrdenEnum> transicionesDesde(EstadoOrdenEnum actual) {
+        return actual == null ? Set.of() : TRANSICIONES.getOrDefault(actual, Set.of());
+    }
+
+    /** Si la comanda todavia admite cambios en sus lineas. */
+    public static boolean esEditable(EstadoOrdenEnum actual) {
+        return actual != null && EDITABLES.contains(actual);
+    }
+
     public boolean esTransicionValida(EstadoOrdenEnum actual, EstadoOrdenEnum destino) {
         if (actual == null || destino == null || actual == destino) {
             return false;
         }
-        return TRANSICIONES.getOrDefault(actual, Set.of()).contains(destino);
+        return transicionesDesde(actual).contains(destino);
     }
 
     public void validar(EstadoOrdenEnum actual, EstadoOrdenEnum destino) {
@@ -58,7 +76,7 @@ public class MaquinaEstadosOrden {
             throw new ConflictoException(
                     "No se puede pasar de " + actual + " a " + destino + ". "
                             + "Transiciones permitidas desde " + actual + ": "
-                            + TRANSICIONES.getOrDefault(actual, Set.of()) + ".");
+                            + transicionesDesde(actual) + ".");
         }
     }
 

@@ -45,6 +45,24 @@ public class OrdenDetalle {
     @Column(name = "excepciones_nota", columnDefinition = "TEXT")
     private String excepcionesNota;
 
+    /**
+     * Si cocina ya despacho esta linea, y cuando.
+     *
+     * Una comanda que sale por partes necesita recordarlo: la pantalla de
+     * cocina se refresca sola, y sin guardar el tilde todos los platillos ya
+     * marcados volvian a aparecer pendientes en el siguiente ciclo. Es
+     * justamente el caso que justifica PATCH /kds/detalles/{id}/listo.
+     *
+     * La bandera va NOT NULL con su valor de partida; la marca de tiempo queda
+     * nullable porque el nulo ahi significa "todavia no ha pasado".
+     */
+    @Builder.Default
+    @Column(name = "listo", nullable = false)
+    private Boolean listo = false;
+
+    @Column(name = "tiempo_listo")
+    private ZonedDateTime tiempoListo;
+
     @Builder.Default
     @OneToMany(mappedBy = "ordenDetalle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrdenDetalleComplemento> complementos = new ArrayList<>();
@@ -70,6 +88,8 @@ public class OrdenDetalle {
         this.lastDateModified = ZonedDateTime.now();
         if (this.modifiedBy == null)
             this.modifiedBy = this.createdBy;
+        if (this.listo == null)
+            this.listo = false;
     }
 
     @PreUpdate

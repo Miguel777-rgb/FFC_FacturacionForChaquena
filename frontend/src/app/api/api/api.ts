@@ -1,5 +1,7 @@
 export * from './autenticacion.api';
 import { AutenticacionApi } from './autenticacion.api';
+export * from './bots.api';
+import { BotsApi } from './bots.api';
 export * from './caja-arqueo-y-fraude.api';
 import { CajaArqueoYFraudeApi } from './caja-arqueo-y-fraude.api';
 export * from './caja-pagos.api';
@@ -36,8 +38,34 @@ export * from './outbox.api';
 import { OutboxApi } from './outbox.api';
 export * from './reportes.api';
 import { ReportesApi } from './reportes.api';
+export * from './roles.api';
+import { RolesApi } from './roles.api';
 export * from './salon-mesas.api';
 import { SalonMesasApi } from './salon-mesas.api';
 export * from './trabajadores.api';
 import { TrabajadoresApi } from './trabajadores.api';
-export const APIS = [AutenticacionApi, CajaArqueoYFraudeApi, CajaPagosApi, CargosApi, CatalogoCategoriasApi, CatalogoComplementosApi, CatalogoPlatillosApi, CatalogoPromocionesApi, ClientesApi, ClientesEmpresasApi, CocinaKDSApi, ComandasApi, DespachoRepartoApi, DespachoTransportistasApi, FeedbackYFidelizacionApi, InventarioInsumosApi, InventarioMovimientosApi, OutboxApi, ReportesApi, SalonMesasApi, TrabajadoresApi];
+export const APIS = [
+  AutenticacionApi,
+  BotsApi,
+  CajaArqueoYFraudeApi,
+  CajaPagosApi,
+  CargosApi,
+  CatalogoCategoriasApi,
+  CatalogoComplementosApi,
+  CatalogoPlatillosApi,
+  CatalogoPromocionesApi,
+  ClientesApi,
+  ClientesEmpresasApi,
+  CocinaKDSApi,
+  ComandasApi,
+  DespachoRepartoApi,
+  DespachoTransportistasApi,
+  FeedbackYFidelizacionApi,
+  InventarioInsumosApi,
+  InventarioMovimientosApi,
+  OutboxApi,
+  ReportesApi,
+  RolesApi,
+  SalonMesasApi,
+  TrabajadoresApi,
+];

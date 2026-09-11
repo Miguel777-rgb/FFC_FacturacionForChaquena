@@ -3,29 +3,46 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { SesionService } from '../nucleo/sesion/sesion.service';
 import { LogoService } from '../nucleo/marca/logo.service';
+import { I18nService } from '../nucleo/i18n/i18n.service';
+import type { ClaveI18n } from '../nucleo/i18n/traducciones/es';
 import type { Rol } from '../nucleo/sesion/rol';
 import { Icono } from './icono';
 import type { NombreIcono } from './iconos';
 
 interface Destino {
   ruta: string;
-  etiqueta: string;
+  /** Clave de traduccion, no el rotulo: el panel cambia de idioma en el sitio. */
+  etiqueta: ClaveI18n;
   icono: NombreIcono;
   roles: Rol[];
 }
 
-/** Las cinco superficies del plan. Mismo reparto de roles que las guardas. */
+/**
+ * Las superficies, en el orden del turno: primero los cuatro puestos por los
+ * que pasa una comanda, luego las tres pantallas de administracion.
+ *
+ * Mismo reparto de roles que las guardas de `app.routes.ts`. KPIs admite tambien
+ * a caja porque el endpoint del tablero lo admite: quien cuadra el dinero tiene
+ * derecho a ver la venta del dia sin pedirsela a nadie.
+ */
 const DESTINOS: Destino[] = [
-  { ruta: '/pos', etiqueta: 'Punto de venta', icono: 'pos', roles: ['MOZO', 'ADMIN'] },
-  { ruta: '/kds', etiqueta: 'Cocina', icono: 'cocina', roles: ['COCINA', 'ADMIN'] },
-  { ruta: '/caja', etiqueta: 'Caja', icono: 'caja', roles: ['CAJA', 'ADMIN'] },
+  { ruta: '/pos', etiqueta: 'panel.pos', icono: 'pos', roles: ['MOZO', 'ADMIN'] },
+  { ruta: '/kds', etiqueta: 'panel.kds', icono: 'cocina', roles: ['COCINA', 'ADMIN'] },
+  { ruta: '/caja', etiqueta: 'panel.caja', icono: 'caja', roles: ['CAJA', 'ADMIN'] },
   {
     ruta: '/despacho',
-    etiqueta: 'Despacho',
+    etiqueta: 'panel.despacho',
     icono: 'despacho',
     roles: ['DELIVERY', 'MOZO', 'ADMIN'],
   },
-  { ruta: '/trastienda', etiqueta: 'Trastienda', icono: 'trastienda', roles: ['ALMACEN', 'ADMIN'] },
+  {
+    ruta: '/trastienda',
+    etiqueta: 'panel.trastienda',
+    icono: 'trastienda',
+    roles: ['ALMACEN', 'ADMIN'],
+  },
+  { ruta: '/personal', etiqueta: 'panel.personal', icono: 'personal', roles: ['ADMIN'] },
+  { ruta: '/kpis', etiqueta: 'panel.kpis', icono: 'kpis', roles: ['ADMIN', 'CAJA'] },
 ];
 
 const CLAVE_PLEGADO = 'chaquena.panel.plegado';
@@ -52,9 +69,12 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       <!-- Marca: el logo del local arriba a la izquierda. Mientras no se cargue
            ninguno, la ranura invita a hacerlo en vez de dejar un hueco. -->
       <div class="marca-local">
-        <label class="ranura" [attr.title]="logo.logo() ? 'Cambiar el logo' : 'Cargar el logo'">
+        <label
+          class="ranura"
+          [attr.title]="t(logo.logo() ? 'panel.cambiarLogo' : 'panel.cargarLogo')"
+        >
           @if (logo.logo(); as fuente) {
-            <img [src]="fuente" alt="Logo del local" />
+            <img [src]="fuente" [alt]="t('panel.cargarLogoAria')" />
           } @else {
             <app-icono nombre="imagen" [tamano]="20" />
           }
@@ -62,18 +82,23 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
             type="file"
             accept="image/webp,image/png,image/jpeg,image/svg+xml"
             (change)="elegirLogo($event)"
-            [attr.aria-label]="logo.logo() ? 'Cambiar el logo del local' : 'Cargar el logo del local'"
+            [attr.aria-label]="t(logo.logo() ? 'panel.cambiarLogoAria' : 'panel.cargarLogoAria')"
           />
         </label>
 
         @if (!plegado()) {
           <div class="identidad">
             <span class="marca">Chaquena</span>
-            <span class="modulo">Logistica</span>
+            <span class="modulo">{{ t('panel.modulo') }}</span>
           </div>
 
           @if (logo.logo()) {
-            <button type="button" class="icono-solo" (click)="logo.quitar()" aria-label="Quitar el logo">
+            <button
+              type="button"
+              class="icono-solo"
+              (click)="logo.quitar()"
+              [attr.aria-label]="t('panel.quitarLogo')"
+            >
               <app-icono nombre="quitar" [tamano]="16" />
             </button>
           }
@@ -86,18 +111,18 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
         }
       }
 
-      <nav [attr.aria-label]="'Superficies'">
+      <nav [attr.aria-label]="t('panel.superficies')">
         <ul>
           @for (d of visibles(); track d.ruta) {
             <li>
               <a
                 [routerLink]="d.ruta"
                 routerLinkActive="activo"
-                [attr.title]="plegado() ? d.etiqueta : null"
+                [attr.title]="plegado() ? t(d.etiqueta) : null"
               >
                 <app-icono [nombre]="d.icono" />
                 @if (!plegado()) {
-                  <span>{{ d.etiqueta }}</span>
+                  <span>{{ t(d.etiqueta) }}</span>
                 }
               </a>
             </li>
@@ -109,7 +134,7 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
         @if (!plegado()) {
           <div class="quien">
             <span class="nombre">{{ sesion.nombre() }}</span>
-            <span class="roles">{{ sesion.roles().join(' · ') || 'sin roles' }}</span>
+            <span class="roles">{{ sesion.roles().join(' · ') || t('panel.sinRoles') }}</span>
           </div>
         }
 
@@ -117,8 +142,8 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
           type="button"
           class="icono-solo"
           (click)="salir()"
-          [attr.title]="plegado() ? 'Salir' : null"
-          aria-label="Cerrar sesion"
+          [attr.title]="plegado() ? t('panel.salir') : null"
+          [attr.aria-label]="t('panel.cerrarSesion')"
         >
           <app-icono nombre="salir" />
         </button>
@@ -129,11 +154,11 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
         class="plegar"
         (click)="alternar()"
         [attr.aria-expanded]="!plegado()"
-        [attr.aria-label]="plegado() ? 'Desplegar el panel' : 'Plegar el panel'"
+        [attr.aria-label]="t(plegado() ? 'panel.desplegarAria' : 'panel.plegarAria')"
       >
         <app-icono nombre="panel" [tamano]="18" />
         @if (!plegado()) {
-          <span>Plegar</span>
+          <span>{{ t('panel.plegar') }}</span>
         }
       </button>
     </aside>
@@ -274,6 +299,7 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       box-shadow: inset 2px 0 0 var(--acento);
     }
 
+    /* --- idioma ----------------------------------------------------------- */
     /* --- pie -------------------------------------------------------------- */
     footer {
       display: flex;
@@ -362,6 +388,7 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
 export class PanelLateral {
   protected readonly sesion = inject(SesionService);
   protected readonly logo = inject(LogoService);
+  protected readonly t = inject(I18nService).t;
   private readonly router = inject(Router);
 
   protected readonly plegado = signal(this.leerPlegado());

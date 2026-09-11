@@ -6,6 +6,7 @@ import com.chaquena.backend_logistica.auth.domain.CargoRol;
 import com.chaquena.backend_logistica.auth.domain.Rol;
 import com.chaquena.backend_logistica.auth.dto.ActualizarTrabajadorRequestDto;
 import com.chaquena.backend_logistica.auth.dto.BootstrapAdminRequestDto;
+import com.chaquena.backend_logistica.auth.dto.CambiarPasswordRequestDto;
 import com.chaquena.backend_logistica.auth.dto.RegistrarTrabajadorRequestDto;
 import com.chaquena.backend_logistica.auth.dto.TrabajadorResponseDto;
 import com.chaquena.backend_logistica.auth.repository.RolRepository;
@@ -184,6 +185,24 @@ public class TrabajadorServiceImpl implements TrabajadorService {
     public TrabajadorResponseDto cambiarActivo(UUID id, boolean activo) {
         Trabajador trabajador = buscar(id);
         trabajador.setActivo(activo);
+        trabajador.setModifiedBy(UsuarioActual.username());
+        return TrabajadorResponseDto.fromEntity(trabajadorRepository.save(trabajador));
+    }
+
+    /**
+     * Restablece la contrasena de un trabajador.
+     *
+     * <p>No pide la anterior a proposito: el caso real no es alguien cambiando
+     * la suya, sino el administrador devolviendo el acceso a quien la olvido.
+     * Por eso el endpoint que lo expone exige rol de administrador; sin esa
+     * condicion, no pedir la contrasena vieja seria un agujero y no una
+     * comodidad.
+     */
+    @Override
+    @Transactional
+    public TrabajadorResponseDto cambiarPassword(UUID id, CambiarPasswordRequestDto request) {
+        Trabajador trabajador = buscar(id);
+        trabajador.setPasswordHash(passwordEncoder.encode(request.getPasswordNueva()));
         trabajador.setModifiedBy(UsuarioActual.username());
         return TrabajadorResponseDto.fromEntity(trabajadorRepository.save(trabajador));
     }

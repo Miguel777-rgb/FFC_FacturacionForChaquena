@@ -76,4 +76,69 @@ public interface OrdenRepository extends JpaRepository<Orden, UUID> {
             """)
     List<Object[]> ventasPorCanal(@Param("desde") ZonedDateTime desde, @Param("hasta") ZonedDateTime hasta,
             @Param("estados") List<EstadoOrdenEnum> estados);
+
+    /**
+     * Cuantas comandas hay en cada estado dentro del rango. A diferencia de
+     * {@link #ventasPorCanal}, aqui entran todas —tambien las canceladas y las
+     * fraudulentas—, porque lo que se mira no es cuanto se vendio sino en que
+     * se fue el dia.
+     */
+    @Query("""
+            select o.estado, count(o), coalesce(sum(o.montoTotal), 0)
+            from Orden o
+            where o.dateCreated between :desde and :hasta
+            group by o.estado
+            """)
+    List<Object[]> comandasPorEstado(@Param("desde") ZonedDateTime desde, @Param("hasta") ZonedDateTime hasta);
+
+    /** Comandas vivas ahora mismo, sin mirar fechas: es una foto, no un historico. */
+    long countByEstadoIn(List<EstadoOrdenEnum> estados);
+
+    /**
+     * Venta atribuida a cada mozo. Agrupa por el UUID crudo porque
+     * {@code ordenes.mozo_id} no es una relacion JPA: el nombre se resuelve
+     * despues contra el repositorio de trabajadores.
+     */
+    @Query("""
+            select o.mozoId, count(o), coalesce(sum(o.montoTotal), 0)
+            from Orden o
+            where o.estado in :estados and o.dateCreated between :desde and :hasta
+              and o.mozoId is not null
+            group by o.mozoId
+            order by coalesce(sum(o.montoTotal), 0) desc
+            """)
+    List<Object[]> ventasPorMozo(@Param("desde") ZonedDateTime desde, @Param("hasta") ZonedDateTime hasta,
+            @Param("estados") List<EstadoOrdenEnum> estados);
+
+    /**
+     * Fecha e importe de cada venta del rango, ya filtrada, para agrupar por
+     * hora o por dia fuera de la base de datos.
+     *
+     * <p>Se agrupa en Java y no con {@code date_trunc} por dos razones. La
+     * franja horaria: {@code date_trunc} sobre un {@code timestamptz} usa la
+     * zona de la sesion JDBC, que en el contenedor es UTC, y en Peru eso corre
+     * la venta de la cena al dia siguiente. Y los huecos: una consulta agrupada
+     * no devuelve las horas sin ventas, y una grafica que se salta las horas
+     * vacias miente sobre la forma del dia.
+     */
+    @Query("""
+            select o.dateCreated, o.montoTotal from Orden o
+            where o.estado in :estados and o.dateCreated between :desde and :hasta
+            order by o.dateCreated
+            """)
+    List<Object[]> ventasCrudas(@Param("desde") ZonedDateTime desde, @Param("hasta") ZonedDateTime hasta,
+            @Param("estados") List<EstadoOrdenEnum> estados);
+
+    /**
+     * Los dos hitos del cronometro de cocina de cada comanda del rango que llego
+     * a cerrar el platillo. La resta se hace en Java: restar instantes es lo
+     * unico que JPQL no sabe hacer de forma portable.
+     */
+    @Query("""
+            select o.tiempoInicioCocina, o.tiempoCierrePlatillo from Orden o
+            where o.dateCreated between :desde and :hasta
+              and o.tiempoInicioCocina is not null
+              and o.tiempoCierrePlatillo is not null
+            """)
+    List<Object[]> tiemposDeCocina(@Param("desde") ZonedDateTime desde, @Param("hasta") ZonedDateTime hasta);
 }

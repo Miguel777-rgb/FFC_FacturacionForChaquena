@@ -1,6 +1,7 @@
 package com.chaquena.backend_logistica.pedidos.dto;
 
 import com.chaquena.backend_logistica.pedidos.domain.*;
+import com.chaquena.backend_logistica.pedidos.service.MaquinaEstadosOrden;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -51,6 +52,17 @@ public class OrdenResponseDto {
     private List<OrdenDetalleDto> detalles;
 
     /**
+     * Estados a los que esta comanda puede pasar ahora mismo, y si todavia
+     * admite cambios en sus lineas.
+     *
+     * Los publica el servidor porque la tabla de transiciones vive solo en
+     * MaquinaEstadosOrden: con esto el frontend pinta sus botones desde la
+     * respuesta y nunca ofrece un gesto que va a terminar en 409.
+     */
+    private List<EstadoOrdenEnum> transicionesPermitidas;
+    private Boolean editable;
+
+    /**
      * El OTP solo viaja al crear la comanda y hacia el cliente; en las lecturas
      * generales se omite para que no quede a la vista del repartidor.
      */
@@ -87,6 +99,9 @@ public class OrdenResponseDto {
                 .tiempoCierrePlatillo(o.getTiempoCierrePlatillo())
                 .tiempoCierreDespacho(o.getTiempoCierreDespacho())
                 .tiempoFinGlobal(o.getTiempoFinGlobal())
+                .transicionesPermitidas(
+                        List.copyOf(MaquinaEstadosOrden.transicionesDesde(o.getEstado())))
+                .editable(MaquinaEstadosOrden.esEditable(o.getEstado()))
                 .detalles(o.getDetalles() == null ? List.of()
                         : o.getDetalles().stream().map(OrdenDetalleDto::fromEntity).toList())
                 .build();

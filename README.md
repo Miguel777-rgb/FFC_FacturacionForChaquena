@@ -7,7 +7,7 @@ la base de datos:
 | Carpeta | Qué es |
 |---|---|
 | `backend/` | `backend-logistica` — Spring Boot 4 sobre Java 21. 124 endpoints en 24 controladores. |
-| `frontend/` | `frontend-logistica` — Angular 22 sin zonas, con el cliente HTTP generado del contrato OpenAPI. Tres de las cinco superficies en pie. |
+| `frontend/` | `frontend-logistica` — Angular 22 sin zonas, con el cliente HTTP generado del contrato OpenAPI. Las siete superficies en pie, en español, inglés y portugués. |
 | `bd/` | Volcado del esquema de PostgreSQL, sincronizado con `bd/watch_schema.sh`, más las migraciones aplicadas. |
 
 ## Arranque
@@ -71,15 +71,32 @@ pnpm dlx newman run backend/end_points.json \
 ```
 
 **Ese mismo ciclo se recorre desde el navegador.** `frontend-logistica` tiene en
-pie tres de las cinco superficies, las que bastan para llevar una comanda de mesa
-de principio a fin: `/pos` (mapa de mesas, carta con la disponibilidad ya
-resuelta contra el stock, envío a cocina y entrega), `/kds` (cola con cronómetro
-y los dos gestos que mueven la comanda) y `/caja` (cuenta, cobro en efectivo con
-vuelto, cierre del ciclo y arqueo del día). `/despacho` y `/trastienda` siguen
-siendo marcadores que declaran qué endpoints consumirán. Ninguna pantalla escribe
-una URL a mano: el cliente HTTP se genera del contrato OpenAPI con
+pie las siete superficies. Tres bastan para llevar una comanda de mesa de
+principio a fin: `/pos` (mapa de mesas, carta con la disponibilidad ya resuelta
+contra el stock, cliente, complementos, promoción y cupón, envío a cocina y
+entrega), `/kds` (cola con cronómetro, promesa de tiempo y aviso de insumo
+faltante) y `/caja` (cuenta, los tres métodos de cobro, calificación del
+comensal, cierre del ciclo y arqueo del día). Las otras cuatro cubren lo que
+pasa alrededor: `/despacho` reconoce al conductor de la empresa de reparto, le
+entrega la comanda y cierra la entrega con el código que dicta el cliente;
+`/trastienda` reúne inventario, carta, los parámetros del local, la salud de los
+bots y la bandeja del outbox; `/personal` da de alta a la gente y compone los
+cargos marcando qué roles llevan; `/kpis` mide el negocio. Ninguna pantalla
+escribe una URL a mano: el cliente HTTP se genera del contrato OpenAPI con
 `pnpm run api:sync`, y el token lo pone ese cliente solo en los endpoints que
-declaran seguridad. Detalle en [frontend/README.md](frontend/README.md).
+declaran seguridad. Detalle en
+[frontend/README.md](frontend/README.md).
+
+**La interfaz habla tres idiomas.** Español —el del local y el que manda—,
+inglés y portugués, elegidos en una barra de banderas siempre visible en la
+esquina y sin recargar la página:
+quien tiene media comanda escrita no la pierde por cambiar de idioma. El
+diccionario español es la fuente de las claves y los otros dos se declaran
+contra él, así que una traducción olvidada no compila; solo el español viaja en
+el bundle inicial y los otros dos se descargan al elegirlos. Lo que no se
+traduce son los mensajes del servidor —explican qué transición se permite o qué
+insumo faltó, y eso lo sabe el backend— ni los importes, que son soles y se
+escriben como en el local.
 
 **Los bots viven en Discord, no en WhatsApp.** La mensajería es un puerto con
 dos adaptadores, y el proveedor se elige con `app.mensajeria.proveedor`
@@ -116,12 +133,12 @@ Todos comparten la contraseña `Chaquena2001`. Se entra por
 
 | Usuario | Correo | Cargo | Rol efectivo | Qué superficie abre |
 |---|---|---|---|---|
-| `admin` | admin@chaquena.pe | ADMINISTRADOR | `ADMIN` | Todas; aterriza en `/pos`, que es donde empieza |
+| `admin` | admin@chaquena.pe | ADMINISTRADOR | `ADMIN` | Las siete; aterriza en `/pos`, que es donde empieza |
 | `mozo1` | mozo@chaquena.pe | MOZO | `MOZO` | `/pos` y `/despacho` |
 | `chef1` | cocina@chaquena.pe | JEFE DE COCINA | `COCINA` | `/kds` |
-| `caja1` | caja@chaquena.pe | CAJERO | `CAJA` | `/caja` |
-| `almacen1` | almacen@chaquena.pe | ALMACENERO | `ALMACEN` | `/trastienda` (aún un marcador) |
-| `repartidor1` | reparto@chaquena.pe | REPARTIDOR | `DELIVERY` | `/despacho` (aún un marcador) |
+| `caja1` | caja@chaquena.pe | CAJERO | `CAJA` | `/caja` y `/kpis` |
+| `almacen1` | almacen@chaquena.pe | ALMACENERO | `ALMACEN` | `/trastienda` (inventario y carta; local, bots y eventos son de ADMIN) |
+| `repartidor1` | reparto@chaquena.pe | REPARTIDOR | `DELIVERY` | `/despacho` |
 
 Para comprobar el control de acceso, entra con `chef1` e intenta crear una
 promoción: responde `403`.

@@ -19,12 +19,19 @@ public interface PagoRepository extends JpaRepository<Pago, UUID> {
 
     List<Pago> findByEsFraudulentoTrueOrderByDateCreatedDesc();
 
+    /** Bandeja de la caja: lo cobrado con billetera o tarjeta y aun sin acreditar. */
+    List<Pago> findByEstadoOrderByDateCreatedAsc(EstadoPagoEnum estado);
+
     @Query("""
             select coalesce(sum(p.monto), 0) from Pago p
             where p.orden.id = :ordenId and p.estado = :estado
             """)
     BigDecimal totalConfirmadoDeOrden(@Param("ordenId") UUID ordenId,
             @Param("estado") EstadoPagoEnum estado);
+
+    long countByEstado(EstadoPagoEnum estado);
+
+    long countByEsFraudulentoTrue();
 
     /** Arqueo de caja: cuanto entro por cada metodo en el rango de fechas. */
     @Query("""

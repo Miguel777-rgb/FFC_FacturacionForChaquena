@@ -33,6 +33,10 @@ public interface InsumoRepository extends JpaRepository<Insumo, UUID> {
     @Query("select i from Insumo i where i.stockActual <= i.stockMinimo order by i.nombre")
     List<Insumo> bajoMinimo();
 
+    /** El mismo criterio que {@link #bajoMinimo()}, para el contador del tablero. */
+    @Query("select count(i) from Insumo i where i.stockActual <= i.stockMinimo")
+    long contarBajoMinimo();
+
     /**
      * Bloqueo pesimista sobre la fila del insumo. Sin esto, dos comandas
      * simultaneas que usan el mismo insumo leen el mismo stock_actual y una

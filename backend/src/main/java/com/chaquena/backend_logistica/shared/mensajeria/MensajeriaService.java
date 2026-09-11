@@ -71,6 +71,34 @@ public class MensajeriaService {
         return activo.maxOpciones();
     }
 
+    /** Nombre del proveedor en servicio, o "ninguno" si el configurado no existe. */
+    public String proveedor() {
+        return activo.nombre();
+    }
+
+    /** Si el proveedor en servicio tiene credenciales para enviar algo. */
+    public boolean disponible() {
+        return activo.disponible();
+    }
+
+    /**
+     * Que se pidio en {@code app.mensajeria.proveedor}. Se conserva junto a
+     * {@link #proveedor()} porque cuando los dos no coinciden —se pidio "telegram"
+     * y quedo "ninguno"— ahi esta exactamente el fallo que hay que ver.
+     */
+    public String proveedorPedido() {
+        return proveedorPedido;
+    }
+
+    /** Los nombres de los adaptadores compilados, para poder decir que si existe. */
+    public java.util.Set<String> proveedoresDisponibles() {
+        return adaptadores.keySet();
+    }
+
+    public List<EstadoCanalBot> estado() {
+        return activo.estado();
+    }
+
     public void enviarTexto(CanalBot bot, DestinoBot destino, String texto) {
         activo.enviarTexto(bot, destino, texto);
     }
@@ -106,6 +134,14 @@ public class MensajeriaService {
         @Override
         public boolean disponible() {
             return false;
+        }
+
+        @Override
+        public List<EstadoCanalBot> estado() {
+            return java.util.Arrays.stream(CanalBot.values())
+                    .map(canal -> EstadoCanalBot.sinConfigurar(canal,
+                            "No hay ningún proveedor de mensajería en servicio."))
+                    .toList();
         }
 
         @Override

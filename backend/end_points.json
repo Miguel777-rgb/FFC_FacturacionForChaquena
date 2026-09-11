@@ -1386,6 +1386,49 @@
             "description": "Dar de alta o de baja al trabajador"
           },
           "response": []
+        },
+        {
+          "name": "PATCH /api/v1/trabajadores/{id}/password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trabajadores/:id/password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trabajadores",
+                ":id",
+                "password"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{trabajadorId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Restablece la contrasena sin pedir la anterior. Es la puerta de administracion cuando alguien pierde el acceso a mitad de turno; por eso exige rol ADMIN.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passwordNueva\": \"ClaveNueva2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
         }
       ],
       "description": "Personal del local; el alta requiere cargo administrativo"
@@ -1487,9 +1530,90 @@
             "description": ""
           },
           "response": []
+        },
+        {
+          "name": "PUT /api/v1/cargos/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cargos/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cargos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{cargoId}}",
+                  "description": "Identificador de id"
+                }
+              ]
+            },
+            "description": "Cambia nombre, descripcion y el conjunto de roles. rolIds reemplaza a lo que hubiera, no se suma: enviar una lista vacia deja el cargo sin ninguna pantalla. Quien ya inicio sesion conserva sus permisos hasta volver a entrar, porque los roles viajan dentro del JWT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Supervisor de salon\",\n  \"descripcion\": \"Coordina a los mozos del turno\",\n  \"rolIds\": [\n    1,\n    3\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
         }
       ],
       "description": ""
+    },
+    {
+      "name": "03b · Roles",
+      "item": [
+        {
+          "name": "GET /api/v1/roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "roles"
+              ]
+            },
+            "description": "Catalogo de roles con el que se arma un cargo."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "// Los ids de rol dependen del orden de siembra, igual que los de cargo.",
+                  "if (Array.isArray(d) && d.length) pm.collectionVariables.set('rolId', d[0].id);"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Solo lectura. Un rol es la palabra que aparece dentro de los @PreAuthorize del backend, asi que crear uno nuevo desde fuera no abriria ninguna puerta."
     },
     {
       "name": "04 · Catalogo · Categorias",
@@ -5494,9 +5618,120 @@
             "description": "Ventas por rango de fechas y canal de origen"
           },
           "response": []
+        },
+        {
+          "name": "El local de un vistazo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/tablero",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "tablero"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59-05:00",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59-05:00",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Venta, cocina, salon, caja y eventos en una sola respuesta. Sin rango responde por el dia en curso. El bloque 'ahoraMismo' es una foto del presente y no depende del rango pedido."
+          },
+          "response": []
+        },
+        {
+          "name": "Venta repartida por hora o por dia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/serie-ventas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "serie-ventas"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59-05:00",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59-05:00",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "granularidad",
+                  "value": "HORA",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Devuelve tambien los bloques sin ventas, con el total en cero. El rango se interpreta en la zona horaria con la que llega: manda el desfase (-05:00) o los bloques saldran en horas de Greenwich."
+          },
+          "response": []
+        },
+        {
+          "name": "Cuanto vendio cada mozo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/ventas-por-mozo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "ventas-por-mozo"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-12-31T23:59:59-05:00",
+                  "disabled": true,
+                  "description": "opcional"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31T23:59:59-05:00",
+                  "disabled": true,
+                  "description": "opcional"
+                }
+              ]
+            },
+            "description": "Ranking por importe. El nombre puede venir vacio si quien tomo la comanda ya no esta dado de alta; la venta se conserva igual."
+          },
+          "response": []
         }
       ],
-      "description": "Ventas y platillos mas vendidos"
+      "description": "Tablero, ventas, series y ranking de personal"
     },
     {
       "name": "21 · Outbox",
@@ -5810,6 +6045,62 @@
         }
       ],
       "description": ""
+    },
+    {
+      "name": "24 · Bots · Estado y vinculaciones",
+      "item": [
+        {
+          "name": "Estado del canal de mensajeria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bots/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bots",
+                "estado"
+              ]
+            },
+            "description": "Proveedor en servicio, conexion de cada bot y cuentas vinculadas. No envia nada al proveedor: lee el estado que el adaptador ya tiene en memoria."
+          },
+          "response": []
+        },
+        {
+          "name": "Liberar la cuenta de un trabajador",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bots/vinculaciones/:trabajadorId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bots",
+                "vinculaciones",
+                ":trabajadorId"
+              ],
+              "variable": [
+                {
+                  "key": "trabajadorId",
+                  "value": "{{trabajadorId}}",
+                  "description": "Identificador de trabajadorId"
+                }
+              ]
+            },
+            "description": "Contraparte de /vincular. El trabajador sigue de alta y sigue entrando al front; solo pierde el acceso por chat."
+          },
+          "response": []
+        }
+      ],
+      "description": "Los bots fallan en silencio: un token caducado no rompe ninguna pantalla, solo hace que nadie conteste. Estas dos llamadas son lo que permite verlo."
     }
   ],
   "variable": [
