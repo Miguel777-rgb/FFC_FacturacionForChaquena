@@ -175,3 +175,15 @@ La web necesita ese mismo valor en `googleClientId`
 emitido para su propio client id: si los dos no coinciden, el inicio falla. No es
 un secreto —viaja en la URL del flujo de OAuth—, y dejarlo vacío en el front
 esconde el botón, que es mejor que ofrecer uno que no puede funcionar.
+
+---
+
+## Licencia
+
+Software propietario. Copyright © 2026 Chaquena. Todos los derechos reservados.
+
+Que el código sea legible aquí no concede ningún derecho de uso: ni copiarlo, ni
+modificarlo, ni desplegarlo, ni siquiera con fines internos o de demostración,
+sin autorización previa y por escrito. Las bibliotecas de terceros en las que se
+apoya conservan sus propias licencias, que esta reserva no altera. El texto
+completo está en [LICENSE](LICENSE).
