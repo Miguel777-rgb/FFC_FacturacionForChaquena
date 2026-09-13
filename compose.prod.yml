@@ -1,0 +1,139 @@
+# =============================================================================
+# Pila de FFC para produccion — cuatro contenedores y una sola puerta de entrada.
+#
+#   frontend-logistica  Angular servido por Nginx, que hace de proxy de /api/
+#                       hacia el backend. Es el unico servicio que recibe
+#                       trafico de fuera.
+#   backend-logistica   Spring Boot 4 sobre Java 21.
+#   bd-logistica        PostgreSQL 16.
+#   redis-logistica     Redis 7, sesiones de los bots.
+#
+# Se aparta de compose.local.yml en tres cosas, y las tres son a proposito:
+#
+#   - Ningun `ports:`. El trafico entra por el proxy inverso del servidor, que
+#     termina el HTTPS y llega al 80 de frontend-logistica por la red de
+#     Docker. Publicar el 5432 o el 6379 dejaria Postgres y un Redis sin
+#     contrasena abiertos a internet: Docker escribe sus propias reglas de
+#     iptables y se salta el cortafuegos del sistema.
+#   - Los secretos salen de `.env`, junto a este archivo, que solo existe en el
+#     servidor y nunca se versiona. En local, el .env de la raiz es un enlace a
+#     backend/.env.
+#   - El volumen de Postgres lo crea este compose. El de compose.local.yml es
+#     externo porque reutiliza el de desarrollo, y en una maquina limpia no
+#     existe.
+#
+# Sin container_name: dos pilas en la misma maquina no chocan por nombre, y los
+# contenedores se siguen encontrando por el nombre del servicio, que es el que
+# usan Nginx y el backend.
+#
+# Ni dominio ni certificado se declaran aqui: son asunto del proxy inverso.
+#
+# Validar:  docker compose -f compose.prod.yml config --quiet
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  bd-logistica:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    # Solo sus tres variables, no el .env entero: Postgres no tiene por que
+    # tener a la vista los tokens de Discord ni el JWT_SECRET.
+    #
+    # `:?` detiene el arranque con un mensaje que nombra la variable, en vez de
+    # levantar una base de datos sin contrasena.
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Falta POSTGRES_DB en el .env}
+      POSTGRES_USER: ${DB_USERNAME:?Falta DB_USERNAME en el .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el .env}
+    volumes:
+      - postgres_logistica_data:/var/lib/postgresql/data
+    healthcheck:
+      # El backend espera a que esto pase: sin ello arranca antes de que
+      # Postgres acepte conexiones y muere en el primer intento.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  redis-logistica:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Sin contrasena y sin volumen. Lo primero es aceptable solo porque no sale
+    # de la red interna de este compose; lo segundo, porque guarda sesiones de
+    # conversacion que caducan en minutos.
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # ---------------------------------------------------------------------------
+  backend-logistica:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      bd-logistica: { condition: service_healthy }
+      redis-logistica: { condition: service_healthy }
+    env_file: [.env]
+    environment:
+      # Dentro de la red de Docker los servicios se llaman por su nombre, no
+      # por localhost. Estas lineas pisan lo que traiga el .env, que esta
+      # escrito para ejecutar el backend fuera de Docker.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bd-logistica:5432/${POSTGRES_DB}
+      SPRING_DATA_REDIS_HOST: redis-logistica
+      SPRING_DATA_REDIS_PORT: 6379
+
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el .env}
+
+      # application.properties la declara sin valor por defecto: si falta en
+      # el entorno, el contenedor no arranca. Vacia, arranca y solo rechaza el
+      # inicio con Google.
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+
+      # Fijo y no configurable: la siembra de demostracion crea usuarios con
+      # una contrasena publicada en el README.
+      SEED_DEMO: "false"
+
+      # En local el SQL y las peticiones van en DEBUG. En produccion llenarian
+      # el log; LOG_NIVEL=DEBUG en el .env los vuelve a encender.
+      SPRING_JPA_SHOW_SQL: "false"
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: ${LOG_NIVEL:-INFO}
+      LOGGING_LEVEL_COM_CHAQUENA_BACKEND_LOGISTICA: ${LOG_NIVEL:-INFO}
+
+      # CORS no se configura: el navegador habla solo con Nginx, en el mismo
+      # origen, y nunca llega a cruzar hacia el backend.
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  # ---------------------------------------------------------------------------
+  frontend-logistica:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend-logistica: { condition: service_started }
+    # El proxy inverso entra por el 80 del contenedor. `expose` lo documenta
+    # sin abrirlo en el host.
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  # Volumen con nombre y no carpeta del host: no depende de ninguna ruta del
+  # servidor, sobrevive a cada redespliegue y se respalda como una unidad.
+  postgres_logistica_data:
