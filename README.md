@@ -9,7 +9,7 @@ la base de datos:
 | `backend/` | `backend-logistica` — Spring Boot 4 sobre Java 21. 124 endpoints en 24 controladores. |
 | `frontend/` | `frontend-logistica` — Angular 22 sin zonas, con el cliente HTTP generado del contrato OpenAPI. Las siete superficies en pie, en español, inglés y portugués. |
 | `bd/` | Volcado del esquema de PostgreSQL, sincronizado con `bd/watch_schema.sh`, más las migraciones aplicadas. |
-| `legal-discord/` | Submódulo con las Condiciones del Servicio y la Política de Privacidad de los dos bots de Discord (repositorio `discord-legal-`). Se despliega aparte, en Dokploy, y no depende de nada de lo anterior. |
+| `legal-discord/` | Submódulo con las Condiciones del Servicio y la Política de Privacidad de los dos bots de Discord (repositorio `discord-legal-`). Se despliega aparte y no depende de nada de lo anterior. |
 
 `legal-discord/` es un submódulo: clona con `git clone --recurse-submodules`, o
 tras un clon normal ejecuta `git submodule update --init`.
