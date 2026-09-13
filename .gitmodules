@@ -1,0 +1,4 @@
+[submodule "legal-discord"]
+	path = legal-discord
+	url = git@github.com:Miguel777-rgb/discord-legal-.git
+	branch = main

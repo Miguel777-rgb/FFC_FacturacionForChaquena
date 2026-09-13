@@ -3,11 +3,12 @@
 #
 # La carpeta de trabajo es el monorepo completo, pero este repositorio publica
 # solo lo vital: backend/, frontend/, bd/, los README.md y los dos composes.
-# Todo lo demas vive en local y se queda fuera de git.
+# Los documentos legales de los bots entran como submodulo en legal-discord/
+# (repositorio discord-legal-). Todo lo demas vive en local y se queda fuera
+# de git.
 # =============================================================================
 
 ### Carpetas que no se publican ###
-/legal-discord/
 /Documentacion/
 
 ### Solo se versionan los README.md ###
