@@ -34,18 +34,22 @@
 .chip[data-estado='ENTREGADO'],
 .chip[data-estado='CONFIRMADO'],
 .chip[data-estado='PROCESADO'],
-.chip[data-estado='CONECTADO'] {
+.chip[data-estado='CONECTADO'],
+.chip[data-estado='LIBRE'],
+.chip[data-estado='VIGENTE'] {
   @include tono(var(--ok), var(--ok-suave), var(--ok-borde));
 }
 
 .chip.aviso,
 .chip[data-estado='EN_PREPARACION'],
-.chip[data-estado='PENDIENTE'] {
+.chip[data-estado='PENDIENTE'],
+.chip[data-estado='OCUPADA'] {
   @include tono(var(--aviso), var(--aviso-suave), var(--aviso));
 }
 
 .chip.info,
-.chip[data-estado='EN_DESPACHO'] {
+.chip[data-estado='EN_DESPACHO'],
+.chip[data-estado='RESERVADA'] {
   @include tono(var(--info), var(--info-suave), var(--info));
 }
 
@@ -71,6 +75,10 @@
 /* Lo que ya termino se aparta: no es un aviso, es historia. */
 .chip[data-estado='CONCLUIDO'],
 .chip[data-estado='CANCELADO'],
-.chip[data-estado='SIN_TOKEN'] {
+.chip[data-estado='SIN_TOKEN'],
+.chip[data-estado='INHABILITADA'],
+.chip[data-estado='CANJEADO'],
+.chip[data-estado='VENCIDO'],
+.chip[data-estado='ANULADO'] {
   color: var(--tenue);
 }

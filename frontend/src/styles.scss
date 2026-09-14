@@ -13,7 +13,8 @@
      _insignias    `.chip` y los estados de comanda, pago, outbox y bots
      _alertas      `.mensaje` en linea
      _tablas       `.tabla` y su version apilada para el celular
-     _utilidades   `.desplazable`, `.vacio`, `.tenue`, `.visualmente-oculto`
+     _pestanas     `.pestanas` dentro de una pantalla (menu, reportes, configuracion)
+     _utilidades   `.desplazable`, `.vacio`, `.tenue`, `.superficie`…
 
    Las superficies (POS, cocina, caja, despacho) y el panel usan estos tokens.
    Lo que cambia entre ellas es la escala, no la paleta.
@@ -28,4 +29,5 @@
 @use 'estilos/insignias';
 @use 'estilos/alertas';
 @use 'estilos/tablas';
+@use 'estilos/pestanas';
 @use 'estilos/utilidades';

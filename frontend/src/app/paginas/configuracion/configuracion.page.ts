@@ -27,7 +27,6 @@ const SECCIONES: ReadonlyArray<{ id: Seccion; nombre: ClaveI18n }> = [
   imports: [LocalSeccion, BotsSeccion, OutboxSeccion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './configuracion.page.html',
-  styleUrl: './configuracion.page.scss',
 })
 export class ConfiguracionPage {
   protected readonly t = inject(I18nService).t;

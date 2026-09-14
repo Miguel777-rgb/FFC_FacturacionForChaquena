@@ -78,6 +78,9 @@ export const ICONOS = {
   baja: 'M20.042 16.045a9 9 0 0 0 -12.087 -12.087m-2.318 1.677a9 9 0 1 0 12.725 12.73 M3 3l18 18',
   /** Aspa: quitar o cerrar. (x) */
   quitar: 'M18 6l-12 12 M6 6l12 12',
+  /** Flechas de pagina: anterior y siguiente. (chevron-left, chevron-right) */
+  anterior: 'M15 6l-6 6l6 6',
+  siguiente: 'M9 6l6 6l-6 6',
   /** Tres lineas: abrir la navegacion en el celular. (menu-2) */
   menuLineas: 'M4 6l16 0 M4 12l16 0 M4 18l16 0',
   salir:

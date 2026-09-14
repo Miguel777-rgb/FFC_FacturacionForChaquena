@@ -28,7 +28,7 @@ const REGION: Record<Idioma, string> = {
  * conviene que no quede ninguna duda sobre que dia es: el mes con letras no se
  * puede leer al reves.
  */
-export type EstiloFecha = 'corta' | 'larga';
+export type EstiloFecha = 'corta' | 'larga' | 'dia';
 
 const OPCIONES: Record<EstiloFecha, Intl.DateTimeFormatOptions> = {
   corta: {
@@ -44,12 +44,18 @@ const OPCIONES: Record<EstiloFecha, Intl.DateTimeFormatOptions> = {
     hour: 'numeric',
     minute: '2-digit',
   },
+  // Sin hora: la vigencia de una promocion o un cupon se cuenta en dias.
+  dia: {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  },
 };
 
 /**
  * Construir un `Intl.DateTimeFormat` no es gratis y la tabla del kardex lo
- * pediria una vez por fila. Como solo hay tres idiomas y dos estilos, el cache
- * tiene como mucho seis entradas y no hace falta vaciarlo nunca.
+ * pediria una vez por fila. Como solo hay tres idiomas y tres estilos, el cache
+ * tiene como mucho nueve entradas y no hace falta vaciarlo nunca.
  */
 const CACHE = new Map<string, Intl.DateTimeFormat>();
 
@@ -84,6 +90,44 @@ export function formatearFecha(
   if (Number.isNaN(fecha.getTime())) return '—';
 
   return formateador(idioma, estilo).format(fecha);
+}
+
+/**
+ * Fecha en ISO pero con el desfase local, no en Z.
+ *
+ * `toISOString()` da el instante correcto en UTC, y con eso el servidor agrupa
+ * por horas de Greenwich: en Lima la cena del sabado aparece repartida entre el
+ * sabado y el domingo. Mandando el desfase, el dia empieza y termina donde lo
+ * vive el local.
+ */
+export function fechaIsoLocal(fecha: Date): string {
+  const dos = (n: number) => String(n).padStart(2, '0');
+  const desfase = -fecha.getTimezoneOffset();
+  const signo = desfase >= 0 ? '+' : '-';
+  const horas = dos(Math.floor(Math.abs(desfase) / 60));
+  const minutos = dos(Math.abs(desfase) % 60);
+
+  return (
+    `${fecha.getFullYear()}-${dos(fecha.getMonth() + 1)}-${dos(fecha.getDate())}` +
+    `T${dos(fecha.getHours())}:${dos(fecha.getMinutes())}:${dos(fecha.getSeconds())}` +
+    `${signo}${horas}:${minutos}`
+  );
+}
+
+/** Medianoche de hoy, o de hace `dias` dias, en la hora del local. */
+export function inicioDelDia(dias = 0): Date {
+  const fecha = new Date();
+  fecha.setDate(fecha.getDate() - dias);
+  fecha.setHours(0, 0, 0, 0);
+  return fecha;
+}
+
+/**
+ * El codigo corto con el que se nombra una comanda en voz alta: los ocho
+ * primeros caracteres del UUID, los mismos que el POS imprime como correlativo.
+ */
+export function codigoDeOrden(id: string | null | undefined): string {
+  return (id ?? '').slice(0, 8).toUpperCase();
 }
 
 /**

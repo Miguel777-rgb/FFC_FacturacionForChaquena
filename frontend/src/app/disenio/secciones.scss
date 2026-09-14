@@ -418,3 +418,67 @@
 .icono-accion.afirmativa:hover:not(:disabled) {
   background: var(--ok-suave);
 }
+
+/* --- fichas en un cajon ------------------------------------------------------ */
+/* El detalle de una orden o de un cliente se abre de lado y se lee de arriba
+   abajo. Los datos van en dos columnas en PC y en una en el celular. */
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+
+  h3 {
+    margin: var(--e2) 0 0;
+    font-family: var(--f-texto);
+    font-size: var(--t-texto);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  > p {
+    margin: 0;
+  }
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e2) var(--e4);
+  margin: 0;
+
+  dt {
+    font-size: var(--t-chico);
+    font-weight: 600;
+    color: var(--tenue);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--tinta);
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .datos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- bajada de una celda ------------------------------------------------------ */
+/* La descripcion bajo el nombre, en su propia linea: pegada al nombre se leia
+   como parte de el. */
+.bajada {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--t-chico);
+}
+
+/* --- paginacion -------------------------------------------------------------- */
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2);
+}

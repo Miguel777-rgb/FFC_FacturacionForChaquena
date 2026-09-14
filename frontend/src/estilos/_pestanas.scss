@@ -1,5 +1,6 @@
-/* Pestanas subrayadas y no botones rellenos: son navegacion, no acciones. En el
-   celular no se parten en dos filas: se desplazan en horizontal. */
+/* Pestanas subrayadas y no botones rellenos: son navegacion dentro de una
+   pantalla, no acciones. En el celular no se parten en dos filas: se desplazan
+   en horizontal. Las usan Menu, Reportes y Configuracion. */
 .pestanas {
   display: flex;
   gap: var(--e1);
