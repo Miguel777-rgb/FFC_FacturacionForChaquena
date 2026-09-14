@@ -260,6 +260,8 @@
                   @if (!trabajador.correo) {
                     <p class="vacio">{{ t('personal.sinCorreoAviso') }}</p>
                   }
+
+                  <app-desempeno-mozo [trabajadorId]="trabajador.id" />
                 </td>
               </tr>
             }

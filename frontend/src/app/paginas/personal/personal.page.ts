@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { NgTemplateOutlet } from '@angular/common';
 
 import { Icono } from '../../disenio/icono';
+import { DesempenoMozo } from './desempeno-mozo';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -50,7 +51,7 @@ type PanelFila = 'ficha' | 'edicion' | 'password';
   selector: 'app-personal',
   // El formulario de cargo se escribe una vez y se proyecta donde toque:
   // crear y editar son la misma operacion sobre el mismo objeto.
-  imports: [NgTemplateOutlet, Icono],
+  imports: [NgTemplateOutlet, Icono, DesempenoMozo],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './personal.page.html',
   styleUrls: ['../../disenio/secciones.scss', './personal.page.scss'],
