@@ -6,7 +6,9 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "clientes")
+@Table(name = "clientes",
+        uniqueConstraints = @UniqueConstraint(name = "uk_clientes_discord_user_id",
+                columnNames = "discord_user_id"))
 @PrimaryKeyJoinColumn(name = "persona_id")
 @Getter
 @Setter
@@ -33,6 +35,18 @@ public class Cliente extends Persona {
 
     @Column(name = "bloqueado_por_fraude", nullable = false)
     private Boolean bloqueadoPorFraude;
+
+    /**
+     * Cuenta de Discord desde la que este cliente le escribe al bot de clientes.
+     *
+     * <p>Aqui no hay vinculacion: una cuenta que pide por primera vez recibe una
+     * ficha anonima con su snowflake, igual que antes la recibia un celular
+     * desconocido. Es unica entre clientes y no entre personas, porque la misma
+     * cuenta puede estar atada tambien a un trabajador; el motivo esta contado
+     * en el campo equivalente de Trabajador.
+     */
+    @Column(name = "discord_user_id", length = 32)
+    private String discordUserId;
 
     /**
      * Valores de partida de un cliente nuevo. Se suman a los que pone

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict CkhlYg2l2gHUZKke5mDg8MUu0UiMc5UpX4C3xBwuf5N5QrlCpOhTfltwf5wRBTp
+\restrict 82qN8yCrLauhRX3vYbCxHGkOjLwpeFaU6WA3AgzIwMXnQPKaGUfNwXSIabAnxIX
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -182,7 +182,8 @@ CREATE TABLE public.clientes (
     puntos_fidelidad integer DEFAULT 0 NOT NULL,
     score_fraude integer DEFAULT 0 NOT NULL,
     tipo_cliente character varying(50),
-    persona_id uuid NOT NULL
+    persona_id uuid NOT NULL,
+    discord_user_id character varying(32)
 );
 
 
@@ -571,7 +572,6 @@ CREATE TABLE public.personas (
     correo character varying(100),
     created_by character varying(50) NOT NULL,
     date_created timestamp(6) with time zone NOT NULL,
-    discord_user_id character varying(32),
     dni character varying(15) NOT NULL,
     fecha_ultimo_cambio_correo timestamp(6) with time zone,
     last_date_modified timestamp(6) with time zone DEFAULT now() NOT NULL,
@@ -707,7 +707,8 @@ CREATE TABLE public.trabajadores (
     password_hash character varying(255) NOT NULL,
     username character varying(50) NOT NULL,
     persona_id uuid NOT NULL,
-    cargo_id integer NOT NULL
+    cargo_id integer NOT NULL,
+    discord_user_id character varying(32)
 );
 
 
@@ -1006,6 +1007,14 @@ ALTER TABLE ONLY public.cargos
 
 
 --
+-- Name: clientes uk_clientes_discord_user_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clientes
+    ADD CONSTRAINT uk_clientes_discord_user_id UNIQUE (discord_user_id);
+
+
+--
 -- Name: sesiones_bot uk_sesion_bot_canal_remitente; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1014,19 +1023,19 @@ ALTER TABLE ONLY public.sesiones_bot
 
 
 --
+-- Name: trabajadores uk_trabajadores_discord_user_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.trabajadores
+    ADD CONSTRAINT uk_trabajadores_discord_user_id UNIQUE (discord_user_id);
+
+
+--
 -- Name: vehiculos uka8w6omovfa10q8eyjalqas391; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.vehiculos
     ADD CONSTRAINT uka8w6omovfa10q8eyjalqas391 UNIQUE (placa);
-
-
---
--- Name: personas ukc9jn05t09024ovdivc5kfg8dm; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.personas
-    ADD CONSTRAINT ukc9jn05t09024ovdivc5kfg8dm UNIQUE (discord_user_id);
 
 
 --
@@ -1361,5 +1370,5 @@ ALTER TABLE ONLY public.cliente_empresas
 -- PostgreSQL database dump complete
 --
 
-\unrestrict CkhlYg2l2gHUZKke5mDg8MUu0UiMc5UpX4C3xBwuf5N5QrlCpOhTfltwf5wRBTp
+\unrestrict 82qN8yCrLauhRX3vYbCxHGkOjLwpeFaU6WA3AgzIwMXnQPKaGUfNwXSIabAnxIX
 

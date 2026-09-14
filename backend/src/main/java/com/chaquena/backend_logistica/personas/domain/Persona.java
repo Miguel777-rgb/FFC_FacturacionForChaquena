@@ -36,22 +36,8 @@ public class Persona {
     @Column(name = "celular", unique = true, length = 20)
     private String celular;
 
-    /**
-     * Identificador de la cuenta de Discord (el "snowflake") con la que esta
-     * persona habla con los bots.
-     *
-     * <p>Un bot de Discord solo recibe el snowflake de quien le escribe: nunca
-     * el correo, que es privado y solo se obtiene por OAuth. Por eso la cuenta
-     * no se reconoce sola y hay que atarla una vez con {@code /vincular}, que
-     * pide el correo ya dado de alta aqui y guarda el snowflake en esta
-     * columna. A partir de ahi el bot sabe quien es sin volver a preguntar.
-     *
-     * <p>Es el equivalente exacto de lo que hacia {@code celular} cuando el
-     * canal era WhatsApp: la llave con la que un mensaje entrante se convierte
-     * en una persona conocida.
-     */
-    @Column(name = "discord_user_id", unique = true, length = 32)
-    private String discordUserId;
+    // La cuenta de Discord no vive aqui sino en cada hija (Trabajador y
+    // Cliente): una misma cuenta puede ser las dos cosas a la vez.
 
     // Campo de control para la regla de negocio de restricción de 15 días
     @Column(name = "fecha_ultimo_cambio_correo")
