@@ -1,0 +1,151 @@
+.acciones-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+}
+
+/* Cinco filtros no caben en un celular: la tira se desplaza en vez de partirse. */
+.rangos {
+  max-width: 100%;
+  overflow-x: auto;
+
+  .cuenta {
+    margin-left: var(--e1);
+    font-weight: 400;
+    color: var(--tenue);
+  }
+}
+
+.bloque > h2 .tenue {
+  margin-left: var(--e2);
+  font-size: var(--t-chico);
+  font-weight: 400;
+}
+
+/* --- salon ------------------------------------------------------------------- */
+.rejilla {
+  display: grid;
+  /* 9rem deja dos mesas por fila en un celular de 390 px: de una en una, el
+     mozo tenia que desplazarse cuatro pantallas para ver la terraza. */
+  grid-template-columns: repeat(auto-fill, minmax(min(9rem, 100%), 1fr));
+  gap: var(--e3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* La tarjeta es un boton, pero no se pinta como uno: veinte rellenos borgona
+   en un salon no dejarian leer ninguna mesa. */
+.mesa {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--e1);
+  width: 100%;
+  min-height: 6.5rem;
+  padding: var(--e3);
+  font-weight: 400;
+  text-align: left;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+
+  &:hover:not(:disabled) {
+    color: var(--texto);
+    background: var(--hundido);
+    border-color: var(--linea-fuerte);
+  }
+
+  .cabeza {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e2);
+  }
+
+  .numero {
+    font-family: var(--f-titulo);
+    font-size: var(--t-h3);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--tinta);
+  }
+
+  .consumo {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--e2);
+    margin-top: auto;
+    color: var(--tinta);
+  }
+
+  .reserva {
+    margin-top: auto;
+    font-size: var(--t-chico);
+    color: var(--tinta);
+  }
+}
+
+/* Ocupada se nota en el fondo y la inhabilitada se apaga. Libre y reservada
+   las distingue la insignia: pintar las cuatro seria pintar el salon entero. */
+.mesa[data-estado='OCUPADA'] {
+  background: var(--aviso-suave);
+
+  &:hover:not(:disabled) {
+    background: var(--aviso-suave);
+  }
+}
+
+.mesa[data-estado='INHABILITADA'] {
+  color: var(--tenue);
+  background: transparent;
+  border-style: dashed;
+
+  .numero {
+    color: var(--tenue);
+  }
+}
+
+/* --- detalle ----------------------------------------------------------------- */
+.detalle-mesa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+}
+
+.linea-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e2);
+  margin: 0;
+}
+
+.comandas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--e1);
+    padding: var(--e3);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+  }
+
+  .fila {
+    display: flex;
+    align-self: stretch;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e2);
+  }
+}

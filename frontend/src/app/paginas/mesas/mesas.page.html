@@ -1,0 +1,246 @@
+<section class="superficie">
+  <header class="cabecera">
+    <h1>{{ t('panel.mesas') }}</h1>
+    <div class="acciones-cabecera">
+      @if (esAdmin()) {
+        <button type="button" class="secundario" (click)="abrirAlta()">
+          <app-icono nombre="alta" [tamano]="18" />
+          {{ t('mesas.nueva') }}
+        </button>
+      }
+      <button
+        type="button"
+        class="secundario"
+        (click)="cargar()"
+        [disabled]="cargando()"
+        [attr.aria-busy]="cargando()"
+      >
+        <app-icono nombre="actualizar" [tamano]="18" />
+        {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
+      </button>
+    </div>
+  </header>
+
+  <div class="seccion">
+    <div class="barra">
+      <div class="rangos" role="group" [attr.aria-label]="t('mesas.filtro')">
+        @for (f of FILTROS; track f.id) {
+          <button
+            type="button"
+            class="secundario chico"
+            [attr.aria-pressed]="filtro() === f.id"
+            (click)="filtro.set(f.id)"
+          >
+            {{ t(f.nombre) }}
+            @if (f.id !== 'todas') {
+              <span class="cifra cuenta">{{ conteo()[f.id] ?? 0 }}</span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Una tarjeta por mesa, por zona: asi se recorre el local. -->
+    @for (z of zonas(); track z.nombre) {
+      <section class="bloque">
+        <h2>
+          {{ z.nombre || t('mesas.sinZona') }}
+          <span class="tenue">{{ tp('mesas.cuantas', z.mesas.length) }}</span>
+        </h2>
+        <ul class="rejilla">
+          @for (m of z.mesas; track m.id) {
+            <li>
+              <button
+                type="button"
+                class="mesa"
+                [attr.data-estado]="m.estado"
+                (click)="abrir(m)"
+              >
+                <span class="cabeza">
+                  <span class="numero">{{ m.numero }}</span>
+                  <span class="chip" [attr.data-estado]="m.estado">{{ tEnum('mesa', m.estado) }}</span>
+                </span>
+                <span class="tenue">{{ capacidadDe(m) }}</span>
+                @if (minutosDe(m) !== null) {
+                  <span class="consumo">
+                    <span class="cifra">S/ {{ totalDe(m) | number: '1.2-2' }}</span>
+                    <span class="tenue">{{ duracion(minutosDe(m)) }}</span>
+                  </span>
+                } @else if (m.estado === ESTADO.RESERVADA) {
+                  <span class="reserva">{{ reservaDe(m) }}</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    } @empty {
+      <p class="vacio">
+        {{
+          t(
+            cargando()
+              ? 'comun.cargando'
+              : mesas().length === 0
+                ? 'mesas.ninguna'
+                : 'mesas.ningunaConFiltro'
+          )
+        }}
+      </p>
+    }
+  </div>
+</section>
+
+<app-dialogo [titulo]="tituloDetalle()" [(abierto)]="detalleAbierto">
+  @if (elegida(); as m) {
+    <div class="detalle-mesa">
+      <p class="linea-estado">
+        <span class="chip" [attr.data-estado]="m.estado">{{ tEnum('mesa', m.estado) }}</span>
+        <span class="tenue">{{ m.zona || t('mesas.sinZona') }} · {{ capacidadDe(m) }}</span>
+      </p>
+
+      @if (m.estado === ESTADO.RESERVADA) {
+        <p class="mensaje info">{{ reservaDe(m) }}</p>
+      }
+
+      @if (comandasElegida().length > 0) {
+        <ul class="comandas">
+          @for (o of comandasElegida(); track o.id) {
+            <li>
+              <div class="fila">
+                <strong>{{ t('mesas.comanda', { codigo: codigo(o.id) }) }}</strong>
+                <span class="chip" [attr.data-estado]="o.estado">{{ tEnum('estado', o.estado) }}</span>
+              </div>
+              <div class="fila tenue">
+                <span>{{ tp('comun.items', o.cantidadItems ?? 0) }} · {{ duracion(o.minutosTranscurridos) }}</span>
+                <span class="cifra">S/ {{ o.montoTotal ?? 0 | number: '1.2-2' }}</span>
+              </div>
+              <button type="button" class="secundario chico" (click)="verComanda(o)">
+                {{ t('mesas.verComanda') }}
+                <app-icono nombre="siguiente" [tamano]="16" />
+              </button>
+            </li>
+          }
+        </ul>
+      } @else if (m.estado === ESTADO.OCUPADA) {
+        <p class="tenue">{{ t('mesas.ocupadaSinComanda') }}</p>
+      }
+
+      @if (reservando()) {
+        <div class="formulario">
+          <label class="campo">
+            <span>{{ t('mesas.aNombreDe') }}</span>
+            <input
+              type="text"
+              autocomplete="off"
+              [value]="aNombreDe()"
+              (input)="aNombreDe.set($any($event.target).value)"
+            />
+          </label>
+          <label class="campo">
+            <span>{{ t('mesas.para') }}</span>
+            <input
+              type="datetime-local"
+              [value]="para()"
+              (input)="para.set($any($event.target).value)"
+            />
+          </label>
+          <button type="button" (click)="reservar()" [disabled]="!para() || guardando()">
+            {{ t(guardando() ? 'comun.guardando' : 'mesas.confirmarReserva') }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Los gestos dependen del estado: una mesa ocupada se libera cobrando. -->
+  <div pie>
+    @if (elegida(); as m) {
+      @switch (m.estado) {
+        @case (ESTADO.LIBRE) {
+          <button
+            type="button"
+            class="secundario"
+            (click)="cambiarEstado('INHABILITADA')"
+            [disabled]="guardando()"
+          >
+            {{ t('mesas.inhabilitar') }}
+          </button>
+          <button type="button" class="secundario" (click)="alternarReserva()">
+            {{ t(reservando() ? 'comun.dejarlo' : 'mesas.reservar') }}
+          </button>
+        }
+        @case (ESTADO.RESERVADA) {
+          <button type="button" class="secundario" (click)="liberar()" [disabled]="guardando()">
+            {{ t('mesas.anularReserva') }}
+          </button>
+        }
+        @case (ESTADO.OCUPADA) {
+          @if (comandasElegida().length === 0) {
+            <button type="button" class="secundario" (click)="liberar()" [disabled]="guardando()">
+              {{ t('mesas.liberar') }}
+            </button>
+          }
+        }
+        @case (ESTADO.INHABILITADA) {
+          <button
+            type="button"
+            class="secundario"
+            (click)="cambiarEstado('LIBRE')"
+            [disabled]="guardando()"
+          >
+            {{ t('mesas.habilitar') }}
+          </button>
+        }
+      }
+    }
+  </div>
+</app-dialogo>
+
+@if (esAdmin()) {
+  <app-dialogo [titulo]="t('mesas.nueva')" [(abierto)]="altaAbierta">
+    <div class="formulario">
+      <label class="campo">
+        <span>{{ t('mesas.numero') }}</span>
+        <input
+          type="text"
+          autocomplete="off"
+          [value]="numero()"
+          (input)="numero.set($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('mesas.zona') }}</span>
+        <input
+          type="text"
+          autocomplete="off"
+          list="zonas-conocidas"
+          [value]="zona()"
+          (input)="zona.set($any($event.target).value)"
+        />
+      </label>
+      <datalist id="zonas-conocidas">
+        @for (z of zonasConocidas(); track z) {
+          <option [value]="z"></option>
+        }
+      </datalist>
+      <label class="campo">
+        <span>{{ t('mesas.capacidad') }}</span>
+        <input
+          type="number"
+          min="1"
+          inputmode="numeric"
+          [value]="capacidad() ?? ''"
+          (input)="anotarCapacidad($any($event.target).value)"
+        />
+      </label>
+    </div>
+    <div pie>
+      <button type="button" class="secundario" (click)="altaAbierta.set(false)">
+        {{ t('comun.dejarlo') }}
+      </button>
+      <button type="button" (click)="alta()" [disabled]="!numero().trim() || guardando()">
+        {{ t(guardando() ? 'comun.guardando' : 'mesas.darDeAlta') }}
+      </button>
+    </div>
+  </app-dialogo>
+}
