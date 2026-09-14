@@ -2,12 +2,62 @@ td .chip {
   margin-left: var(--e2);
 }
 
+.filtros {
+  align-self: flex-start;
+
+  button {
+    white-space: nowrap;
+  }
+
+  .cuenta {
+    margin-left: var(--e1);
+    font-weight: 400;
+    color: var(--tenue);
+  }
+}
+
+/* Cuatro filtros en fila no caben en un celular. Una tira desplazable dejaba el
+   ultimo cortado y escondido: en dos por dos se ven los cuatro con su cuenta. */
+@media (max-width: 47.99rem) {
+  .filtros {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-self: stretch;
+  }
+}
+
+.vence {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e1);
+
+  .chip {
+    margin-left: 0;
+  }
+}
+
+/* --- cajon del kardex -------------------------------------------------------- */
 .stock-actual {
   margin: 0 0 var(--e3);
 }
 
-/* El kardex en el cajon: una ficha por movimiento, sin tabla. Seis columnas no
-   caben en un cajon ni en un celular. */
+.subtitulo {
+  margin: var(--e4) 0 var(--e1);
+  font-family: var(--f-texto);
+  font-size: var(--t-texto);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.ayuda {
+  margin: 0 0 var(--e2);
+  font-size: var(--t-chico);
+}
+
+/* Lotes y movimientos comparten la misma ficha: una por linea, sin tabla. Seis
+   columnas no caben en un cajon ni en un celular. */
+.lotes,
 .kardex {
   display: flex;
   flex-direction: column;
@@ -27,6 +77,7 @@ td .chip {
   .fila {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
     gap: var(--e1) var(--e3);
   }
@@ -43,5 +94,28 @@ td .chip {
 
   .negativo {
     color: var(--critico);
+  }
+}
+
+/* Vence el 16/09 · S/ 11.50 por KG · Avicola del Sur: los separadores solo entre lo que hay. */
+.detalles-lote span + span::before {
+  content: ' · ';
+}
+
+/* --- dialogo de movimiento -------------------------------------------------- */
+.lote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: var(--e3);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+
+  legend {
+    padding: 0 var(--e1);
+    font-size: var(--t-chico);
+    font-weight: 600;
+    color: var(--tenue);
   }
 }

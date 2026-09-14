@@ -195,7 +195,12 @@ export class Dialogo {
           elemento.setAttribute('open', '');
         }
       } else if (elemento.open) {
-        elemento.close();
+        // Tampoco `close`: basta con quitar el atributo.
+        if (typeof elemento.close === 'function') {
+          elemento.close();
+        } else {
+          elemento.removeAttribute('open');
+        }
       }
     });
   }

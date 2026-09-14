@@ -14,16 +14,22 @@ import {
   InsumoRequestDtoTipoInsumoEnum,
   InventarioInsumosApi,
   InventarioMovimientosApi,
+  InventarioProveedoresApi,
+  LoteInsumoDtoEstadoEnum,
   MovimientoRequestDtoTipoControlEnum,
   type Descuadre,
   type InsumoResponseDto,
+  type LoteInsumoDto,
   type MovimientoResponseDto,
+  type ProveedorDto,
   type ResumenInventarioDto,
 } from '../../api';
 import { Dialogo } from '../../disenio/dialogo';
 import { Icono } from '../../disenio/icono';
 import { AvisosService } from '../../nucleo/http/avisos.service';
+import { fechaDeDia } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 
 const TIPOS_INSUMO = InsumoRequestDtoTipoInsumoEnum;
 const TIPOS_MOVIMIENTO = MovimientoRequestDtoTipoControlEnum;
@@ -43,17 +49,50 @@ const MOTIVOS_MANUALES = [
   TIPOS_MOVIMIENTO.AJUSTE_AUDITORIA,
 ];
 
+type Filtro = 'todos' | 'bajoMinimo' | 'porVencer' | 'vencidos';
+
+const FILTROS: ReadonlyArray<{ id: Filtro; nombre: ClaveI18n }> = [
+  { id: 'todos', nombre: 'inventario.todos' },
+  { id: 'bajoMinimo', nombre: 'inventario.bajoMinimo' },
+  { id: 'porVencer', nombre: 'inventario.porVencer' },
+  { id: 'vencidos', nombre: 'inventario.vencidos' },
+];
+
+function cumple(insumo: InsumoResponseDto, filtro: Filtro): boolean {
+  switch (filtro) {
+    case 'bajoMinimo':
+      return !!insumo.bajoMinimo;
+    case 'porVencer':
+      return (insumo.cantidadPorVencer ?? 0) > 0;
+    case 'vencidos':
+      return (insumo.cantidadVencida ?? 0) > 0;
+    default:
+      return true;
+  }
+}
+
+/** Hoy en el formato de un `input type=date`, en la hora del local. */
+function hoyComoCampo(): string {
+  const f = new Date();
+  const dos = (n: number) => String(n).padStart(2, '0');
+  return `${f.getFullYear()}-${dos(f.getMonth() + 1)}-${dos(f.getDate())}`;
+}
+
 /**
- * Inventario: los insumos, lo que falta, el kardex de cada uno y las dos formas
- * de corregir el stock —un movimiento suelto o un conteo fisico completo.
+ * Inventario: los insumos, lo que falta o vence, el kardex y los lotes de cada
+ * uno, y las dos formas de corregir el stock —un movimiento suelto o un conteo
+ * fisico completo.
  *
- * La tabla queda siempre a la vista. El kardex se abre en un cajon lateral y el
- * alta, la edicion y el movimiento en un dialogo: desplegados dentro de la
- * tabla empujaban las filas y, en el celular, una tabla dentro de otra no se
- * podia leer.
+ * La tabla queda siempre a la vista. El kardex y los lotes se abren en un cajon
+ * lateral y el alta, la edicion y el movimiento en un dialogo: desplegados
+ * dentro de la tabla empujaban las filas y, en el celular, una tabla dentro de
+ * otra no se podia leer.
  *
  * El conteo fisico es la excepcion y sigue en la tabla, porque se cuenta fila
  * por fila recorriendo el almacen.
+ *
+ * El vencimiento y el valor salen de los lotes que calcula el servidor. Aqui no
+ * se decide que esta vencido: se pinta lo que el servidor contó en dias de Lima.
  */
 @Component({
   selector: 'app-inventario-seccion',
@@ -65,6 +104,7 @@ const MOTIVOS_MANUALES = [
 export class InventarioSeccion implements OnInit {
   private readonly insumosApi = inject(InventarioInsumosApi);
   private readonly movimientosApi = inject(InventarioMovimientosApi);
+  private readonly proveedoresApi = inject(InventarioProveedoresApi);
   private readonly avisos = inject(AvisosService);
   private readonly i18n = inject(I18nService);
 
@@ -75,22 +115,29 @@ export class InventarioSeccion implements OnInit {
 
   protected readonly TIPOS_INSUMO = Object.values(TIPOS_INSUMO);
   protected readonly MOTIVOS_MANUALES = MOTIVOS_MANUALES;
+  protected readonly FILTROS = FILTROS;
+  protected readonly ESTADO = LoteInsumoDtoEstadoEnum;
+
+  /** No se compra algo que ya vencio: el servidor lo rechaza y el calendario tampoco lo ofrece. */
+  protected readonly hoy = hoyComoCampo();
 
   protected readonly cargando = signal(true);
   protected readonly guardando = signal(false);
 
   protected readonly insumos = signal<InsumoResponseDto[]>([]);
   protected readonly resumen = signal<ResumenInventarioDto | null>(null);
+  protected readonly proveedores = signal<ProveedorDto[]>([]);
 
   protected readonly filtro = signal('');
-  protected readonly soloAlertas = signal(false);
+  protected readonly filtroAlerta = signal<Filtro>('todos');
 
-  // --- kardex ---------------------------------------------------------------
+  // --- kardex y lotes -------------------------------------------------------
 
   protected readonly kardexAbierto = signal(false);
   protected readonly kardexDe = signal<InsumoResponseDto | null>(null);
   /** `null` mientras llega: una lista vacia ya significa «sin movimientos». */
   protected readonly kardex = signal<MovimientoResponseDto[] | null>(null);
+  protected readonly lotes = signal<LoteInsumoDto[] | null>(null);
 
   // --- movimiento suelto ----------------------------------------------------
 
@@ -101,6 +148,12 @@ export class InventarioSeccion implements OnInit {
     TIPOS_MOVIMIENTO.ENTRADA_COMPRA,
   );
   protected readonly observacion = signal('');
+  protected readonly proveedorId = signal('');
+  protected readonly costoUnitario = signal<number | null>(null);
+  protected readonly fechaVencimiento = signal('');
+
+  /** Proveedor, costo y vencimiento son del lote de una compra; en una merma no existen. */
+  protected readonly esCompra = computed(() => this.motivo() === TIPOS_MOVIMIENTO.ENTRADA_COMPRA);
 
   // --- alta y edicion de insumo ---------------------------------------------
 
@@ -127,11 +180,19 @@ export class InventarioSeccion implements OnInit {
 
   protected readonly visibles = computed(() => {
     const texto = this.filtro().trim().toLowerCase();
-    return this.insumos().filter((i) => {
-      if (this.soloAlertas() && !i.bajoMinimo) return false;
-      if (texto.length === 0) return true;
-      return (i.nombre ?? '').toLowerCase().includes(texto);
-    });
+    const alerta = this.filtroAlerta();
+    return this.insumos().filter(
+      (i) =>
+        cumple(i, alerta) && (texto.length === 0 || (i.nombre ?? '').toLowerCase().includes(texto)),
+    );
+  });
+
+  /** Cuantos insumos caen en cada filtro, para escribirlo en el propio boton. */
+  protected readonly cuentas = computed(() => {
+    const lista = this.insumos();
+    const cuentas = {} as Record<Filtro, number>;
+    for (const f of FILTROS) cuentas[f.id] = lista.filter((i) => cumple(i, f.id)).length;
+    return cuentas;
   });
 
   /** Cuantas lineas del conteo tienen un numero escrito. */
@@ -163,10 +224,15 @@ export class InventarioSeccion implements OnInit {
         pageable: { page: 0, size: 300, sort: ['nombre,asc'] },
       }),
       resumen: this.movimientosApi.resumen().pipe(catchError(() => of(null))),
+      // Sin proveedores la compra se registra igual, sin proveedor.
+      proveedores: this.proveedoresApi
+        .listarProveedores({ soloActivos: true })
+        .pipe(catchError(() => of([] as ProveedorDto[]))),
     }).subscribe({
-      next: ({ pagina, resumen }) => {
+      next: ({ pagina, resumen, proveedores }) => {
         this.insumos.set(pagina.contenido ?? []);
         this.resumen.set(resumen);
+        this.proveedores.set(proveedores);
         this.cargando.set(false);
       },
       error: () => this.cargando.set(false),
@@ -177,28 +243,33 @@ export class InventarioSeccion implements OnInit {
     this.filtro.set(v);
   }
 
-  protected alternarAlertas(): void {
-    this.soloAlertas.update((v) => !v);
+  /** Un dia del servidor («2026-09-16») escrito en el idioma de la pantalla, sin moverlo de dia. */
+  protected dia(valor: string | undefined): string {
+    return this.fecha(fechaDeDia(valor), 'dia');
   }
 
-  // --- kardex ---------------------------------------------------------------
+  // --- kardex y lotes -------------------------------------------------------
 
   /**
    * El kardex es la historia de un insumo: de donde salio cada kilo y quien lo
-   * movio. Se pide solo al abrirlo porque son muchas filas por insumo.
+   * movio. Los lotes, lo que queda y en que orden se va a usar. Se piden solo
+   * al abrirlos porque son muchas filas por insumo.
    */
   protected verKardex(insumo: InsumoResponseDto): void {
     if (!insumo.id) return;
 
     this.kardexDe.set(insumo);
     this.kardex.set(null);
+    this.lotes.set(null);
     this.kardexAbierto.set(true);
+    this.movimientosApi.kardex({ insumoId: insumo.id, pageable: { page: 0, size: 50 } }).subscribe({
+      next: (pagina) => this.kardex.set(pagina.contenido ?? []),
+      error: () => this.kardex.set([]),
+    });
     this.movimientosApi
-      .kardex({ insumoId: insumo.id, pageable: { page: 0, size: 50 } })
-      .subscribe({
-        next: (pagina) => this.kardex.set(pagina.contenido ?? []),
-        error: () => this.kardex.set([]),
-      });
+      .listarLotesDeInsumo({ insumoId: insumo.id })
+      .pipe(catchError(() => of([] as LoteInsumoDto[])))
+      .subscribe((lotes) => this.lotes.set(lotes));
   }
 
   /** Lo que el movimiento cambio el stock, con su signo: la cantidad sola no dice si entro o salio. */
@@ -213,12 +284,20 @@ export class InventarioSeccion implements OnInit {
     this.cantidad.set(null);
     this.observacion.set('');
     this.motivo.set(TIPOS_MOVIMIENTO.ENTRADA_COMPRA);
+    this.proveedorId.set('');
+    this.costoUnitario.set(null);
+    this.fechaVencimiento.set('');
     this.movimientoAbierto.set(true);
   }
 
   protected anotarCantidad(v: string): void {
     const n = Number.parseFloat(v);
     this.cantidad.set(Number.isFinite(n) ? n : null);
+  }
+
+  protected anotarCosto(v: string): void {
+    const n = Number.parseFloat(v);
+    this.costoUnitario.set(Number.isFinite(n) && n >= 0 ? n : null);
   }
 
   protected elegirMotivo(v: string): void {
@@ -233,6 +312,9 @@ export class InventarioSeccion implements OnInit {
    * La cantidad va siempre en positivo: el signo lo pone el motivo. Una entrada
    * suma y una merma resta, y pedirle al almacenero que ademas acierte con el
    * signo es pedirle que se equivoque.
+   *
+   * Los datos del lote solo viajan con una compra: si alguien los escribio y
+   * luego cambio el motivo a merma, el servidor los rechazaria.
    */
   protected registrarMovimiento(): void {
     const insumo = this.moviendo();
@@ -240,6 +322,8 @@ export class InventarioSeccion implements OnInit {
     const observacion = this.observacion().trim();
     if (!insumo?.id || cantidad === null || cantidad <= 0 || observacion.length === 0) return;
     if (this.guardando()) return;
+
+    const compra = this.esCompra();
 
     this.guardando.set(true);
     this.movimientosApi
@@ -249,6 +333,9 @@ export class InventarioSeccion implements OnInit {
           cantidad,
           tipoControl: this.motivo(),
           motivoObservacion: observacion,
+          proveedorId: compra ? this.proveedorId() || undefined : undefined,
+          costoUnitario: compra ? (this.costoUnitario() ?? undefined) : undefined,
+          fechaVencimiento: compra ? this.fechaVencimiento() || undefined : undefined,
         },
       })
       .subscribe({

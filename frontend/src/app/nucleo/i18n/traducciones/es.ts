@@ -380,8 +380,6 @@ export const ES = {
   'inventario.insumos': 'Insumos',
   'inventario.bajoMinimo': 'Bajo mínimo',
   'inventario.buscar': 'Buscar insumo',
-  'inventario.viendoAlertas': 'Viendo solo alertas',
-  'inventario.soloBajoMinimo': 'Solo bajo mínimo',
   'inventario.nuevoInsumo': 'Nuevo insumo',
   'inventario.conteoFisico': 'Conteo físico',
   'inventario.dejarConteo': 'Dejar el conteo',
@@ -426,6 +424,31 @@ export const ES = {
   'inventario.avisoEditado': '{insumo} actualizado.',
   'inventario.stockActual': 'Stock actual: {stock} {unidad}',
   'inventario.signoAyuda': 'Siempre en positivo: el motivo decide si suma o resta.',
+  'inventario.secciones': 'Partes del inventario',
+  'inventario.proveedores': 'Proveedores',
+  'inventario.filtro': 'Filtrar insumos',
+  'inventario.todos': 'Todos',
+  'inventario.porVencer': 'Por vencer',
+  'inventario.vencidos': 'Con vencidos',
+  'inventario.valorInventario': 'Valor del stock',
+  'inventario.vence': 'Vence',
+  'inventario.valor': 'Valor',
+  'inventario.sinCosto': 'Sin costo',
+  'inventario.parteSinCosto': '{cantidad} {unidad} sin costo',
+  'inventario.lote': 'Lote de la compra',
+  'inventario.proveedor': 'Proveedor',
+  'inventario.sinProveedor': 'Sin proveedor registrado',
+  'inventario.costoPor': 'Costo por {unidad} (S/)',
+  'inventario.fechaVencimiento': 'Vence el',
+  'inventario.loteAyuda': 'Los tres son opcionales. Sin costo, este lote no suma al valor del stock; sin fecha, se usa al final.',
+  'inventario.lotes': 'Lotes',
+  'inventario.lotesAyuda': 'En el orden en que se usan: primero lo que vence antes.',
+  'inventario.sinLotes': 'No queda nada en lotes.',
+  'inventario.loteRestante': '{restante} de {inicial} {unidad}',
+  'inventario.loteVence': 'Vence el {fecha}',
+  'inventario.loteCosto': 'S/ {costo} por {unidad}',
+  'inventario.loteInicial': 'Stock anterior a los lotes: sin proveedor, costo ni fecha.',
+  'inventario.movimientos': 'Movimientos',
 
   // --- trastienda · carta ----------------------------------------------------
   'carta.buscar': 'Buscar platillo',
@@ -917,6 +940,26 @@ export const ES = {
   'niveles.avisoEliminado': 'Nivel {nombre} eliminado.',
   'niveles.avisoDatos': 'Revisa el nivel: necesita nombre, puntos desde 0 y un descuento de 0 a 100.',
   'niveles.avisoPuntosRepetidos': 'Ya hay un nivel que empieza en {puntos} puntos.',
+  // --- proveedores ----------------------------------------------------------
+  'proveedores.nuevo': 'Nuevo proveedor',
+  'proveedores.editar': 'Editar proveedor',
+  'proveedores.ayuda': 'Un proveedor dado de baja no se ofrece en las compras, pero sus lotes siguen diciendo de dónde vinieron.',
+  'proveedores.nombre': 'Nombre',
+  'proveedores.ruc': 'RUC',
+  'proveedores.contacto': 'Contacto',
+  'proveedores.telefono': 'Teléfono',
+  'proveedores.activo': 'Activo',
+  'proveedores.sinDatosContacto': 'Sin datos de contacto',
+  'proveedores.ninguno': 'Todavía no hay proveedores.',
+  'proveedores.editarAria': 'Editar {nombre}',
+  'proveedores.darDeBajaAria': 'Dar de baja a {nombre}',
+  'proveedores.reactivarAria': 'Reactivar a {nombre}',
+  'proveedores.avisoAlta': '{nombre} registrado.',
+  'proveedores.avisoGuardado': '{nombre} guardado.',
+  'proveedores.avisoBaja': '{nombre} dado de baja.',
+  'proveedores.avisoReactivado': '{nombre} reactivado.',
+  'proveedores.avisoRuc': 'El RUC tiene 11 dígitos.',
+
 
 
 
@@ -1010,6 +1053,11 @@ export const ES = {
   'dia.FRIDAY': 'Viernes',
   'dia.SATURDAY': 'Sábado',
   'dia.SUNDAY': 'Domingo',
+
+  'vencimiento.VENCIDO': 'Vencido',
+  'vencimiento.POR_VENCER': 'Por vencer',
+  'vencimiento.VIGENTE': 'Vigente',
+  'vencimiento.SIN_VENCIMIENTO': 'Sin fecha',
 } as const satisfies Record<string, string>;
 
 /** Toda clave que existe. Los otros diccionarios tienen que cubrirlas todas. */
@@ -1044,4 +1092,5 @@ export type GrupoEnum =
   | 'canalBot'
   | 'cupon'
   | 'tipoComplemento'
-  | 'dia';
+  | 'dia'
+  | 'vencimiento';

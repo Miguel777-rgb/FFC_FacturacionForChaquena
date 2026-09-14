@@ -123,6 +123,16 @@ export function inicioDelDia(dias = 0): Date {
 }
 
 /**
+ * Un dia sin hora («2026-09-16») como fecha local. `new Date('2026-09-16')` lo
+ * lee como medianoche UTC, que en Lima es el dia anterior a las siete de la
+ * noche: un lote que vence el 16 se pintaria como del 15.
+ */
+export function fechaDeDia(dia: string | null | undefined): Date | null {
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dia ?? '');
+  return partes ? new Date(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3])) : null;
+}
+
+/**
  * El codigo corto con el que se nombra una comanda en voz alta: los ocho
  * primeros caracteres del UUID, los mismos que el POS imprime como correlativo.
  */

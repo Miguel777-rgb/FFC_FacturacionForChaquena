@@ -1,0 +1,137 @@
+<div class="seccion">
+  <div class="barra">
+    <p class="tenue">{{ t('proveedores.ayuda') }}</p>
+    <button type="button" class="secundario" (click)="abrirNuevo()">
+      <app-icono nombre="alta" [tamano]="18" />
+      {{ t('proveedores.nuevo') }}
+    </button>
+  </div>
+
+  <div class="desplazable">
+    <table class="tabla apilable">
+      <thead>
+        <tr>
+          <th>{{ t('proveedores.nombre') }}</th>
+          <th>{{ t('proveedores.ruc') }}</th>
+          <th>{{ t('proveedores.contacto') }}</th>
+          <th>{{ t('comun.estado') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of proveedores(); track p.id) {
+          <tr [class.tenue]="!p.activo">
+            <td>{{ p.nombre }}</td>
+            <td class="cifra tenue" [attr.data-etiqueta]="t('proveedores.ruc')">
+              {{ p.ruc || '—' }}
+            </td>
+            <td class="tenue" [attr.data-etiqueta]="t('proveedores.contacto')">
+              {{ contactoDe(p) || t('proveedores.sinDatosContacto') }}
+            </td>
+            <td [attr.data-etiqueta]="t('comun.estado')">
+              <span class="chip" [class.ok]="p.activo">
+                {{ t(p.activo ? 'proveedores.activo' : 'comun.deBaja') }}
+              </span>
+            </td>
+            <td class="acciones">
+              <button
+                type="button"
+                class="icono-accion"
+                (click)="abrirEdicion(p)"
+                [attr.title]="t('comun.editar')"
+                [attr.aria-label]="t('proveedores.editarAria', { nombre: p.nombre })"
+              >
+                <app-icono nombre="lapiz" [tamano]="18" />
+              </button>
+              <button
+                type="button"
+                class="icono-accion"
+                [class.destructiva]="p.activo"
+                [class.afirmativa]="!p.activo"
+                (click)="alternarActivo(p)"
+                [disabled]="guardando()"
+                [attr.title]="t(p.activo ? 'comun.darDeBaja' : 'comun.reactivar')"
+                [attr.aria-label]="
+                  t(p.activo ? 'proveedores.darDeBajaAria' : 'proveedores.reactivarAria', {
+                    nombre: p.nombre,
+                  })
+                "
+              >
+                <app-icono [nombre]="p.activo ? 'baja' : 'alta'" [tamano]="18" />
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="vacio">
+              {{ t(cargando() ? 'comun.cargando' : 'proveedores.ninguno') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-dialogo [titulo]="tituloFormulario()" [(abierto)]="formularioAbierto">
+  <div class="formulario">
+    <label class="campo">
+      <span>{{ t('proveedores.nombre') }}</span>
+      <input
+        type="text"
+        autocomplete="organization"
+        [value]="nombre()"
+        (input)="nombre.set($any($event.target).value)"
+      />
+    </label>
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('proveedores.ruc') }}</span>
+        <input
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          [value]="ruc()"
+          (input)="anotarRuc($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('proveedores.contacto') }}</span>
+        <input
+          type="text"
+          autocomplete="name"
+          [value]="contacto()"
+          (input)="contacto.set($any($event.target).value)"
+        />
+      </label>
+    </div>
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('proveedores.telefono') }}</span>
+        <input
+          type="tel"
+          autocomplete="tel"
+          [value]="telefono()"
+          (input)="telefono.set($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('comun.correo') }}</span>
+        <input
+          type="email"
+          autocomplete="email"
+          [value]="correo()"
+          (input)="correo.set($any($event.target).value)"
+        />
+      </label>
+    </div>
+  </div>
+  <div pie>
+    <button type="button" class="secundario" (click)="formularioAbierto.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button type="button" (click)="guardar()" [disabled]="!nombre().trim() || guardando()">
+      {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+    </button>
+  </div>
+</app-dialogo>

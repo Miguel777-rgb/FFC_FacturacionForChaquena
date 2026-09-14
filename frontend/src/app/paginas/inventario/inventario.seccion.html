@@ -9,6 +9,18 @@
         <span class="cifra dato">{{ r.insumosBajoMinimo }}</span>
         <span class="rotulo">{{ t('inventario.bajoMinimo') }}</span>
       </li>
+      <li [class.alerta]="(r.insumosVencidos ?? 0) > 0">
+        <span class="cifra dato">{{ r.insumosVencidos ?? 0 }}</span>
+        <span class="rotulo">{{ t('inventario.vencidos') }}</span>
+      </li>
+      <li>
+        <span class="cifra dato">{{ r.insumosPorVencer ?? 0 }}</span>
+        <span class="rotulo">{{ t('inventario.porVencer') }}</span>
+      </li>
+      <li>
+        <span class="cifra dato">S/ {{ r.valorInventario ?? 0 | number: '1.2-2' }}</span>
+        <span class="rotulo">{{ t('inventario.valorInventario') }}</span>
+      </li>
       @for (m of r.movimientos; track m.tipoControl) {
         <li>
           <span class="cifra dato">{{ m.cantidadMovimientos }}</span>
@@ -26,15 +38,6 @@
       (input)="anotarFiltro($any($event.target).value)"
       [attr.aria-label]="t('inventario.buscar')"
     />
-    <button
-      type="button"
-      class="secundario"
-      [attr.aria-pressed]="soloAlertas()"
-      (click)="alternarAlertas()"
-    >
-      <app-icono nombre="filtro" [tamano]="18" />
-      {{ t(soloAlertas() ? 'inventario.viendoAlertas' : 'inventario.soloBajoMinimo') }}
-    </button>
     <button type="button" class="secundario" (click)="abrirAlta()">
       <app-icono nombre="alta" [tamano]="18" />
       {{ t('inventario.nuevoInsumo') }}
@@ -42,6 +45,21 @@
     <button type="button" class="secundario" (click)="abrirConteo()">
       {{ t(contando() ? 'inventario.dejarConteo' : 'inventario.conteoFisico') }}
     </button>
+  </div>
+
+  <!-- Que se esta mirando: todo, lo que falta o lo que vence. -->
+  <div class="rangos filtros" role="group" [attr.aria-label]="t('inventario.filtro')">
+    @for (f of FILTROS; track f.id) {
+      <button
+        type="button"
+        class="secundario chico"
+        [attr.aria-pressed]="filtroAlerta() === f.id"
+        (click)="filtroAlerta.set(f.id)"
+      >
+        {{ t(f.nombre) }}
+        <span class="cifra cuenta">{{ cuentas()[f.id] }}</span>
+      </button>
+    }
   </div>
 
   <!-- El conteo fisico manda sobre el sistema: lo que se escribe aqui pasa a ser
@@ -83,8 +101,12 @@
             @for (d of descuadres(); track d.insumoId) {
               <tr>
                 <td>{{ d.insumoNombre }}</td>
-                <td class="num cifra" [attr.data-etiqueta]="t('inventario.sistema')">{{ d.stockSistema | number: '1.0-3' }}</td>
-                <td class="num cifra" [attr.data-etiqueta]="t('inventario.contado')">{{ d.stockContado | number: '1.0-3' }}</td>
+                <td class="num cifra" [attr.data-etiqueta]="t('inventario.sistema')">
+                  {{ d.stockSistema | number: '1.0-3' }}
+                </td>
+                <td class="num cifra" [attr.data-etiqueta]="t('inventario.contado')">
+                  {{ d.stockContado | number: '1.0-3' }}
+                </td>
                 <td
                   class="num cifra"
                   [class.negativo]="(d.diferencia ?? 0) < 0"
@@ -109,6 +131,8 @@
           <th>{{ t('inventario.tipo') }}</th>
           <th class="num">{{ t('inventario.stock') }}</th>
           <th class="num">{{ t('inventario.minimo') }}</th>
+          <th>{{ t('inventario.vence') }}</th>
+          <th class="num">{{ t('inventario.valor') }}</th>
           @if (contando()) {
             <th class="num">{{ t('inventario.contado') }}</th>
           }
@@ -124,12 +148,47 @@
                 <span class="chip peligro">{{ t('inventario.bajoMinimo') }}</span>
               }
             </td>
-            <td class="tenue" [attr.data-etiqueta]="t('inventario.tipo')">{{ tEnum('insumo', i.tipoInsumo) }}</td>
+            <td class="tenue" [attr.data-etiqueta]="t('inventario.tipo')">
+              {{ tEnum('insumo', i.tipoInsumo) }}
+            </td>
             <td class="num cifra" [attr.data-etiqueta]="t('inventario.stock')">
               {{ i.stockActual | number: '1.0-3' }} {{ i.unidadMedida }}
             </td>
             <td class="num cifra tenue" [attr.data-etiqueta]="t('inventario.minimo')">
               {{ i.stockMinimo | number: '1.0-3' }}
+            </td>
+            <td [attr.data-etiqueta]="t('inventario.vence')">
+              @if (i.proximoVencimiento) {
+                <span class="vence">
+                  <span class="cifra">{{ dia(i.proximoVencimiento) }}</span>
+                  @if ((i.cantidadVencida ?? 0) > 0) {
+                    <span class="chip peligro">{{ tEnum('vencimiento', ESTADO.VENCIDO) }}</span>
+                  } @else if ((i.cantidadPorVencer ?? 0) > 0) {
+                    <span class="chip aviso">{{ tEnum('vencimiento', ESTADO.POR_VENCER) }}</span>
+                  }
+                </span>
+              } @else {
+                <span class="tenue">—</span>
+              }
+            </td>
+            <td class="num" [attr.data-etiqueta]="t('inventario.valor')">
+              @if ((i.valorStock ?? 0) > 0) {
+                <span class="cifra">S/ {{ i.valorStock | number: '1.2-2' }}</span>
+                @if ((i.cantidadSinCosto ?? 0) > 0) {
+                  <small class="tenue bajada">
+                    {{
+                      t('inventario.parteSinCosto', {
+                        cantidad: (i.cantidadSinCosto | number: '1.0-3') ?? '',
+                        unidad: i.unidadMedida ?? '',
+                      })
+                    }}
+                  </small>
+                }
+              } @else if ((i.stockActual ?? 0) > 0) {
+                <span class="tenue">{{ t('inventario.sinCosto') }}</span>
+              } @else {
+                <span class="tenue">—</span>
+              }
             </td>
             @if (contando()) {
               <td class="num" [attr.data-etiqueta]="t('inventario.contado')">
@@ -166,7 +225,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="6" class="vacio">
+            <td [attr.colspan]="contando() ? 8 : 7" class="vacio">
               {{ t(cargando() ? 'inventario.cargandoInsumos' : 'inventario.ningunoCoincide') }}
             </td>
           </tr>
@@ -176,8 +235,13 @@
   </div>
 </div>
 
-<!-- Kardex: la historia de un insumo, de lo mas reciente a lo mas antiguo. -->
-<app-dialogo modo="cajon" [titulo]="tituloKardex()" [(abierto)]="kardexAbierto">
+<!-- Kardex: lo que queda en lotes, en el orden en que se usa, y la historia del insumo. -->
+<app-dialogo
+  class="dialogo-kardex"
+  modo="cajon"
+  [titulo]="tituloKardex()"
+  [(abierto)]="kardexAbierto"
+>
   @if (kardexDe(); as insumo) {
     <p class="tenue stock-actual">
       {{
@@ -188,6 +252,63 @@
       }}
     </p>
 
+    <h3 class="subtitulo">{{ t('inventario.lotes') }}</h3>
+    <p class="tenue ayuda">{{ t('inventario.lotesAyuda') }}</p>
+    @if (lotes(); as lista) {
+      <ol class="lotes">
+        @for (l of lista; track l.id) {
+          <li>
+            <div class="fila">
+              <span class="cifra">
+                {{
+                  t('inventario.loteRestante', {
+                    restante: (l.cantidadRestante | number: '1.0-3') ?? '',
+                    inicial: (l.cantidadInicial | number: '1.0-3') ?? '',
+                    unidad: insumo.unidadMedida ?? '',
+                  })
+                }}
+              </span>
+              <span
+                class="chip"
+                [class.peligro]="l.estado === ESTADO.VENCIDO"
+                [class.aviso]="l.estado === ESTADO.POR_VENCER"
+                [class.ok]="l.estado === ESTADO.VIGENTE"
+              >
+                {{ tEnum('vencimiento', l.estado) }}
+              </span>
+            </div>
+            @if (l.inicial) {
+              <p class="tenue">{{ t('inventario.loteInicial') }}</p>
+            } @else {
+              <p class="tenue detalles-lote">
+                @if (l.fechaVencimiento) {
+                  <span>{{ t('inventario.loteVence', { fecha: dia(l.fechaVencimiento) }) }}</span>
+                }
+                @if (l.costoUnitario != null) {
+                  <span class="cifra">
+                    {{
+                      t('inventario.loteCosto', {
+                        costo: (l.costoUnitario | number: '1.2-2') ?? '',
+                        unidad: insumo.unidadMedida ?? '',
+                      })
+                    }}
+                  </span>
+                }
+                @if (l.proveedorNombre) {
+                  <span>{{ l.proveedorNombre }}</span>
+                }
+              </p>
+            }
+          </li>
+        } @empty {
+          <li class="vacio">{{ t('inventario.sinLotes') }}</li>
+        }
+      </ol>
+    } @else {
+      <p class="vacio">{{ t('comun.cargando') }}</p>
+    }
+
+    <h3 class="subtitulo">{{ t('inventario.movimientos') }}</h3>
     @if (kardex(); as movimientos) {
       <ol class="kardex">
         @for (m of movimientos; track m.id) {
@@ -231,8 +352,12 @@
   </div>
 </app-dialogo>
 
-<!-- Movimiento suelto: una compra, una merma, un ajuste. -->
-<app-dialogo [titulo]="tituloMovimiento()" [(abierto)]="movimientoAbierto">
+<!-- Movimiento suelto: una compra con su lote, una merma, un ajuste. -->
+<app-dialogo
+  class="dialogo-movimiento"
+  [titulo]="tituloMovimiento()"
+  [(abierto)]="movimientoAbierto"
+>
   @if (moviendo(); as insumo) {
     <div class="formulario">
       <p class="tenue">
@@ -264,6 +389,48 @@
         />
         <small>{{ t('inventario.signoAyuda') }}</small>
       </label>
+
+      <!-- El lote de una compra: de quien, a cuanto y hasta cuando. -->
+      @if (esCompra()) {
+        <fieldset class="lote">
+          <legend>{{ t('inventario.lote') }}</legend>
+          <label class="campo">
+            <span>{{ t('inventario.proveedor') }}</span>
+            <select (change)="proveedorId.set($any($event.target).value)">
+              <option value="" [selected]="proveedorId() === ''">
+                {{ t('inventario.sinProveedor') }}
+              </option>
+              @for (p of proveedores(); track p.id) {
+                <option [value]="p.id" [selected]="proveedorId() === p.id">{{ p.nombre }}</option>
+              }
+            </select>
+          </label>
+          <div class="campos">
+            <label class="campo">
+              <span>{{ t('inventario.costoPor', { unidad: insumo.unidadMedida ?? '' }) }}</span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                inputmode="decimal"
+                [value]="costoUnitario() ?? ''"
+                (input)="anotarCosto($any($event.target).value)"
+              />
+            </label>
+            <label class="campo">
+              <span>{{ t('inventario.fechaVencimiento') }}</span>
+              <input
+                type="date"
+                [attr.min]="hoy"
+                [value]="fechaVencimiento()"
+                (input)="fechaVencimiento.set($any($event.target).value)"
+              />
+            </label>
+          </div>
+          <small class="tenue">{{ t('inventario.loteAyuda') }}</small>
+        </fieldset>
+      }
+
       <label class="campo">
         <span>{{ t('comun.observacion') }}</span>
         <input
