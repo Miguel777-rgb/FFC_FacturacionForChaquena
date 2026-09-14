@@ -5,10 +5,12 @@ import com.chaquena.backend_logistica.clientes.repository.ClienteRepository;
 import com.chaquena.backend_logistica.fidelizacion.domain.ConfiguracionLocal;
 import com.chaquena.backend_logistica.fidelizacion.domain.Cupon;
 import com.chaquena.backend_logistica.fidelizacion.domain.EstadoCuponEnum;
+import com.chaquena.backend_logistica.fidelizacion.domain.NivelLealtad;
 import com.chaquena.backend_logistica.fidelizacion.dto.*;
 import com.chaquena.backend_logistica.fidelizacion.repository.CuponRepository;
 import com.chaquena.backend_logistica.fidelizacion.service.ConfiguracionService;
 import com.chaquena.backend_logistica.fidelizacion.service.FidelizacionService;
+import com.chaquena.backend_logistica.fidelizacion.service.NivelLealtadService;
 import com.chaquena.backend_logistica.pedidos.domain.CalificacionFeedback;
 import com.chaquena.backend_logistica.pedidos.domain.Orden;
 import com.chaquena.backend_logistica.pedidos.repository.CalificacionFeedbackRepository;
@@ -37,6 +39,7 @@ public class FidelizacionServiceImpl implements FidelizacionService {
     private final ClienteRepository clienteRepository;
     private final CuponRepository cuponRepository;
     private final ConfiguracionService configuracionService;
+    private final NivelLealtadService nivelLealtadService;
 
     /**
      * Registra la calificacion y, si con esta el cliente alcanza el umbral N
@@ -106,6 +109,12 @@ public class FidelizacionServiceImpl implements FidelizacionService {
                         "La comanda todavia no tiene calificacion."));
     }
 
+    /**
+     * Dos progresos que no se confunden: las calificaciones que faltan para el
+     * proximo cupon, y los puntos que faltan para el siguiente nivel. El nivel
+     * no se guarda en el cliente: se calcula aqui con sus puntos, asi que
+     * cambiar los escalones reubica a todos sin tocar ninguna ficha.
+     */
     @Override
     @Transactional(readOnly = true)
     public FidelizacionDto progresoDelCliente(UUID clienteId) {
@@ -122,6 +131,10 @@ public class FidelizacionServiceImpl implements FidelizacionService {
         long vigentes = cuponRepository.findByClienteIdAndEstado(clienteId, EstadoCuponEnum.VIGENTE)
                 .stream().filter(Cupon::estaVigente).count();
 
+        int puntos = cliente.getPuntosFidelidad() != null ? cliente.getPuntosFidelidad() : 0;
+        NivelLealtad actual = nivelLealtadService.nivelDe(puntos).orElse(null);
+        NivelLealtad siguiente = nivelLealtadService.siguienteA(puntos).orElse(null);
+
         return FidelizacionDto.builder()
                 .clienteId(clienteId)
                 .calificacionesRealizadas(realizadas)
@@ -129,6 +142,9 @@ public class FidelizacionServiceImpl implements FidelizacionService {
                 .calificacionesFaltantes(faltan)
                 .cuponesVigentes(vigentes)
                 .puntosFidelidad(cliente.getPuntosFidelidad())
+                .nivelActual(actual != null ? NivelLealtadDto.fromEntity(actual) : null)
+                .nivelSiguiente(siguiente != null ? NivelLealtadDto.fromEntity(siguiente) : null)
+                .puntosParaSiguiente(siguiente != null ? siguiente.getPuntosMinimos() - puntos : null)
                 .mensaje(faltan == 0
                         ? "Tienes premio disponible."
                         : "Te faltan " + faltan + " calificaciones para tu proximo premio.")
