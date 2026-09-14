@@ -13,6 +13,9 @@ import { MovimientosPorTipo } from './movimientos-por-tipo';
 export interface ResumenInventarioDto {
   alertas?: Array<InsumoResponseDto>;
   insumosBajoMinimo?: number;
+  insumosPorVencer?: number;
+  insumosVencidos?: number;
   movimientos?: Array<MovimientosPorTipo>;
   totalInsumos?: number;
+  valorInventario?: number;
 }

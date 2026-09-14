@@ -8,11 +8,12 @@
  * Do not edit the class manually.
  */
 
-export interface TransformacionRequestDto {
-  cantidadConsumida: number;
-  cantidadObtenida: number;
-  fechaVencimiento?: string;
-  insumoDestinoId: string;
-  insumoOrigenId: string;
-  motivoObservacion?: string;
+export interface InsumoValorizado {
+  cantidadSinCosto?: number;
+  costoPromedio?: number;
+  insumoId?: string;
+  nombre?: string;
+  stockActual?: number;
+  unidadMedida?: string;
+  valor?: number;
 }

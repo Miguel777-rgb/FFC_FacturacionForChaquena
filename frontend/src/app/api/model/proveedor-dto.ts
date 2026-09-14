@@ -8,11 +8,12 @@
  * Do not edit the class manually.
  */
 
-export interface TransformacionRequestDto {
-  cantidadConsumida: number;
-  cantidadObtenida: number;
-  fechaVencimiento?: string;
-  insumoDestinoId: string;
-  insumoOrigenId: string;
-  motivoObservacion?: string;
+export interface ProveedorDto {
+  readonly activo?: boolean;
+  contacto?: string;
+  correo?: string;
+  readonly id?: string;
+  nombre: string;
+  ruc?: string;
+  telefono?: string;
 }

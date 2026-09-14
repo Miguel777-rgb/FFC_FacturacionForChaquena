@@ -34,6 +34,8 @@ export * from './inventario-insumos.api';
 import { InventarioInsumosApi } from './inventario-insumos.api';
 export * from './inventario-movimientos.api';
 import { InventarioMovimientosApi } from './inventario-movimientos.api';
+export * from './inventario-proveedores.api';
+import { InventarioProveedoresApi } from './inventario-proveedores.api';
 export * from './local.api';
 import { LocalApi } from './local.api';
 export * from './niveles-de-lealtad.api';
@@ -67,6 +69,7 @@ export const APIS = [
   FeedbackYFidelizacionApi,
   InventarioInsumosApi,
   InventarioMovimientosApi,
+  InventarioProveedoresApi,
   LocalApi,
   NivelesDeLealtadApi,
   OutboxApi,

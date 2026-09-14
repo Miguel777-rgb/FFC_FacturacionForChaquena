@@ -1343,11 +1343,24 @@
           "bajoMinimo": {
             "type": "boolean"
           },
+          "cantidadPorVencer": {
+            "type": "number"
+          },
+          "cantidadSinCosto": {
+            "type": "number"
+          },
+          "cantidadVencida": {
+            "type": "number"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
           },
           "nombre": {
+            "type": "string"
+          },
+          "proximoVencimiento": {
+            "format": "date",
             "type": "string"
           },
           "stockActual": {
@@ -1365,6 +1378,54 @@
           },
           "unidadMedida": {
             "type": "string"
+          },
+          "valorStock": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "InsumoValorizado": {
+        "properties": {
+          "cantidadSinCosto": {
+            "type": "number"
+          },
+          "costoPromedio": {
+            "type": "number"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "stockActual": {
+            "type": "number"
+          },
+          "unidadMedida": {
+            "type": "string"
+          },
+          "valor": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "InventarioValorizadoDto": {
+        "properties": {
+          "insumos": {
+            "items": {
+              "$ref": "#/components/schemas/InsumoValorizado"
+            },
+            "type": "array"
+          },
+          "insumosConStockSinCosto": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "valorTotal": {
+            "type": "number"
           }
         },
         "type": "object"
@@ -1546,6 +1607,55 @@
         ],
         "type": "object"
       },
+      "LoteInsumoDto": {
+        "properties": {
+          "cantidadInicial": {
+            "type": "number"
+          },
+          "cantidadRestante": {
+            "type": "number"
+          },
+          "costoUnitario": {
+            "type": "number"
+          },
+          "estado": {
+            "enum": [
+              "VENCIDO",
+              "POR_VENCER",
+              "VIGENTE",
+              "SIN_VENCIMIENTO"
+            ],
+            "type": "string"
+          },
+          "fechaIngreso": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fechaVencimiento": {
+            "format": "date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inicial": {
+            "type": "boolean"
+          },
+          "insumoId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "proveedorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "proveedorNombre": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "MensajeDto": {
         "properties": {
           "mensaje": {
@@ -1625,12 +1735,25 @@
             "minimum": 0.001,
             "type": "number"
           },
+          "costoUnitario": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          },
+          "fechaVencimiento": {
+            "format": "date",
+            "type": "string"
+          },
           "insumoId": {
             "format": "uuid",
             "type": "string"
           },
           "motivoObservacion": {
             "minLength": 1,
+            "type": "string"
+          },
+          "proveedorId": {
+            "format": "uuid",
             "type": "string"
           },
           "tipoControl": {
@@ -2793,6 +2916,48 @@
         },
         "type": "object"
       },
+      "ProveedorDto": {
+        "properties": {
+          "activo": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "contacto": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "correo": {
+            "format": "email",
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "readOnly": true,
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "ruc": {
+            "pattern": "\\d{11}",
+            "type": "string"
+          },
+          "telefono": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre"
+        ],
+        "type": "object"
+      },
       "Punto": {
         "properties": {
           "comandas": {
@@ -3030,6 +3195,14 @@
             "format": "int64",
             "type": "integer"
           },
+          "insumosPorVencer": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "insumosVencidos": {
+            "format": "int64",
+            "type": "integer"
+          },
           "movimientos": {
             "items": {
               "$ref": "#/components/schemas/MovimientosPorTipo"
@@ -3039,6 +3212,9 @@
           "totalInsumos": {
             "format": "int64",
             "type": "integer"
+          },
+          "valorInventario": {
+            "type": "number"
           }
         },
         "type": "object"
@@ -3196,6 +3372,10 @@
             "exclusiveMinimum": false,
             "minimum": 0.001,
             "type": "number"
+          },
+          "fechaVencimiento": {
+            "format": "date",
+            "type": "string"
           },
           "insumoDestinoId": {
             "format": "uuid",
@@ -5196,6 +5376,50 @@
         ]
       }
     },
+    "/api/v1/inventario/lotes/{insumoId}": {
+      "get": {
+        "operationId": "listarLotesDeInsumo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "insumoId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "soloDisponibles",
+            "required": false,
+            "schema": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LoteInsumoDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Lotes de un insumo en el orden en que se consumen (primero lo que vence antes)",
+        "tags": [
+          "Inventario - Movimientos"
+        ]
+      }
+    },
     "/api/v1/inventario/movimientos": {
       "post": {
         "operationId": "registrarMovimiento",
@@ -5221,7 +5445,7 @@
             "description": "OK"
           }
         },
-        "summary": "Registrar entrada por compra o merma",
+        "summary": "Registrar entrada por compra (con su lote) o merma",
         "tags": [
           "Inventario - Movimientos"
         ]
@@ -5297,6 +5521,27 @@
           }
         },
         "summary": "Cocinar: consume insumo crudo y acredita el cocido resultante",
+        "tags": [
+          "Inventario - Movimientos"
+        ]
+      }
+    },
+    "/api/v1/inventario/valorizado": {
+      "get": {
+        "operationId": "inventarioValorizado",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventarioValorizadoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Valor del stock con costo conocido, insumo por insumo",
         "tags": [
           "Inventario - Movimientos"
         ]
@@ -7429,6 +7674,152 @@
         ]
       }
     },
+    "/api/v1/proveedores": {
+      "get": {
+        "operationId": "listarProveedores",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "soloActivos",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProveedorDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Proveedores por nombre; con soloActivos, los que se pueden elegir en una compra",
+        "tags": [
+          "Inventario - Proveedores"
+        ]
+      },
+      "post": {
+        "operationId": "crearProveedor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProveedorDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Dar de alta un proveedor",
+        "tags": [
+          "Inventario - Proveedores"
+        ]
+      }
+    },
+    "/api/v1/proveedores/{id}": {
+      "put": {
+        "operationId": "actualizarProveedor",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProveedorDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar los datos de un proveedor",
+        "tags": [
+          "Inventario - Proveedores"
+        ]
+      }
+    },
+    "/api/v1/proveedores/{id}/activo": {
+      "patch": {
+        "operationId": "cambiarActivoProveedor",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activo",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Dar de baja o reactivar un proveedor",
+        "tags": [
+          "Inventario - Proveedores"
+        ]
+      }
+    },
     "/api/v1/reportes/productos-top": {
       "get": {
         "operationId": "productosTop",
@@ -8242,6 +8633,10 @@
       "name": "Catalogo - Categorias"
     },
     {
+      "description": "Kardex, lotes, mermas, cocinado y conteo fisico",
+      "name": "Inventario - Movimientos"
+    },
+    {
       "description": "Carta, precios y recetas (BOM)",
       "name": "Catalogo - Platillos"
     },
@@ -8256,6 +8651,10 @@
     {
       "description": "Datos del local, horario e IGV",
       "name": "Local"
+    },
+    {
+      "description": "A quien se le compra cada insumo",
+      "name": "Inventario - Proveedores"
     },
     {
       "description": "Mapa de mesas con estados y reservas",
@@ -8328,10 +8727,6 @@
     {
       "description": "Datos maestros de insumos y alertas de stock",
       "name": "Inventario - Insumos"
-    },
-    {
-      "description": "Kardex, mermas, cocinado y conteo fisico",
-      "name": "Inventario - Movimientos"
     }
   ]
 }

@@ -7,12 +7,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { InsumoValorizado } from './insumo-valorizado';
 
-export interface TransformacionRequestDto {
-  cantidadConsumida: number;
-  cantidadObtenida: number;
-  fechaVencimiento?: string;
-  insumoDestinoId: string;
-  insumoOrigenId: string;
-  motivoObservacion?: string;
+export interface InventarioValorizadoDto {
+  insumos?: Array<InsumoValorizado>;
+  insumosConStockSinCosto?: number;
+  valorTotal?: number;
 }

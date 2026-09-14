@@ -30,6 +30,10 @@ import { DisponibilidadRequestDto } from '../model/disponibilidad-request-dto';
 // @ts-ignore
 import { DisponibilidadResponseDto } from '../model/disponibilidad-response-dto';
 // @ts-ignore
+import { InventarioValorizadoDto } from '../model/inventario-valorizado-dto';
+// @ts-ignore
+import { LoteInsumoDto } from '../model/lote-insumo-dto';
+// @ts-ignore
 import { MovimientoRequestDto } from '../model/movimiento-request-dto';
 // @ts-ignore
 import { MovimientoResponseDto } from '../model/movimiento-response-dto';
@@ -58,6 +62,11 @@ export interface DisponibilidadRequestParams {
 export interface KardexRequestParams {
   insumoId: string;
   pageable: Pageable;
+}
+
+export interface ListarLotesDeInsumoRequestParams {
+  insumoId: string;
+  soloDisponibles?: boolean;
 }
 
 export interface RegistrarMovimientoRequestParams {
@@ -306,6 +315,93 @@ export class InventarioMovimientosApi extends BaseService {
   }
 
   /**
+   * Valor del stock con costo conocido, insumo por insumo
+   * @endpoint get /api/v1/inventario/valorizado
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public inventarioValorizado(
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<InventarioValorizadoDto>;
+  public inventarioValorizado(
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<InventarioValorizadoDto>>;
+  public inventarioValorizado(
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<InventarioValorizadoDto>>;
+  public inventarioValorizado(
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    let localVarHeaders = this.defaultHeaders;
+
+    // authentication (bearerAuth) required
+    localVarHeaders = this.configuration.addCredentialToHeaders(
+      'bearerAuth',
+      'Authorization',
+      localVarHeaders,
+      'Bearer ',
+    );
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/v1/inventario/valorizado`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<InventarioValorizadoDto>('get', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
    * Historial de movimientos de un insumo
    * @endpoint get /api/v1/inventario/kardex/{insumoId}
    * @param requestParameters
@@ -422,7 +518,118 @@ export class InventarioMovimientosApi extends BaseService {
   }
 
   /**
-   * Registrar entrada por compra o merma
+   * Lotes de un insumo en el orden en que se consumen (primero lo que vence antes)
+   * @endpoint get /api/v1/inventario/lotes/{insumoId}
+   * @param requestParameters
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public listarLotesDeInsumo(
+    requestParameters: ListarLotesDeInsumoRequestParams,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<Array<LoteInsumoDto>>;
+  public listarLotesDeInsumo(
+    requestParameters: ListarLotesDeInsumoRequestParams,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<Array<LoteInsumoDto>>>;
+  public listarLotesDeInsumo(
+    requestParameters: ListarLotesDeInsumoRequestParams,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<Array<LoteInsumoDto>>>;
+  public listarLotesDeInsumo(
+    requestParameters: ListarLotesDeInsumoRequestParams,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    const insumoId = requestParameters?.insumoId;
+    if (insumoId === null || insumoId === undefined) {
+      throw new Error(
+        'Required parameter insumoId was null or undefined when calling listarLotesDeInsumo.',
+      );
+    }
+    const soloDisponibles = requestParameters?.soloDisponibles;
+
+    let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
+
+    localVarQueryParameters = this.addToHttpParams(
+      localVarQueryParameters,
+      'soloDisponibles',
+      <any>soloDisponibles,
+      QueryParamStyle.Form,
+      true,
+    );
+
+    let localVarHeaders = this.defaultHeaders;
+
+    // authentication (bearerAuth) required
+    localVarHeaders = this.configuration.addCredentialToHeaders(
+      'bearerAuth',
+      'Authorization',
+      localVarHeaders,
+      'Bearer ',
+    );
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/v1/inventario/lotes/${this.configuration.encodeParam({ name: 'insumoId', value: insumoId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<Array<LoteInsumoDto>>('get', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      params: localVarQueryParameters.toHttpParams(),
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
+   * Registrar entrada por compra (con su lote) o merma
    * @endpoint post /api/v1/inventario/movimientos
    * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

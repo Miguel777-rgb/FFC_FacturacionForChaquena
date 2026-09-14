@@ -19,6 +19,7 @@ api/despacho-transportistas.api.ts
 api/feedback-y-fidelizacion.api.ts
 api/inventario-insumos.api.ts
 api/inventario-movimientos.api.ts
+api/inventario-proveedores.api.ts
 api/local.api.ts
 api/niveles-de-lealtad.api.ts
 api/outbox.api.ts
@@ -76,6 +77,8 @@ model/flags-request-dto.ts
 model/horario-local-dto.ts
 model/insumo-request-dto.ts
 model/insumo-response-dto.ts
+model/insumo-valorizado.ts
+model/inventario-valorizado-dto.ts
 model/item-conteo.ts
 model/item-disponibilidad.ts
 model/item-orden-request-dto.ts
@@ -83,6 +86,7 @@ model/kpis-cocina-dto.ts
 model/linea-kds.ts
 model/linea-ticket.ts
 model/login-request-dto.ts
+model/lote-insumo-dto.ts
 model/mensaje-dto.ts
 model/mesa-request-dto.ts
 model/mesa-response-dto.ts
@@ -117,6 +121,7 @@ model/preferencias-cliente-dto.ts
 model/producto-top-dto.ts
 model/promocion-request-dto.ts
 model/promocion-response-dto.ts
+model/proveedor-dto.ts
 model/punto.ts
 model/receta-item-dto.ts
 model/receta-request-dto.ts

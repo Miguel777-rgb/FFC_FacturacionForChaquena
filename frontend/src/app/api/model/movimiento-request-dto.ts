@@ -10,8 +10,11 @@
 
 export interface MovimientoRequestDto {
   cantidad: number;
+  costoUnitario?: number;
+  fechaVencimiento?: string;
   insumoId: string;
   motivoObservacion: string;
+  proveedorId?: string;
   tipoControl: MovimientoRequestDtoTipoControlEnum;
 }
 export enum MovimientoRequestDtoTipoControlEnum {

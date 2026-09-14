@@ -10,12 +10,17 @@
 
 export interface InsumoResponseDto {
   bajoMinimo?: boolean;
+  cantidadPorVencer?: number;
+  cantidadSinCosto?: number;
+  cantidadVencida?: number;
   id?: string;
   nombre?: string;
+  proximoVencimiento?: string;
   stockActual?: number;
   stockMinimo?: number;
   tipoInsumo?: InsumoResponseDtoTipoInsumoEnum;
   unidadMedida?: string;
+  valorStock?: number;
 }
 export enum InsumoResponseDtoTipoInsumoEnum {
   COCIDO = 'COCIDO',
