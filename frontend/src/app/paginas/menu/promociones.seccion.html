@@ -1,0 +1,181 @@
+<div class="seccion">
+  <div class="barra">
+    @if (esAdmin()) {
+      <button type="button" class="secundario" (click)="abrirNueva()">
+        <app-icono nombre="alta" [tamano]="18" />
+        {{ t('promociones.nueva') }}
+      </button>
+    } @else {
+      <p class="tenue">{{ t('promociones.soloAdmin') }}</p>
+    }
+  </div>
+
+  <div class="desplazable">
+    <table class="tabla apilable">
+      <thead>
+        <tr>
+          <th>{{ t('promociones.promocion') }}</th>
+          <th>{{ t('promociones.vigencia') }}</th>
+          <th class="num">{{ t('promociones.descuento') }}</th>
+          <th>{{ t('comun.estado') }}</th>
+          @if (esAdmin()) {
+            <th></th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (f of filas(); track f.promocion.id) {
+          <tr>
+            <td>
+              {{ f.promocion.nombre }}
+              @if (f.promocion.descripcion) {
+                <small class="tenue bajada">{{ f.promocion.descripcion }}</small>
+              }
+              @if (f.promocion.requiereInsumoExtra && f.promocion.insumoExtraNombre) {
+                <small class="tenue bajada">
+                  {{ t('promociones.conInsumo', { insumo: f.promocion.insumoExtraNombre }) }}
+                </small>
+              }
+            </td>
+            <td class="tenue" [attr.data-etiqueta]="t('promociones.vigencia')">
+              {{
+                t('promociones.rango', {
+                  desde: fecha(f.promocion.fechaInicio, 'dia'),
+                  hasta: fecha(f.promocion.fechaFin, 'dia'),
+                })
+              }}
+            </td>
+            <td class="num cifra" [attr.data-etiqueta]="t('promociones.descuento')">
+              {{ descuentoDe(f.promocion) }}
+            </td>
+            <td [attr.data-etiqueta]="t('comun.estado')">
+              <span
+                class="chip"
+                [class.ok]="f.vigencia === 'vigente'"
+                [class.info]="f.vigencia === 'programada'"
+              >
+                {{ t(ROTULO[f.vigencia]) }}
+              </span>
+            </td>
+            @if (esAdmin()) {
+              <td class="acciones">
+                <button
+                  type="button"
+                  class="icono-accion"
+                  (click)="abrirEdicion(f.promocion)"
+                  [attr.title]="t('comun.editar')"
+                  [attr.aria-label]="t('menu.editarAria', { nombre: f.promocion.nombre ?? '' })"
+                >
+                  <app-icono nombre="lapiz" [tamano]="18" />
+                </button>
+                @if (f.vigencia !== 'vencida') {
+                  <button
+                    type="button"
+                    class="icono-accion"
+                    [class.destructiva]="f.promocion.activa"
+                    [class.afirmativa]="!f.promocion.activa"
+                    (click)="alternarActiva(f.promocion)"
+                    [disabled]="guardando()"
+                    [attr.title]="t(f.promocion.activa ? 'promociones.pausar' : 'promociones.reanudar')"
+                    [attr.aria-label]="
+                      t(f.promocion.activa ? 'promociones.pausarAria' : 'promociones.reanudarAria', {
+                        nombre: f.promocion.nombre ?? '',
+                      })
+                    "
+                  >
+                    <app-icono [nombre]="f.promocion.activa ? 'baja' : 'alta'" [tamano]="18" />
+                  </button>
+                }
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="esAdmin() ? 5 : 4" class="vacio">
+              {{ t(cargando() ? 'comun.cargando' : 'promociones.ninguna') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (esAdmin()) {
+  <app-dialogo [titulo]="tituloFormulario()" [(abierto)]="formularioAbierto">
+    <div class="formulario">
+      <label class="campo">
+        <span>{{ t('promociones.nombre') }}</span>
+        <input
+          type="text"
+          autocomplete="off"
+          [value]="nombre()"
+          (input)="nombre.set($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('promociones.descripcion') }}</span>
+        <textarea
+          rows="2"
+          [value]="descripcion()"
+          (input)="descripcion.set($any($event.target).value)"
+        ></textarea>
+      </label>
+      <div class="campos">
+        <label class="campo">
+          <span>{{ t('comun.desde') }}</span>
+          <input type="date" [value]="inicio()" (input)="inicio.set($any($event.target).value)" />
+        </label>
+        <label class="campo">
+          <span>{{ t('comun.hasta') }}</span>
+          <input type="date" [value]="fin()" (input)="fin.set($any($event.target).value)" />
+        </label>
+      </div>
+      <fieldset class="roles">
+        <legend>{{ t('promociones.tipoDescuento') }}</legend>
+        <label>
+          <input
+            type="radio"
+            name="modo-descuento"
+            [checked]="modo() === 'porcentaje'"
+            (change)="modo.set('porcentaje')"
+          />
+          <span>{{ t('promociones.porcentaje') }}</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="modo-descuento"
+            [checked]="modo() === 'monto'"
+            (change)="modo.set('monto')"
+          />
+          <span>{{ t('promociones.monto') }}</span>
+        </label>
+      </fieldset>
+      <label class="campo">
+        <span>{{ t(modo() === 'porcentaje' ? 'promociones.valorPorcentaje' : 'promociones.valorMonto') }}</span>
+        <input
+          type="number"
+          min="0"
+          [attr.max]="modo() === 'porcentaje' ? 100 : null"
+          step="0.5"
+          inputmode="decimal"
+          [value]="valor() ?? ''"
+          (input)="anotarValor($any($event.target).value)"
+        />
+      </label>
+    </div>
+    <div pie>
+      <button type="button" class="secundario" (click)="formularioAbierto.set(false)">
+        {{ t('comun.dejarlo') }}
+      </button>
+      <button
+        type="button"
+        (click)="guardar()"
+        [disabled]="!nombre().trim() || valor() === null || guardando()"
+      >
+        {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+      </button>
+    </div>
+  </app-dialogo>
+}

@@ -1,0 +1,145 @@
+<div class="seccion">
+  <div class="barra">
+    <select
+      (change)="filtroTipo.set($any($event.target).value)"
+      [attr.aria-label]="t('complementos.filtroTipo')"
+    >
+      <option value="" [selected]="filtroTipo() === ''">{{ t('complementos.todosTipos') }}</option>
+      @for (tipoComplemento of TIPOS; track tipoComplemento) {
+        <option [value]="tipoComplemento" [selected]="filtroTipo() === tipoComplemento">
+          {{ tEnum('tipoComplemento', tipoComplemento) }}
+        </option>
+      }
+    </select>
+    <button type="button" class="secundario" (click)="abrirNuevo()">
+      <app-icono nombre="alta" [tamano]="18" />
+      {{ t('complementos.nuevo') }}
+    </button>
+  </div>
+
+  <div class="desplazable">
+    <table class="tabla apilable">
+      <thead>
+        <tr>
+          <th>{{ t('complementos.nombre') }}</th>
+          <th>{{ t('complementos.tipo') }}</th>
+          <th class="num">{{ t('complementos.precio') }}</th>
+          <th>{{ t('complementos.insumo') }}</th>
+          <th>{{ t('comun.estado') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of visibles(); track c.id) {
+          <tr>
+            <td>{{ c.nombre }}</td>
+            <td class="tenue" [attr.data-etiqueta]="t('complementos.tipo')">
+              {{ tEnum('tipoComplemento', c.tipoComplemento) }}
+            </td>
+            <td class="num cifra" [attr.data-etiqueta]="t('complementos.precio')">
+              + S/ {{ c.precioAdicional ?? 0 | number: '1.2-2' }}
+            </td>
+            <td class="tenue" [attr.data-etiqueta]="t('complementos.insumo')">
+              {{ c.insumoAsociadoNombre || '—' }}
+            </td>
+            <td [attr.data-etiqueta]="t('comun.estado')">
+              <span class="chip" [class.ok]="c.activo">
+                {{ t(c.activo ? 'menu.seOfrece' : 'menu.noSeOfrece') }}
+              </span>
+            </td>
+            <td class="acciones">
+              <button
+                type="button"
+                class="icono-accion"
+                (click)="abrirEdicion(c)"
+                [attr.title]="t('comun.editar')"
+                [attr.aria-label]="t('menu.editarAria', { nombre: c.nombre ?? '' })"
+              >
+                <app-icono nombre="lapiz" [tamano]="18" />
+              </button>
+              <button
+                type="button"
+                class="icono-accion"
+                [class.destructiva]="c.activo"
+                [class.afirmativa]="!c.activo"
+                (click)="alternarActivo(c)"
+                [disabled]="guardando()"
+                [attr.title]="t(c.activo ? 'menu.dejarDeOfrecer' : 'menu.volverAOfrecer')"
+                [attr.aria-label]="
+                  t(c.activo ? 'menu.dejarDeOfrecerAria' : 'menu.volverAOfrecerAria', {
+                    nombre: c.nombre ?? '',
+                  })
+                "
+              >
+                <app-icono [nombre]="c.activo ? 'baja' : 'alta'" [tamano]="18" />
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="vacio">
+              {{ t(cargando() ? 'comun.cargando' : 'complementos.ninguno') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-dialogo [titulo]="tituloFormulario()" [(abierto)]="formularioAbierto">
+  <div class="formulario">
+    <label class="campo">
+      <span>{{ t('complementos.nombre') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        [value]="nombre()"
+        (input)="nombre.set($any($event.target).value)"
+      />
+    </label>
+    <label class="campo">
+      <span>{{ t('complementos.tipo') }}</span>
+      <select (change)="elegirTipo($any($event.target).value)">
+        @for (tipoComplemento of TIPOS; track tipoComplemento) {
+          <option [value]="tipoComplemento" [selected]="tipo() === tipoComplemento">
+            {{ tEnum('tipoComplemento', tipoComplemento) }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="campo">
+      <span>{{ t('complementos.precioSoles') }}</span>
+      <input
+        type="number"
+        min="0"
+        step="0.10"
+        inputmode="decimal"
+        [value]="precio() ?? ''"
+        (input)="anotarPrecio($any($event.target).value)"
+      />
+    </label>
+    <label class="campo">
+      <span>{{ t('complementos.insumo') }}</span>
+      <select (change)="insumoId.set($any($event.target).value)">
+        <option value="" [selected]="insumoId() === ''">{{ t('complementos.sinInsumo') }}</option>
+        @for (i of insumos(); track i.id) {
+          <option [value]="i.id" [selected]="insumoId() === i.id">{{ i.nombre }}</option>
+        }
+      </select>
+      <small>{{ t('complementos.insumoAyuda') }}</small>
+    </label>
+  </div>
+  <div pie>
+    <button type="button" class="secundario" (click)="formularioAbierto.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button
+      type="button"
+      (click)="guardar()"
+      [disabled]="!nombre().trim() || precio() === null || guardando()"
+    >
+      {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+    </button>
+  </div>
+</app-dialogo>
