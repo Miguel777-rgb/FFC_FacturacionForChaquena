@@ -115,6 +115,14 @@
               @if (c.puntosFidelidad) {
                 <span class="detalle">{{ t('pos.puntos', { n: c.puntosFidelidad }) }}</span>
               }
+              @if (fidelizacion()?.nivelActual; as nivel) {
+                <span class="nivel">
+                  <span class="chip acento">{{ nivel.nombre }}</span>
+                  @if (nivel.porcentajeDescuento; as pct) {
+                    <span class="detalle">{{ t('pos.descuentoNivel', { pct }) }}</span>
+                  }
+                </span>
+              }
             </div>
             <button type="button" class="secundario" (click)="soltarCliente()">
               {{ t('comun.quitar') }}

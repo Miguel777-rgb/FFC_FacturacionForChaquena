@@ -121,14 +121,39 @@
               <span class="cifra">S/ {{ orden.montoSubtotal | number: '1.2-2' }}</span>
             </div>
             <div class="linea-total tenue">
-              <span>{{ orden.promocionNombre || t('caja.descuento') }}</span>
+              <span>{{ t('caja.descuento') }}</span>
               <span class="cifra">− S/ {{ orden.montoDescuento | number: '1.2-2' }}</span>
             </div>
+            <!-- De donde sale la rebaja: la promocion, el nivel del cliente o su cupon. -->
+            @if (orden.promocionNombre || orden.nivelLealtadNombre || orden.cuponCodigo) {
+              <p class="motivos-descuento">
+                @if (orden.promocionNombre) {
+                  <span class="chip">{{ orden.promocionNombre }}</span>
+                }
+                @if (orden.nivelLealtadNombre) {
+                  <span class="chip acento">{{ t('caja.nivel', { nivel: orden.nivelLealtadNombre }) }}</span>
+                }
+                @if (orden.cuponCodigo) {
+                  <span class="chip">{{ t('caja.cupon', { codigo: orden.cuponCodigo }) }}</span>
+                }
+              </p>
+            }
           }
           <div class="total">
             <span>{{ t('comun.total') }}</span>
             <strong class="cifra">S/ {{ orden.montoTotal | number: '1.2-2' }}</strong>
           </div>
+          <!-- Los precios ya incluyen el IGV: estas dos lineas lo desglosan, no lo suman. -->
+          @if (orden.montoIgv != null) {
+            <div class="linea-total tenue igv">
+              <span>{{ t('comun.baseImponible') }}</span>
+              <span class="cifra">S/ {{ orden.montoBaseImponible | number: '1.2-2' }}</span>
+            </div>
+            <div class="linea-total tenue igv">
+              <span>{{ t('comun.igvIncluido', { pct: (orden.porcentajeIgv | number: '1.0-2') ?? '' }) }}</span>
+              <span class="cifra">S/ {{ orden.montoIgv | number: '1.2-2' }}</span>
+            </div>
+          }
           @if (confirmado() > 0 || enEspera() > 0) {
             <div class="linea-total tenue">
               <span>{{ t('caja.acreditado') }}</span>

@@ -161,7 +161,30 @@
         <div class="puntos">
           <span class="cifra">{{ f.progreso?.puntosFidelidad ?? c.puntosFidelidad ?? 0 }}</span>
           <span class="tenue">{{ t('clientes.puntos') }}</span>
+          @if (f.progreso?.nivelActual; as nivel) {
+            <span class="chip acento">{{ nivel.nombre }}</span>
+          }
         </div>
+        @if (f.progreso?.nivelActual?.porcentajeDescuento; as pct) {
+          <p class="tenue">{{ t('clientes.descuentoNivel', { pct }) }}</p>
+        }
+        <!-- Hacia el siguiente nivel, en puntos. Debajo va el otro progreso: el
+             del cupon, en calificaciones. -->
+        @if (f.progreso?.nivelSiguiente; as siguiente) {
+          <div
+            class="progreso"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuenow]="avanceNivel()"
+            [attr.aria-label]="t('clientes.progresoNivelAria', { nivel: siguiente.nombre })"
+          >
+            <span [style.width.%]="avanceNivel()"></span>
+          </div>
+          <p class="tenue">
+            {{ tp('clientes.faltanPuntos', f.progreso?.puntosParaSiguiente ?? 0, { nivel: siguiente.nombre }) }}
+          </p>
+        }
         @if (avance() !== null) {
           <div
             class="progreso"

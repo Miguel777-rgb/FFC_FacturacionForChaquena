@@ -365,3 +365,16 @@
     padding: var(--e4);
   }
 }
+
+/* De donde sale el descuento, en fichas debajo de su linea. */
+.motivos-descuento {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e1);
+  margin: 0;
+}
+
+.linea-total.igv {
+  font-size: var(--t-chico);
+}

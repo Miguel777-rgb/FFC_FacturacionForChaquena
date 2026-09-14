@@ -30,6 +30,7 @@ import {
   type ClienteResponseDto,
   type ComplementoResponseDto,
   type CuponResponseDto,
+  type FidelizacionDto,
   type MesaResponseDto,
   type OrdenDetalleDto,
   type OrdenResponseDto,
@@ -141,6 +142,13 @@ export class PosPage implements OnInit {
    * esta lista el mozo tiene que teclear a ciegas algo que el sistema ya sabe.
    */
   protected readonly cupones = signal<CuponResponseDto[]>([]);
+
+  /**
+   * El nivel de lealtad del cliente identificado, para que el mozo pueda
+   * decirlo. El descuento no se estima aqui: lo aplica el servidor al crear la
+   * comanda, y solo si el cupon no rebaja mas.
+   */
+  protected readonly fidelizacion = signal<FidelizacionDto | null>(null);
 
   // --- la comanda en construccion -------------------------------------------
 
@@ -305,6 +313,7 @@ export class PosPage implements OnInit {
     this.resultados.set([]);
     this.busqueda.set('');
     this.cupones.set([]);
+    this.fidelizacion.set(null);
 
     // Los cupones son un extra: si la consulta falla la comanda se levanta
     // igual, y el codigo se puede escribir a mano.
@@ -313,6 +322,14 @@ export class PosPage implements OnInit {
         .cupones({ clienteId: elegido.id })
         .pipe(catchError(() => of([] as CuponResponseDto[])))
         .subscribe((suyos) => this.cupones.set(suyos.filter((c) => c.vigente)));
+
+      // Si el mozo cambio de cliente mientras llegaba, la respuesta ya no es suya.
+      this.fidelizacionApi
+        .progreso({ clienteId: elegido.id })
+        .pipe(catchError(() => of(null)))
+        .subscribe((progreso) => {
+          if (this.cliente()?.id === elegido.id) this.fidelizacion.set(progreso);
+        });
     }
 
     // Si el cliente tiene direccion habitual y la comanda va a domicilio, se
@@ -327,6 +344,7 @@ export class PosPage implements OnInit {
     this.cliente.set(null);
     this.cupon.set('');
     this.cupones.set([]);
+    this.fidelizacion.set(null);
   }
 
   /** Un toque en el cupon del cliente escribe su codigo; otro lo suelta. */

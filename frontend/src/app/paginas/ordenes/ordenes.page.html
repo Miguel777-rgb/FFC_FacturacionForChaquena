@@ -180,6 +180,12 @@
             <dd class="cifra">{{ d.cuponCodigo }}</dd>
           </div>
         }
+        @if (d.nivelLealtadNombre) {
+          <div>
+            <dt>{{ t('ordenes.nivel') }}</dt>
+            <dd>{{ d.nivelLealtadNombre }}</dd>
+          </div>
+        }
         @if (ticket()?.correlativo; as correlativo) {
           <div>
             <dt>{{ t('ordenes.ticket') }}</dt>
@@ -228,6 +234,17 @@
           <span>{{ t('comun.total') }}</span>
           <strong class="cifra">S/ {{ d.montoTotal ?? 0 | number: '1.2-2' }}</strong>
         </div>
+        <!-- Los precios ya incluyen el IGV: estas dos lineas lo desglosan, no lo suman. -->
+        @if (d.montoIgv != null) {
+          <div class="tenue igv">
+            <span>{{ t('comun.baseImponible') }}</span>
+            <span class="cifra">S/ {{ d.montoBaseImponible ?? 0 | number: '1.2-2' }}</span>
+          </div>
+          <div class="tenue igv">
+            <span>{{ t('comun.igvIncluido', { pct: (d.porcentajeIgv | number: '1.0-2') ?? '' }) }}</span>
+            <span class="cifra">S/ {{ d.montoIgv | number: '1.2-2' }}</span>
+          </div>
+        }
       </div>
 
       <h3>{{ t('ordenes.tiempos') }}</h3>

@@ -580,3 +580,12 @@
     padding: var(--e4);
   }
 }
+
+/* El nivel del cliente y lo que rebaja: se dice en voz alta al tomar la comanda. */
+.cliente-elegido .nivel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e1) var(--e2);
+  margin-top: var(--e1);
+}

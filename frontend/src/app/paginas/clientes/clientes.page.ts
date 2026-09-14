@@ -107,6 +107,18 @@ export class ClientesPage implements OnInit {
     return Math.max(0, Math.min(100, Math.round((hechas / requeridas) * 100)));
   });
 
+  /** Cuanto lleva desde el nivel actual hacia el siguiente, en puntos. */
+  protected readonly avanceNivel = computed(() => {
+    const p = this.ficha()?.progreso;
+    const siguiente = p?.nivelSiguiente?.puntosMinimos;
+    if (!p || siguiente == null) return null;
+    const desde = p.nivelActual?.puntosMinimos ?? 0;
+    const tramo = siguiente - desde;
+    if (tramo <= 0) return 0;
+    const avance = ((p.puntosFidelidad ?? 0) - desde) / tramo;
+    return Math.max(0, Math.min(100, Math.round(avance * 100)));
+  });
+
   constructor() {
     this.consultas
       .pipe(
