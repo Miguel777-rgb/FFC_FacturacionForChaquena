@@ -22,14 +22,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/inventario")
 @RequiredArgsConstructor
-@Tag(name = "Inventario - Movimientos", description = "Kardex, mermas, cocinado y conteo fisico")
+@Tag(name = "Inventario - Movimientos", description = "Kardex, lotes, mermas, cocinado y conteo fisico")
 public class InventarioController {
 
     private final InventarioService inventarioService;
 
     @PostMapping("/movimientos")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN','COCINA')")
-    @Operation(operationId = "registrarMovimiento", summary = "Registrar entrada por compra o merma")
+    @Operation(operationId = "registrarMovimiento", summary = "Registrar entrada por compra (con su lote) o merma")
     public ResponseEntity<MovimientoResponseDto> registrar(
             @Valid @RequestBody MovimientoRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -57,6 +57,20 @@ public class InventarioController {
     public ResponseEntity<PageResponseDto<MovimientoResponseDto>> kardex(@PathVariable UUID insumoId,
             @PageableDefault(size = 30) Pageable pageable) {
         return ResponseEntity.ok(inventarioService.kardex(insumoId, pageable));
+    }
+
+    @GetMapping("/lotes/{insumoId}")
+    @Operation(operationId = "listarLotesDeInsumo", summary = "Lotes de un insumo en el orden en que se consumen (primero lo que vence antes)")
+    public ResponseEntity<List<LoteInsumoDto>> lotes(@PathVariable UUID insumoId,
+            @RequestParam(defaultValue = "true") boolean soloDisponibles) {
+        return ResponseEntity.ok(inventarioService.lotes(insumoId, soloDisponibles));
+    }
+
+    @GetMapping("/valorizado")
+    @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
+    @Operation(operationId = "inventarioValorizado", summary = "Valor del stock con costo conocido, insumo por insumo")
+    public ResponseEntity<InventarioValorizadoDto> valorizado() {
+        return ResponseEntity.ok(inventarioService.valorizado());
     }
 
     @PostMapping("/disponibilidad")

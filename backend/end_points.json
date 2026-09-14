@@ -3015,6 +3015,90 @@
             "description": "Historial de movimientos de un insumo"
           },
           "response": []
+        },
+        {
+          "name": "Entrada por compra con su lote (proveedor, costo y vencimiento opcionales)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/movimientos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "movimientos"
+              ]
+            },
+            "description": "Entrada por compra con su lote (proveedor, costo y vencimiento opcionales)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"insumoId\": \"{{insumoId}}\",\n  \"tipoControl\": \"ENTRADA_COMPRA\",\n  \"cantidad\": 10,\n  \"motivoObservacion\": \"Compra del lunes\",\n  \"proveedorId\": \"{{proveedor_id}}\",\n  \"costoUnitario\": 11.5,\n  \"fechaVencimiento\": \"2026-09-17\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lotes de un insumo, primero lo que vence antes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/lotes/{{insumoId}}?soloDisponibles=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "lotes",
+                "{{insumoId}}"
+              ],
+              "query": [
+                {
+                  "key": "soloDisponibles",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Lotes de un insumo, primero lo que vence antes"
+          },
+          "response": []
+        },
+        {
+          "name": "Valor del inventario (ADMIN, ALMACEN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/valorizado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventario",
+                "valorizado"
+              ]
+            },
+            "description": "Valor del inventario (ADMIN, ALMACEN)"
+          },
+          "response": []
         }
       ],
       "description": "Kardex, mermas, cocinado y conteo fisico"
@@ -6270,6 +6354,134 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "26 · Inventario · Proveedores",
+      "item": [
+        {
+          "name": "Proveedores por nombre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/proveedores?soloActivos=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "proveedores"
+              ],
+              "query": [
+                {
+                  "key": "soloActivos",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Proveedores por nombre"
+          },
+          "response": []
+        },
+        {
+          "name": "Dar de alta un proveedor (ADMIN, ALMACEN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/proveedores",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "proveedores"
+              ]
+            },
+            "description": "Dar de alta un proveedor (ADMIN, ALMACEN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Avicola del Sur\",\n  \"ruc\": \"20612345671\",\n  \"contacto\": \"Pedidos\",\n  \"telefono\": \"014567891\",\n  \"correo\": \"pedidos@avicoladelsur.pe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar un proveedor (ADMIN, ALMACEN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/proveedores/{{proveedor_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "proveedores",
+                "{{proveedor_id}}"
+              ]
+            },
+            "description": "Actualizar un proveedor (ADMIN, ALMACEN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Avicola del Sur\",\n  \"ruc\": \"20612345671\",\n  \"contacto\": \"Rosa, pedidos\",\n  \"telefono\": \"014567891\",\n  \"correo\": \"pedidos@avicoladelsur.pe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dar de baja o reactivar un proveedor (ADMIN, ALMACEN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/proveedores/{{proveedor_id}}/activo?activo=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "proveedores",
+                "{{proveedor_id}}",
+                "activo"
+              ],
+              "query": [
+                {
+                  "key": "activo",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Dar de baja o reactivar un proveedor (ADMIN, ALMACEN)"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -6460,6 +6672,10 @@
     },
     {
       "key": "nivel_id",
+      "value": ""
+    },
+    {
+      "key": "proveedor_id",
       "value": ""
     }
   ]

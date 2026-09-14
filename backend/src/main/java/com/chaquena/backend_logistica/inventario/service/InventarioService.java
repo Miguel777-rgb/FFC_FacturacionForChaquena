@@ -1,10 +1,12 @@
 package com.chaquena.backend_logistica.inventario.service;
 
+import com.chaquena.backend_logistica.inventario.domain.TipoControlInsumoEnum;
 import com.chaquena.backend_logistica.inventario.dto.*;
 import com.chaquena.backend_logistica.shared.dto.PageResponseDto;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -20,15 +22,27 @@ public interface InventarioService {
      * token del que deducirlo. Comparte el mismo bloqueo y el mismo kardex que
      * el resto: no es una via paralela para escribir stock.
      */
-    MovimientoResponseDto registrarMovimientoInterno(java.util.UUID insumoId,
-            com.chaquena.backend_logistica.inventario.domain.TipoControlInsumoEnum tipoControl,
-            java.math.BigDecimal delta, String motivo, java.util.UUID trabajadorId, String autor);
+    MovimientoResponseDto registrarMovimientoInterno(UUID insumoId, TipoControlInsumoEnum tipoControl,
+            BigDecimal delta, String motivo, UUID trabajadorId, String autor);
+
+    /**
+     * Compra interna con los datos del lote, para la carga de demostracion.
+     * Cualquiera de los tres datos del lote puede ir nulo.
+     */
+    MovimientoResponseDto registrarEntradaInterna(UUID insumoId, BigDecimal cantidad, String motivo,
+            UUID trabajadorId, String autor, UUID proveedorId, BigDecimal costoUnitario,
+            LocalDate fechaVencimiento);
 
     List<MovimientoResponseDto> transformar(TransformacionRequestDto request);
 
     ConteoFisicoResponseDto conteoFisico(ConteoFisicoRequestDto request);
 
     PageResponseDto<MovimientoResponseDto> kardex(UUID insumoId, Pageable pageable);
+
+    /** Los lotes de un insumo en el orden en que se consumen. */
+    List<LoteInsumoDto> lotes(UUID insumoId, boolean soloDisponibles);
+
+    InventarioValorizadoDto valorizado();
 
     DisponibilidadResponseDto verificarDisponibilidad(DisponibilidadRequestDto request);
 

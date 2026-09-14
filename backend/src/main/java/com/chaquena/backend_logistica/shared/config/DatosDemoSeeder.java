@@ -48,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -82,6 +83,7 @@ public class DatosDemoSeeder {
     private final CargoRepository cargoRepository;
     private final PasswordEncoder passwordEncoder;
     private final InsumoRepository insumoRepository;
+    private final ProveedorRepository proveedorRepository;
     private final CategoriaPlatilloRepository categoriaRepository;
     private final PlatilloRepository platilloRepository;
     private final ComplementoPlatilloRepository complementoRepository;
@@ -212,6 +214,42 @@ public class DatosDemoSeeder {
         return insumos;
     }
 
+    /** De quien, a cuanto la unidad y en cuantos dias vence lo que se siembra. Nulo: sin fecha. */
+    private record CompraDemo(String proveedor, String costo, Integer diasParaVencer) {
+    }
+
+    /**
+     * Tres proveedores y fechas repartidas a proposito: el pescado y el pollo
+     * vencen en dias, el culantro ya vencio, el arroz crudo no tiene fecha y el
+     * arroz cocido y el helado entran sin costo. Asi el inventario muestra cada
+     * caso sin tener que fabricarlo a mano.
+     */
+    private static final Map<String, CompraDemo> COMPRAS_DEMO = Map.ofEntries(
+            Map.entry("Carne de res", new CompraDemo("Mercado Mayorista Santa Anita", "32.00", 4)),
+            Map.entry("Filete de pescado", new CompraDemo("Pesquera Muelle Norte", "28.00", 2)),
+            Map.entry("Pechuga de pollo", new CompraDemo("Avicola del Sur", "11.50", 3)),
+            Map.entry("Arroz crudo", new CompraDemo("Mercado Mayorista Santa Anita", "4.20", null)),
+            Map.entry("Papa amarilla", new CompraDemo("Mercado Mayorista Santa Anita", "3.50", 20)),
+            Map.entry("Cebolla roja", new CompraDemo("Mercado Mayorista Santa Anita", "2.80", 15)),
+            Map.entry("Tomate", new CompraDemo("Mercado Mayorista Santa Anita", "3.20", 6)),
+            Map.entry("Limon", new CompraDemo("Mercado Mayorista Santa Anita", "4.00", 10)),
+            Map.entry("Aji amarillo", new CompraDemo("Mercado Mayorista Santa Anita", "9.00", 8)),
+            Map.entry("Aceite vegetal", new CompraDemo("Mercado Mayorista Santa Anita", "8.50", 180)),
+            Map.entry("Culantro", new CompraDemo("Mercado Mayorista Santa Anita", "12.00", -1)),
+            Map.entry("Gaseosa Inca Kola 500 ml", new CompraDemo("Avicola del Sur", "2.10", 120)),
+            Map.entry("Cerveza Pilsen 620 ml", new CompraDemo("Avicola del Sur", "5.60", 90)));
+
+    private Proveedor proveedorDemo(String nombre) {
+        return proveedorRepository.findByNombreIgnoreCase(nombre).orElseGet(() ->
+                proveedorRepository.saveAndFlush(Proveedor.builder()
+                        .nombre(nombre)
+                        .contacto("Pedidos")
+                        .telefono("01" + String.format("%07d", Math.abs(nombre.hashCode()) % 10_000_000))
+                        .activo(true)
+                        .createdBy("SEED_DEMO")
+                        .build()));
+    }
+
     private Insumo insumo(UUID autorId, String nombre, TipoInsumoEnum tipo, String unidad,
             String minimo, String stockInicial) {
         Insumo insumo = insumoRepository.saveAndFlush(Insumo.builder()
@@ -223,10 +261,16 @@ public class DatosDemoSeeder {
                 .createdBy("SEED_DEMO")
                 .build());
 
-        // El stock entra como movimiento para que el kardex no nazca vacio.
-        inventarioService.registrarMovimientoInterno(insumo.getId(),
-                TipoControlInsumoEnum.ENTRADA_COMPRA, new BigDecimal(stockInicial),
-                "Carga inicial de demostracion", autorId, "SEED_DEMO");
+        // El stock entra como compra para que el kardex no nazca vacio y cada
+        // lote traiga proveedor, costo y vencimiento con los que probar alertas.
+        CompraDemo compra = COMPRAS_DEMO.get(nombre);
+        inventarioService.registrarEntradaInterna(insumo.getId(), new BigDecimal(stockInicial),
+                "Carga inicial de demostracion", autorId, "SEED_DEMO",
+                compra != null ? proveedorDemo(compra.proveedor()).getId() : null,
+                compra != null ? new BigDecimal(compra.costo()) : null,
+                compra != null && compra.diasParaVencer() != null
+                        ? LocalDate.now().plusDays(compra.diasParaVencer())
+                        : null);
 
         return insumoRepository.findById(insumo.getId()).orElseThrow();
     }
