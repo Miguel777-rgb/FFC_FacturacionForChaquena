@@ -21,7 +21,7 @@ ver [Idiomas](#idiomas).
 
 | # | Lo que hay que saber | Evidencia |
 |---|---|---|
-| 1 | **No hay zone.js.** La detección de cambios se dispara por señales, y *todos* los componentes son `OnPush`. Un valor que no sea señal no repinta la pantalla. | [app.config.ts:23](src/app/app.config.ts#L23) · `ChangeDetectionStrategy.OnPush` en los 19 componentes |
+| 1 | **No hay zone.js.** La detección de cambios se dispara por señales, y *todos* los componentes son `OnPush`. Un valor que no sea señal no repinta la pantalla. | [app.config.ts:23](src/app/app.config.ts#L23) · `ChangeDetectionStrategy.OnPush` en los 23 componentes |
 | 2 | **El cliente HTTP no se escribe: se genera.** 23 servicios y 110 modelos salen de 99 rutas / 129 operaciones del contrato. Editar a mano `src/app/api` se pierde en el siguiente `pnpm api:sync`. | [api/generator-config.json](api/generator-config.json) · [src/app/api/.openapi-generator/FILES](src/app/api/.openapi-generator/FILES) |
 | 3 | **El token lo pone el cliente generado, no un interceptor.** Viaja solo a los endpoints que declaran `bearerAuth` en el contrato, no a toda petición saliente. | [app.config.ts:50](src/app/app.config.ts#L50) |
 | 4 | **El JWT se decodifica, nunca se verifica.** El backend firma con HMAC simétrico; el secreto no está —ni puede estar— en el navegador. Sirve para decidir qué pintar, no qué permitir. | [sesion.service.ts:134](src/app/nucleo/sesion/sesion.service.ts#L134) |
@@ -64,20 +64,24 @@ Evidencia: [pnpm-workspace.yaml](pnpm-workspace.yaml) · [.npmrc](.npmrc) ·
 src/
 ├── index.html            carga Google Identity Services con `defer`
 ├── main.ts               bootstrapApplication(App, appConfig)
-├── styles.scss           tokens, regla de color y las piezas compartidas
+├── styles.scss           reúne los parciales de estilos/
+├── estilos/              tokens, fuentes, botones, formularios, tablas, insignias…
 ├── environments/         apiBasePath y googleClientId, por entorno
 └── app/
     ├── app.config.ts     providers raíz: zoneless, router, http, Configuration
     ├── app.ts / .html    cascarón: panel lateral + <router-outlet> + avisos
     ├── app.routes.ts     ocho rutas en diferido + dos redirecciones
     ├── api/              GENERADO — no se edita a mano
-    ├── nucleo/           sesión, roles, guardas, errores, avisos, logo, idiomas
+    ├── nucleo/           sesión, roles, guardas, errores, avisos, logo, idiomas, tema, confirmación
     │   ├── sesion/       sesion.service · rol · guardas · google.service
     │   ├── http/         errores.interceptor · avisos.service · idioma.interceptor
-    │   ├── i18n/         i18n.service · idioma · titulo.strategy
+    │   ├── i18n/         i18n.service · idioma · titulo.strategy · formatos
     │   │   └── traducciones/   es (fuente de las claves) · en · pt
+    │   ├── tema/         tema.service
+    │   ├── confirmacion/ confirmacion.service
     │   └── marca/        logo.service
     ├── disenio/          panel-lateral · pila-avisos · icono · barra-idiomas
+    │                     dialogo · confirmacion · selector-tema
     │                     secciones.scss (trastienda, personal y KPIs)
     └── paginas/          login · inicio · sin-permiso · pos · kds · caja
                           despacho · trastienda (+5 secciones) · personal · kpis
@@ -110,25 +114,36 @@ src/
 | [avisos.service.ts](src/app/nucleo/http/avisos.service.ts) | Cola de avisos | Los errores **no se van solos**: en un POS táctil nadie está mirando. Solo éxito (4 s) e info (6 s) caducan. Dos fallos idénticos no se apilan | [:44](src/app/nucleo/http/avisos.service.ts#L44) |
 | [logo.service.ts](src/app/nucleo/marca/logo.service.ts) | Logo del local | Vive en `localStorage` —al revés que la sesión— porque es preferencia del dispositivo, no del turno. Máximo 512 KB. **No viaja al servidor**: `ConfiguracionLocal` no tiene campo para él | [:10](src/app/nucleo/marca/logo.service.ts#L10), [:17](src/app/nucleo/marca/logo.service.ts#L17) |
 
-### Diseño — las cuatro piezas compartidas
+### Diseño — las piezas compartidas
 
 | Archivo | Qué es | Lo que hay que saber | Evidencia |
 |---|---|---|---|
 | [panel-lateral.ts](src/app/disenio/panel-lateral.ts) | Navegación entre superficies | Solo lista destinos que el rol permite. Plegado deja una regleta de iconos en vez de desaparecer, y el estado se recuerda **por dispositivo**: la pantalla de cocina quiere estar plegada siempre. En móvil se pliega solo | [:29](src/app/disenio/panel-lateral.ts#L29), [:48](src/app/disenio/panel-lateral.ts#L48) |
 | [pila-avisos.ts](src/app/disenio/pila-avisos.ts) | Los avisos en pantalla | `role="status"` + `aria-live="polite"`: el lector de pantalla los anuncia sin interrumpir. Se apilan **por encima** de la barra de idiomas, que ocupa la misma esquina |
 | [barra-idiomas.ts](src/app/disenio/barra-idiomas.ts) | Las tres banderas | Fija sobre todas las pantallas, también sobre la de entrar. Cada botón lleva el nombre del idioma en `aria-label`: una bandera no es un idioma | [:15](src/app/disenio/pila-avisos.ts#L15) |
-| [icono.ts](src/app/disenio/icono.ts) + [iconos.ts](src/app/disenio/iconos.ts) | Nueve trazos SVG | Sin librería de iconos: son nueve `path` en `currentColor`. `aria-hidden` va fijo, porque un icono nunca es la única forma de nombrar algo | [icono.ts:21](src/app/disenio/icono.ts#L21) |
-| [styles.scss](src/styles.scss) | Tokens y piezas comunes | `.bloque`, `.chip`, `.cabecera`, `.vacio` y `.cifra` viven aquí porque tres superficies los pintaban idénticos. Tema oscuro por `prefers-color-scheme` | [:150](src/styles.scss#L150), [:256](src/styles.scss#L256) |
+| [icono.ts](src/app/disenio/icono.ts) + [iconos.ts](src/app/disenio/iconos.ts) | Iconos de un solo juego | Tabler Icons 3.46.0 (MIT), de contorno: se copian los `d` de los que se usan, sin instalar la librería. Nada de emojis ni glifos como `★` en lugar de iconos. `aria-hidden` va fijo, porque un icono nunca es la única forma de nombrar algo | [iconos.ts](src/app/disenio/iconos.ts) |
+| [dialogo.ts](src/app/disenio/dialogo.ts) + [confirmacion.ts](src/app/disenio/confirmacion.ts) | Diálogo y confirmación de peligro | Sobre el `<dialog>` nativo: `showModal()` deja inerte el resto, atrapa el foco y cierra con Escape. Toda acción de peligro pasa por `ConfirmacionService.pedir(...)`; el foco arranca en «Dejarlo», no en el botón rojo | [confirmacion.service.ts](src/app/nucleo/confirmacion/confirmacion.service.ts) |
+| [selector-tema.ts](src/app/disenio/selector-tema.ts) | Claro, oscuro o sistema | Un botón en el pie del panel que recorre los tres. `TemaService` escribe `data-tema` en `<html>` y lo recuerda por dispositivo, como el idioma | [tema.service.ts](src/app/nucleo/tema/tema.service.ts) |
+| [styles.scss](src/styles.scss) + [estilos/](src/estilos/) | Tokens y piezas comunes | Diez parciales: fuentes, tokens de claro y oscuro, base, botones, formularios, tarjetas, insignias, alertas, tablas y utilidades. `.bloque`, `.chip`, `.tabla`, `.cabecera` y `.cifra` viven aquí porque varias superficies los pintan igual | [_tokens.scss](src/estilos/_tokens.scss) |
 
-**La regla de color no es negociable** ([styles.scss:10](src/styles.scss#L10)).
-La marca es roja (`#8F0808`) y el estado crítico también, y se separan por dos
-vías a la vez: luminosidad (marca oscura, crítico claro) y **forma**, que es la
-que de verdad protege. La marca es lo único **relleno**; lo destructivo va
-siempre **contorneado** ([styles.scss:225](src/styles.scss#L225)). Un botón rojo
-relleno significa «acción principal», nunca «borrar»: si un `Cancelar comanda`
-se pinta relleno, el mozo con prisa lo confunde con `Enviar`, y eso es un error
-de servicio, no de estilo. El mínimo táctil (`--toque: 44px`,
-[:78](src/styles.scss#L78)) rige inputs y botones globalmente.
+**La regla de color** ([_botones.scss](src/estilos/_botones.scss)). La marca es
+el borgoña del logo (`#A41E34`). Relleno borgoña es la acción principal; gris,
+lo secundario; contorno borgoña, lo importante que no es principal; **relleno
+rojo, el peligro**; relleno verde, confirmar. Conviven dos rojos rellenos, así
+que un botón de peligro nunca está a un solo toque: el gesto que lo abre es gris
+y el rojo vive dentro de la confirmación, con un verbo explícito («Cancelar y
+reponer stock»). Los tonos de peligro y éxito son los vecinos de la guía que sí
+pasan 4,5:1 con texto blanco (`#D32F2F` y `#2D7A3C`). Sin sombras de color ni
+botones que se elevan al pasar el ratón.
+
+El mínimo táctil (`--toque: 44px`) rige en pantallas táctiles; el tamaño chico
+(36 px) solo existe con puntero fino, porque `--control-chico` sube a 44 px con
+`pointer: coarse`.
+
+**Tipografía.** Poppins en los títulos, Inter en el texto y los botones, y
+JetBrains Mono solo para cifras (importes, cronómetros, códigos). Las tres van
+alojadas en [public/fuentes/](public/fuentes/) con sus licencias OFL: nada se pide
+a Google Fonts. Ningún rótulo va en mayúsculas espaciadas ni en monoespaciada.
 
 ### Las superficies
 
@@ -453,34 +468,35 @@ El puerto es el **81** y no el 80, para dejar ese libre al futuro
 
 | Chunk | Raw | Transferido |
 |---|---|---|
-| **Inicial** (main + runtime + estilos + español) | 478,83 kB | 104,49 kB |
-| `trastienda-page` | 97,21 kB | 12,13 kB |
-| `login-page` | 48,53 kB | 11,91 kB |
-| `pos-page` | 40,67 kB | 8,61 kB |
-| `personal-page` | 30,42 kB | 6,12 kB |
-| `caja-page` | 28,30 kB | 6,43 kB |
-| `pt` (diccionario) | 28,29 kB | 8,51 kB |
-| `en` (diccionario) | 27,28 kB | 8,06 kB |
-| `kpis-page` | 20,24 kB | 4,97 kB |
-| `despacho-page` | 18,90 kB | 4,63 kB |
-| `kds-page` | 16,01 kB | 4,10 kB |
+| **Inicial** (main + runtime + estilos + español) | 496,18 kB | 108,07 kB |
+| `trastienda-page` | 91,05 kB | 12,30 kB |
+| `login-page` | 47,07 kB | 11,43 kB |
+| `pos-page` | 41,96 kB | 8,79 kB |
+| `personal-page` | 29,37 kB | 6,07 kB |
+| `pt` (diccionario) | 29,08 kB | 8,76 kB |
+| `caja-page` | 28,74 kB | 6,50 kB |
+| `en` (diccionario) | 28,13 kB | 8,31 kB |
+| `despacho-page` | 19,32 kB | 4,76 kB |
+| `kpis-page` | 18,98 kB | 4,87 kB |
+| `kds-page` | 16,57 kB | 4,18 kB |
 | `sin-permiso-page` / `inicio-page` | 1,27 kB / 457 B | — |
 
 Es la prueba de que el diferido funciona: **la pantalla de cocina descarga 16 kB
 de código propio**, no los 330 kB de todas las superficies juntas, y **ningún
 dispositivo descarga un idioma que nadie ha elegido**. El inicial queda por
 debajo del presupuesto de aviso (500 kB); meter los tres diccionarios dentro lo
-pasaba por 33 kB, y ese fue el motivo de cargarlos aparte.
+pasaba por 33 kB, y ese fue el motivo de cargarlos aparte. Las fuentes (84 kB en
+woff2) no cuentan en el bundle: se piden una vez y quedan en caché.
 
 ---
 
 ## Pruebas
 
 ```bash
-pnpm test        # Vitest 4 + jsdom · 5 archivos, 37 pruebas, ~1,5 s
+pnpm test        # Vitest 4 + jsdom · 8 archivos, 51 pruebas, ~1,7 s
 ```
 
-Las cinco suites cubren lo que falla en silencio, que es lo que no se ve al
+Las ocho suites cubren lo que falla en silencio, que es lo que no se ve al
 mirar la pantalla:
 
 | Suite | Qué guarda |
@@ -489,6 +505,9 @@ mirar la pantalla:
 | [panel-lateral.spec.ts](src/app/disenio/panel-lateral.spec.ts) | Que cada rol vea sus destinos y ninguno más, que todo enlace tenga ruta detrás, y que **cambiar de idioma repinte el panel** |
 | [trastienda.page.spec.ts](src/app/paginas/trastienda/trastienda.page.spec.ts) | Que las pestañas aparezcan según el rol: una que desaparece no da error, simplemente no está |
 | [i18n.service.spec.ts](src/app/nucleo/i18n/i18n.service.spec.ts) | Que los tres diccionarios estén completos y con los mismos huecos, y que el idioma se recuerde al recargar |
+| [tema.service.spec.ts](src/app/nucleo/tema/tema.service.spec.ts) | Que el tema elegido se escriba en `data-tema`, se recuerde y se aplique al recargar: si falla, la interfaz sigue en claro sin ningún error |
+| [confirmacion.service.spec.ts](src/app/nucleo/confirmacion/confirmacion.service.spec.ts) | Que la confirmación de peligro resuelva su promesa y que una nueva dé por rechazada la anterior: una promesa colgada es una acción que nunca ocurre |
+| [formatos.spec.ts](src/app/nucleo/i18n/formatos.spec.ts) | Que los minutos se lean como se dicen: «8 d 4 h» y no «11803 min» |
 | [barra-idiomas.spec.ts](src/app/disenio/barra-idiomas.spec.ts) | Que las tres banderas estén, que marquen cuál está en uso y que pulsarlas cambie el idioma: si la barra desaparece, los otros dos idiomas quedan inalcanzables sin que falle nada |
 
 ---
@@ -505,9 +524,6 @@ mirar la pantalla:
 - **El logo no viaja al servidor.** Cada dispositivo lleva el suyo en
   `localStorage` porque `ConfiguracionLocal` no tiene campo para él. El día que
   lo tenga, `LogoService` es el único punto a cambiar.
-- **El tema oscuro no tiene interruptor.** `styles.scss` define los tokens para
-  `[data-tema='oscuro']`, pero hoy nadie escribe ese atributo: el tema lo decide
-  el sistema operativo vía `prefers-color-scheme`.
 - **Los mensajes del servidor siguen en español.** El backend no mira la
   cabecera `Accept-Language` que el frontend ya manda, así que un 409 llega con
   su texto en español aunque la interfaz esté en inglés. Se muestra igual porque
@@ -533,6 +549,9 @@ mirar la pantalla:
   lee con `t(...)`; el compilador exige que los tres idiomas lo tengan. Eso
   incluye los `placeholder`, los `aria-label` y los `title`, que también los lee
   una persona.
-- `.bloque`, `.chip`, `.cabecera` y `.vacio` viven en `src/styles.scss` porque
-  varias superficies los pintan igual. La regla de color está explicada arriba
-  del todo de ese archivo y no es negociable.
+- `.bloque`, `.chip`, `.tabla`, `.cabecera` y `.vacio` viven en `src/estilos/`
+  porque varias superficies los pintan igual. La regla de color está explicada
+  arriba de `_botones.scss`: una acción de peligro siempre pasa por
+  `ConfirmacionService`, nunca a un solo toque.
+- Un icono nuevo sale del mismo juego (Tabler, contorno) y va a `iconos.ts`.
+  Nunca un emoji ni un carácter Unicode en su lugar.
