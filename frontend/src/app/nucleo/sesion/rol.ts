@@ -31,15 +31,16 @@ export function normalizarRol(valor: string): string {
 /**
  * Superficie a la que entra cada rol al iniciar sesion.
  *
- * El administrador aterriza en el POS y no en la trastienda porque es quien
- * recorre el flujo principal entero por si solo, y ese recorrido empieza
- * tomando una comanda.
+ * El administrador aterriza en el POS porque es quien recorre el flujo
+ * principal entero por si solo, y ese recorrido empieza tomando una comanda.
+ * Cuando exista el tablero de inicio, el administrador y la caja pasaran a
+ * entrar por el.
  */
 export const INICIO_POR_ROL: Record<Rol, string> = {
   ADMIN: '/pos',
   MOZO: '/pos',
   CAJA: '/caja',
   COCINA: '/kds',
-  ALMACEN: '/trastienda',
+  ALMACEN: '/inventario',
   DELIVERY: '/despacho',
 };

@@ -1,15 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 
 import { I18nService } from '../nucleo/i18n/i18n.service';
 import type { Idioma } from '../nucleo/i18n/idioma';
 
 /**
- * La barra de idiomas: tres banderas fijas en una esquina, encima de todo.
+ * La barra de idiomas: tres banderas, siempre a la vista.
  *
- * Va superpuesta y no dentro del panel lateral porque cambiar de idioma no es
- * navegar: quien lo necesita es justo quien no entiende lo que esta leyendo, y
- * a esa persona no se le puede pedir que primero encuentre un menu. Se pinta
- * fuera del `@if` de la sesion, asi que tambien esta en la pantalla de entrar.
+ * Nunca va escondida dentro de un menu: quien necesita cambiar de idioma es
+ * justo quien no entiende lo que esta leyendo. En la pantalla de entrar flota en
+ * una esquina (`flotante`); con sesion abierta va `integrada` en el pie del
+ * panel lateral y en la barra superior del celular, donde no tapa contenido.
  *
  * Las banderas van dibujadas a mano, como los iconos: los emoji de bandera no
  * se pintan en Windows —salen las dos letras del pais— y una libreria de
@@ -25,7 +25,13 @@ import type { Idioma } from '../nucleo/i18n/idioma';
   selector: 'app-barra-idiomas',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="barra" role="group" [attr.aria-label]="i18n.t('idioma.elegir')">
+    <div
+      class="barra"
+      [class.integrada]="variante() === 'integrada'"
+      [class.vertical]="vertical()"
+      role="group"
+      [attr.aria-label]="i18n.t('idioma.elegir')"
+    >
       @for (i of i18n.idiomas; track i.codigo) {
         <button
           type="button"
@@ -145,6 +151,28 @@ import type { Idioma } from '../nucleo/i18n/idioma';
       outline-offset: 2px;
     }
 
+    /* Integrada no flota ni se enmarca: vive dentro de otra barra. Si no cabe
+       en fila (la regleta del panel plegado) se apila sola. */
+    .barra.integrada {
+      position: static;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    .barra.integrada .bandera {
+      width: var(--control-chico);
+      min-height: var(--control-chico);
+    }
+
+    .barra.vertical {
+      flex-direction: column;
+      flex-wrap: nowrap;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .bandera svg {
         transition: none;
@@ -154,6 +182,10 @@ import type { Idioma } from '../nucleo/i18n/idioma';
 })
 export class BarraIdiomas {
   protected readonly i18n = inject(I18nService);
+
+  readonly variante = input<'flotante' | 'integrada'>('flotante');
+  /** En la regleta del panel: una bandera debajo de otra. */
+  readonly vertical = input(false);
 
   protected elegir(codigo: Idioma): void {
     // El diccionario se descarga al elegirlo; no hay nada que esperar aqui, la

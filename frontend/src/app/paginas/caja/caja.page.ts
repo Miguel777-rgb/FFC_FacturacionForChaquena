@@ -406,7 +406,7 @@ export class CajaPage implements OnInit {
 
   /**
    * Registra la calificacion. La regla de las N calificaciones vive en el
-   * servidor —el umbral lo fija administracion en la trastienda—, asi que aqui
+   * servidor —el umbral lo fija administracion en la configuracion—, asi que aqui
    * no se cuenta nada: se manda y se lee lo que responde.
    *
    * Se califica una sola vez por comanda; un segundo intento devuelve 409 y el

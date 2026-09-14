@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { SesionService } from '../nucleo/sesion/sesion.service';
@@ -6,47 +15,74 @@ import { LogoService } from '../nucleo/marca/logo.service';
 import { I18nService } from '../nucleo/i18n/i18n.service';
 import type { ClaveI18n } from '../nucleo/i18n/traducciones/es';
 import type { Rol } from '../nucleo/sesion/rol';
+import { BarraIdiomas } from './barra-idiomas';
 import { Icono } from './icono';
 import { SelectorTema } from './selector-tema';
 import type { NombreIcono } from './iconos';
+
+type Grupo = 'operacion' | 'gestion';
 
 interface Destino {
   ruta: string;
   /** Clave de traduccion, no el rotulo: el panel cambia de idioma en el sitio. */
   etiqueta: ClaveI18n;
   icono: NombreIcono;
+  grupo: Grupo;
   roles: Rol[];
 }
 
 /**
- * Las superficies, en el orden del turno: primero los cuatro puestos por los
- * que pasa una comanda, luego las tres pantallas de administracion.
+ * Los destinos, en dos grupos: la operacion, en el orden en que pasa una
+ * comanda, y la gestion del local.
  *
- * Mismo reparto de roles que las guardas de `app.routes.ts`. KPIs admite tambien
- * a caja porque el endpoint del tablero lo admite: quien cuadra el dinero tiene
- * derecho a ver la venta del dia sin pedirsela a nadie.
+ * Mismo reparto de roles que las guardas de `app.routes.ts`. Ventas y reportes
+ * admite tambien a caja porque el endpoint del tablero lo admite: quien cuadra
+ * el dinero tiene derecho a ver la venta del dia sin pedirsela a nadie.
  */
 const DESTINOS: Destino[] = [
-  { ruta: '/pos', etiqueta: 'panel.pos', icono: 'pos', roles: ['MOZO', 'ADMIN'] },
-  { ruta: '/kds', etiqueta: 'panel.kds', icono: 'cocina', roles: ['COCINA', 'ADMIN'] },
-  { ruta: '/caja', etiqueta: 'panel.caja', icono: 'caja', roles: ['CAJA', 'ADMIN'] },
+  { ruta: '/pos', etiqueta: 'panel.pos', icono: 'pos', grupo: 'operacion', roles: ['MOZO', 'ADMIN'] },
+  { ruta: '/kds', etiqueta: 'panel.kds', icono: 'cocina', grupo: 'operacion', roles: ['COCINA', 'ADMIN'] },
+  { ruta: '/caja', etiqueta: 'panel.caja', icono: 'caja', grupo: 'operacion', roles: ['CAJA', 'ADMIN'] },
   {
     ruta: '/despacho',
     etiqueta: 'panel.despacho',
     icono: 'despacho',
+    grupo: 'operacion',
     roles: ['DELIVERY', 'MOZO', 'ADMIN'],
   },
+  { ruta: '/menu', etiqueta: 'panel.menu', icono: 'menu', grupo: 'gestion', roles: ['ALMACEN', 'ADMIN'] },
   {
-    ruta: '/trastienda',
-    etiqueta: 'panel.trastienda',
-    icono: 'trastienda',
+    ruta: '/inventario',
+    etiqueta: 'panel.inventario',
+    icono: 'inventario',
+    grupo: 'gestion',
     roles: ['ALMACEN', 'ADMIN'],
   },
-  { ruta: '/personal', etiqueta: 'panel.personal', icono: 'personal', roles: ['ADMIN'] },
-  { ruta: '/kpis', etiqueta: 'panel.kpis', icono: 'kpis', roles: ['ADMIN', 'CAJA'] },
+  {
+    ruta: '/reportes',
+    etiqueta: 'panel.reportes',
+    icono: 'reportes',
+    grupo: 'gestion',
+    roles: ['ADMIN', 'CAJA'],
+  },
+  { ruta: '/personal', etiqueta: 'panel.personal', icono: 'personal', grupo: 'gestion', roles: ['ADMIN'] },
+  {
+    ruta: '/configuracion',
+    etiqueta: 'panel.configuracion',
+    icono: 'configuracion',
+    grupo: 'gestion',
+    roles: ['ADMIN'],
+  },
+];
+
+const GRUPOS: ReadonlyArray<{ id: Grupo; etiqueta: ClaveI18n }> = [
+  { id: 'operacion', etiqueta: 'panel.grupoOperacion' },
+  { id: 'gestion', etiqueta: 'panel.grupoGestion' },
 ];
 
 const CLAVE_PLEGADO = 'chaquena.panel.plegado';
+
+let siguientePanel = 0;
 
 /**
  * Panel lateral con las superficies a las que este usuario puede entrar.
@@ -55,18 +91,23 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
  * arqueo de caja. Esconderlo es comodidad, no seguridad, pero evita que la
  * gente choque contra un 403 en mitad del servicio.
  *
- * Plegado deja una regleta de iconos en vez de desaparecer: en el KDS y en el
- * POS la pantalla es estrecha y cada pixel cuenta, pero perder la navegacion
- * entera obligaria a desplegar para cambiar de sitio. El estado se recuerda por
- * dispositivo, que es donde la decision tiene sentido: la pantalla de cocina
- * quiere estar siempre plegada y el escritorio de caja siempre abierto.
+ * Tres formas segun la pantalla:
+ *
+ * - PC: abierto, y plegable a una regleta de iconos. El estado se recuerda por
+ *   dispositivo.
+ * - Entre 768 y 1023px: regleta siempre; 15rem no dejarian sitio al contenido.
+ * - Celular: no se pinta aqui. La barra superior lo abre dentro de un cajon con
+ *   `cajon`, y cada enlace avisa con `navego` para cerrarlo.
+ *
+ * El idioma, el tema y la salida viven en su pie: con sesion abierta nada flota
+ * encima del contenido.
  */
 @Component({
   selector: 'app-panel-lateral',
-  imports: [RouterLink, RouterLinkActive, Icono, SelectorTema],
+  imports: [RouterLink, RouterLinkActive, Icono, SelectorTema, BarraIdiomas],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <aside [class.plegado]="plegado()">
+    <aside [class.plegado]="regleta()" [class.cajon]="cajon()">
       <!-- Marca: el logo del local arriba a la izquierda. Mientras no se cargue
            ninguno, la ranura invita a hacerlo en vez de dejar un hueco. -->
       <div class="marca-local">
@@ -87,83 +128,84 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
           />
         </label>
 
-        @if (!plegado()) {
-          <div class="identidad">
-            <span class="marca">Chaquena</span>
-            <span class="modulo">{{ t('panel.modulo') }}</span>
-          </div>
+        <div class="identidad">
+          <span class="marca">Chaquena</span>
+          <span class="modulo">{{ t('panel.modulo') }}</span>
+        </div>
 
-          @if (logo.logo()) {
-            <button
-              type="button"
-              class="icono-solo"
-              (click)="logo.quitar()"
-              [attr.aria-label]="t('panel.quitarLogo')"
-            >
-              <app-icono nombre="quitar" [tamano]="16" />
-            </button>
-          }
+        @if (logo.logo()) {
+          <button
+            type="button"
+            class="icono-solo quitar-logo"
+            (click)="logo.quitar()"
+            [attr.aria-label]="t('panel.quitarLogo')"
+          >
+            <app-icono nombre="quitar" [tamano]="16" />
+          </button>
         }
       </div>
 
       @if (errorLogo(); as texto) {
-        @if (!plegado()) {
-          <p class="error-logo" role="alert">{{ texto }}</p>
-        }
+        <p class="error-logo" role="alert">{{ texto }}</p>
       }
 
       <nav [attr.aria-label]="t('panel.superficies')">
-        <ul>
-          @for (d of visibles(); track d.ruta) {
-            <li>
-              <a
-                [routerLink]="d.ruta"
-                routerLinkActive="activo"
-                [attr.title]="plegado() ? t(d.etiqueta) : null"
-              >
-                <app-icono [nombre]="d.icono" />
-                @if (!plegado()) {
-                  <span>{{ t(d.etiqueta) }}</span>
-                }
-              </a>
-            </li>
-          }
-        </ul>
+        @for (g of grupos(); track g.id) {
+          <div class="grupo">
+            <p class="rotulo-grupo" [id]="idBase + '-' + g.id">{{ t(g.etiqueta) }}</p>
+            <ul [attr.aria-labelledby]="idBase + '-' + g.id">
+              @for (d of g.destinos; track d.ruta) {
+                <li>
+                  <a
+                    [routerLink]="d.ruta"
+                    routerLinkActive="activo"
+                    [attr.aria-label]="t(d.etiqueta)"
+                    [attr.title]="regleta() ? t(d.etiqueta) : null"
+                    (click)="navego.emit()"
+                  >
+                    <app-icono [nombre]="d.icono" />
+                    <span class="etiqueta">{{ t(d.etiqueta) }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          </div>
+        }
       </nav>
 
       <footer>
-        @if (!plegado()) {
-          <div class="quien">
-            <span class="nombre">{{ sesion.nombre() }}</span>
-            <span class="roles">{{ sesion.roles().join(' · ') || t('panel.sinRoles') }}</span>
-          </div>
-        }
+        <div class="quien">
+          <span class="nombre">{{ sesion.nombre() }}</span>
+          <span class="roles">{{ sesion.roles().join(' · ') || t('panel.sinRoles') }}</span>
+        </div>
 
-        <app-selector-tema />
-
-        <button
-          type="button"
-          class="icono-solo"
-          (click)="salir()"
-          [attr.title]="plegado() ? t('panel.salir') : null"
-          [attr.aria-label]="t('panel.cerrarSesion')"
-        >
-          <app-icono nombre="salir" />
-        </button>
+        <div class="controles">
+          <app-barra-idiomas variante="integrada" [vertical]="regleta()" />
+          <app-selector-tema />
+          <button
+            type="button"
+            class="icono-solo"
+            (click)="salir()"
+            [attr.title]="t('panel.salir')"
+            [attr.aria-label]="t('panel.cerrarSesion')"
+          >
+            <app-icono nombre="salir" />
+          </button>
+        </div>
       </footer>
 
-      <button
-        type="button"
-        class="plegar"
-        (click)="alternar()"
-        [attr.aria-expanded]="!plegado()"
-        [attr.aria-label]="t(plegado() ? 'panel.desplegarAria' : 'panel.plegarAria')"
-      >
-        <app-icono nombre="panel" [tamano]="18" />
-        @if (!plegado()) {
+      @if (!cajon() && !tableta()) {
+        <button
+          type="button"
+          class="plegar"
+          (click)="alternar()"
+          [attr.aria-expanded]="!plegado()"
+          [attr.aria-label]="t(plegado() ? 'panel.desplegarAria' : 'panel.plegarAria')"
+        >
+          <app-icono nombre="panel" [tamano]="18" />
           <span>{{ t('panel.plegar') }}</span>
-        }
-      </button>
+        </button>
+      }
     </aside>
   `,
   styles: `
@@ -180,13 +222,10 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       overflow: hidden;
     }
 
-    aside.plegado {
-      width: calc(var(--toque) + var(--e3) * 2);
-    }
-
-    /* Plegado, el pie apila sus botones: en la regleta no caben dos en fila. */
-    aside.plegado footer {
-      flex-direction: column;
+    aside.cajon {
+      width: 100%;
+      height: 100%;
+      border-right: none;
     }
 
     /* --- marca ------------------------------------------------------------ */
@@ -198,8 +237,13 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       border-bottom: 1px solid var(--linea);
     }
 
-    /* La ranura es el propio input de archivo: la etiqueta envuelve un input
-       escondido, asi que se pulsa la imagen para cambiarla. */
+    /* En el cajon, el aspa de cerrar ocupa la esquina superior derecha. */
+    aside.cajon .marca-local {
+      padding-right: calc(var(--control) + var(--e2));
+    }
+
+    /* La ranura es el propio input de archivo: se pulsa la imagen para
+       cambiarla. */
     .ranura {
       position: relative;
       display: grid;
@@ -207,7 +251,7 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       flex: none;
       width: var(--toque);
       height: var(--toque);
-      border: 1px dashed var(--linea);
+      border: 1px dashed var(--linea-fuerte);
       border-radius: var(--radio-chico);
       color: var(--tenue);
       cursor: pointer;
@@ -230,7 +274,7 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       object-fit: contain;
     }
 
-    /* Se oculta sin display:none para que siga recibiendo el foco del teclado. */
+    /* Se oculta sin display:none para que siga recibiendo el foco. */
     .ranura input {
       position: absolute;
       inset: 0;
@@ -248,15 +292,16 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
     }
 
     .modulo {
-      font-size: 0.95rem;
+      font-size: var(--t-texto);
       font-weight: 600;
       line-height: 1.1;
+      color: var(--tinta);
     }
 
     .error-logo {
       margin: 0;
       padding: var(--e2);
-      font-size: 0.8rem;
+      font-size: var(--t-chico);
       color: var(--critico);
       background: var(--critico-suave);
       border: 1px solid var(--critico);
@@ -267,6 +312,18 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
     nav {
       flex: 1;
       overflow-y: auto;
+    }
+
+    .grupo + .grupo {
+      margin-top: var(--e3);
+    }
+
+    .rotulo-grupo {
+      margin: 0 0 var(--e1);
+      padding: 0 var(--e3);
+      font-size: var(--t-leyenda);
+      font-weight: 600;
+      color: var(--tenue);
     }
 
     ul {
@@ -296,9 +353,7 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       background: var(--hundido);
     }
 
-    /* El destino actual se marca con peso y un filete, no solo con color: en la
-       cocina hay pantallas donde el tinte claro casi no se distingue con
-       reflejos. */
+    /* El destino actual se marca con peso y un filete, no solo con color. */
     a.activo {
       color: var(--acento);
       background: var(--acento-suave);
@@ -306,11 +361,10 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       box-shadow: inset 3px 0 0 var(--acento);
     }
 
-    /* --- idioma ----------------------------------------------------------- */
     /* --- pie -------------------------------------------------------------- */
     footer {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: var(--e2);
       padding-top: var(--e3);
       border-top: 1px solid var(--linea);
@@ -319,7 +373,6 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
     .quien {
       display: flex;
       flex-direction: column;
-      flex: 1;
       min-width: 0;
     }
 
@@ -340,16 +393,25 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       white-space: nowrap;
     }
 
-    /* Ni principal ni destructivo: se anulan a mano los estilos globales del
-       elemento button, que por defecto pintan el rojo relleno de la accion
-       principal. */
+    .controles {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--e1);
+    }
+
+    .controles app-barra-idiomas {
+      margin-right: auto;
+    }
+
+    /* Ni principal ni peligro: se anulan a mano los estilos globales del boton. */
     .icono-solo,
     .plegar {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: var(--e2);
-      min-height: var(--toque);
+      min-height: var(--control-chico);
       padding: 0 var(--e2);
       color: var(--tenue);
       background: transparent;
@@ -359,39 +421,57 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
 
     .icono-solo {
       flex: none;
-      width: var(--toque);
+      width: var(--control-chico);
       padding: 0;
     }
 
     .plegar {
       width: 100%;
-      font-size: 0.8rem;
+      font-size: var(--t-chico);
+      font-weight: 500;
     }
 
-    .icono-solo:hover,
-    .plegar:hover {
+    .icono-solo:hover:not(:disabled),
+    .plegar:hover:not(:disabled) {
       color: var(--tinta);
       background: var(--hundido);
     }
 
-    /* En movil el panel se pliega solo: 15rem sobre una pantalla de 380px no
-       deja sitio para la comanda. */
-    @media (max-width: 40rem) {
-      aside {
-        width: calc(var(--toque) + var(--e3) * 2);
-      }
+    /* --- regleta ---------------------------------------------------------- */
+    /* Plegado a mano en PC, o siempre entre 768 y 1023px (tableta). En la regleta solo
+       quedan los iconos; el nombre de cada destino pasa a \`title\` y sigue en
+       \`aria-label\`. */
+    aside.plegado {
+      width: calc(var(--toque) + var(--e3) * 2);
+    }
 
-      footer {
-        flex-direction: column;
-      }
+    aside.plegado .identidad,
+    aside.plegado .quitar-logo,
+    aside.plegado .error-logo,
+    aside.plegado .rotulo-grupo,
+    aside.plegado .etiqueta,
+    aside.plegado .quien,
+    aside.plegado .plegar span {
+      display: none;
+    }
 
-      aside:not(.plegado) .identidad,
-      aside:not(.plegado) .quien,
-      aside:not(.plegado) a span,
-      aside:not(.plegado) .plegar span,
-      aside:not(.plegado) .error-logo {
-        display: none;
-      }
+    aside.plegado a {
+      justify-content: center;
+      padding: 0;
+    }
+
+    aside.plegado .grupo + .grupo {
+      padding-top: var(--e2);
+      margin-top: var(--e2);
+      border-top: 1px solid var(--linea);
+    }
+
+    aside.plegado .controles {
+      flex-direction: column;
+    }
+
+    aside.plegado .controles app-barra-idiomas {
+      margin-right: 0;
     }
   `,
 })
@@ -401,12 +481,35 @@ export class PanelLateral {
   protected readonly t = inject(I18nService).t;
   private readonly router = inject(Router);
 
+  /** Dentro del cajon del celular: nunca plegado y sin boton de plegar. */
+  readonly cajon = input(false);
+  /** Se pulso un destino: quien abrio el cajon lo cierra. */
+  readonly navego = output<void>();
+
+  protected readonly idBase = `panel-${++siguientePanel}`;
   protected readonly plegado = signal(this.leerPlegado());
+  /** Entre 768 y 1023px la regleta no se elige: 15rem no dejarian sitio. */
+  protected readonly tableta = signal(false);
+  protected readonly regleta = computed(() => !this.cajon() && (this.plegado() || this.tableta()));
   protected readonly errorLogo = signal<string | null>(null);
 
-  protected readonly visibles = computed(() =>
-    DESTINOS.filter((d) => this.sesion.tieneAlgunRol(d.roles)),
-  );
+  protected readonly grupos = computed(() => {
+    const visibles = DESTINOS.filter((d) => this.sesion.tieneAlgunRol(d.roles));
+    return GRUPOS.map((g) => ({ ...g, destinos: visibles.filter((d) => d.grupo === g.id) })).filter(
+      (g) => g.destinos.length > 0,
+    );
+  });
+
+  constructor() {
+    // jsdom no tiene matchMedia: en las pruebas el panel se comporta como en PC.
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+
+    const consulta = window.matchMedia('(min-width: 48rem) and (max-width: 63.99rem)');
+    const anotar = () => this.tableta.set(consulta.matches);
+    anotar();
+    consulta.addEventListener('change', anotar);
+    inject(DestroyRef).onDestroy(() => consulta.removeEventListener('change', anotar));
+  }
 
   protected alternar(): void {
     this.plegado.update((v) => !v);
@@ -429,6 +532,7 @@ export class PanelLateral {
   }
 
   protected salir(): void {
+    this.navego.emit();
     this.sesion.cerrar();
     void this.router.navigateByUrl('/entrar');
   }

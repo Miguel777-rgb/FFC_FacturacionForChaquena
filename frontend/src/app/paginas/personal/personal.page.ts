@@ -31,8 +31,8 @@ type PanelFila = 'ficha' | 'edicion' | 'password';
  * Personal: quien trabaja aqui, con que cargo, y que abre cada cargo.
  *
  * Tiene superficie propia porque administrar a las personas no se parece a nada
- * de lo que hay en la trastienda. Alli se gestionan cosas —stock, platillos,
- * parametros—; aqui se reparten permisos, que es lo unico de esta aplicacion
+ * de lo que hay en el menu, el inventario o la configuracion. Alli se gestionan
+ * cosas —stock, platillos, parametros—; aqui se reparten permisos, que es lo unico de esta aplicacion
  * que decide lo que los demas pueden hacer.
  *
  * El cargo no es un titulo decorativo: es lo que decide a que superficies entra

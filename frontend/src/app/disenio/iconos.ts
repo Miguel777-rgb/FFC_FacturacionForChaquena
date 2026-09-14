@@ -25,12 +25,10 @@ export const ICONOS = {
   despacho:
     'M5 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M15 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M5 17h-2v-4m-1 -8h11v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5 M3 9l4 0',
   /** Almacen: insumos, kardex y stock. (building-warehouse) */
-  trastienda: 'M3 21v-13l9 -4l9 4v13 M13 13h4v8h-10v-6h6 M13 21v-9a1 1 0 0 0 -1 -1h-2a1 1 0 0 0 -1 1v3',
+  inventario: 'M3 21v-13l9 -4l9 4v13 M13 13h4v8h-10v-6h6 M13 21v-9a1 1 0 0 0 -1 -1h-2a1 1 0 0 0 -1 1v3',
   /** Dos personas: la nomina y los permisos. (users) */
   personal:
     'M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2 M16 3.13a4 4 0 0 1 0 7.75 M21 21v-2a4 4 0 0 0 -3 -3.85',
-  /** Barras: la venta comparada consigo misma. (chart-bar) */
-  kpis: 'M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6 M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10 M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14 M4 20h14',
   /** Cuatro paneles: el tablero de inicio. (layout-dashboard) */
   tablero:
     'M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1 M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1 M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1 M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1',
@@ -80,6 +78,8 @@ export const ICONOS = {
   baja: 'M20.042 16.045a9 9 0 0 0 -12.087 -12.087m-2.318 1.677a9 9 0 1 0 12.725 12.73 M3 3l18 18',
   /** Aspa: quitar o cerrar. (x) */
   quitar: 'M18 6l-12 12 M6 6l12 12',
+  /** Tres lineas: abrir la navegacion en el celular. (menu-2) */
+  menuLineas: 'M4 6l16 0 M4 12l16 0 M4 18l16 0',
   salir:
     'M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2 M9 12h12l-3 -3 M18 15l3 -3',
   /** Plegar y desplegar el panel. (layout-sidebar-left-collapse) */

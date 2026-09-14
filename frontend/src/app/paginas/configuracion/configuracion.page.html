@@ -1,0 +1,32 @@
+<section class="superficie">
+  <header class="cabecera">
+    <h1>{{ t('panel.configuracion') }}</h1>
+  </header>
+
+  <!-- Pestanas y no otro menu lateral: el panel ya navega entre destinos, y dos
+       navegaciones verticales anidadas confunden de cual se sale. -->
+  <nav class="pestanas" [attr.aria-label]="t('configuracion.secciones')">
+    @for (s of SECCIONES; track s.id) {
+      <button
+        type="button"
+        [class.activa]="activa() === s.id"
+        [attr.aria-current]="activa() === s.id ? 'page' : null"
+        (click)="activa.set(s.id)"
+      >
+        {{ t(s.nombre) }}
+      </button>
+    }
+  </nav>
+
+  @switch (activa()) {
+    @case ('local') {
+      <app-local-seccion />
+    }
+    @case ('bots') {
+      <app-bots-seccion />
+    }
+    @case ('outbox') {
+      <app-outbox-seccion />
+    }
+  }
+</section>

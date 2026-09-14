@@ -27,3 +27,18 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* El marco de una superficie: titulo arriba y bloques debajo, con el mismo
+   aire en todas. */
+.superficie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+  padding: var(--e5);
+}
+
+@media (max-width: 47.99rem) {
+  .superficie {
+    padding: var(--e4);
+  }
+}

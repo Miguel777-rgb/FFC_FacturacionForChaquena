@@ -44,7 +44,7 @@ interface Barra {
 const GRAFICA = { ancho: 720, alto: 160, hueco: 2 };
 
 /**
- * KPIs: lo primero que se abre por la manana y lo ultimo que se mira al cerrar.
+ * Ventas y reportes: lo primero que se abre por la manana y lo ultimo que se mira al cerrar.
  *
  * Separa dos clases de cifra que no se leen igual. Arriba, lo que paso en el
  * rango elegido —cuanto se vendio, cuanto tardo la cocina—, que es historia y
@@ -62,13 +62,13 @@ const GRAFICA = { ancho: 720, alto: 160, hueco: 2 };
  * hasta el dato no puede costar dos clics dentro de otra pantalla.
  */
 @Component({
-  selector: 'app-kpis',
+  selector: 'app-reportes',
   imports: [DecimalPipe, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './kpis.page.html',
-  styleUrls: ['../../disenio/secciones.scss', './kpis.page.scss'],
+  templateUrl: './reportes.page.html',
+  styleUrls: ['../../disenio/secciones.scss', './reportes.page.scss'],
 })
-export class KpisPage implements OnInit {
+export class ReportesPage implements OnInit {
   private readonly reportesApi = inject(ReportesApi);
   private readonly i18n = inject(I18nService);
 

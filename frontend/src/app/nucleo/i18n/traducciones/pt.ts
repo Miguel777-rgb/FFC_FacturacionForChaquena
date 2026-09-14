@@ -12,13 +12,6 @@ export const PT: Record<ClaveI18n, string> = {
   'idioma.elegir': 'Idioma da interface',
 
   'titulo.entrar': 'Entrar',
-  'titulo.pos': 'PDV',
-  'titulo.kds': 'Cozinha',
-  'titulo.caja': 'Caixa',
-  'titulo.despacho': 'Despacho',
-  'titulo.trastienda': 'Retaguarda',
-  'titulo.personal': 'Equipe',
-  'titulo.kpis': 'KPIs',
   'titulo.sinPermiso': 'Sem acesso',
 
   'comun.cargando': 'Carregando…',
@@ -87,13 +80,23 @@ export const PT: Record<ClaveI18n, string> = {
 
   'panel.superficies': 'Telas',
   'panel.modulo': 'Logística',
-  'panel.pos': 'Ponto de venda',
+  'panel.pos': 'Abrir comanda',
   'panel.kds': 'Cozinha',
   'panel.caja': 'Caixa',
   'panel.despacho': 'Despacho',
-  'panel.trastienda': 'Retaguarda',
   'panel.personal': 'Equipe',
-  'panel.kpis': 'KPIs',
+  'panel.menu': 'Cardápio',
+  'panel.inventario': 'Estoque',
+  'panel.reportes': 'Vendas e relatórios',
+  'panel.configuracion': 'Configuração',
+  'panel.grupoOperacion': 'Operação',
+  'panel.grupoGestion': 'Gestão',
+  'panel.abrirMenu': 'Abrir o menu',
+  'panel.cerrarMenu': 'Fechar o menu',
+  'configuracion.secciones': 'Seções da configuração',
+  'configuracion.local': 'Restaurante',
+  'configuracion.bots': 'Bots',
+  'configuracion.outbox': 'Eventos',
   'panel.sinRoles': 'sem papéis',
   'panel.cargarLogo': 'Carregar a logo',
   'panel.cambiarLogo': 'Trocar a logo',
@@ -135,7 +138,6 @@ export const PT: Record<ClaveI18n, string> = {
   'sinPermiso.pide': 'Se precisar de acesso, peça ao administrador.',
   'sinPermiso.volver': 'Ir para a minha tela',
 
-  'pos.titulo': 'Abrir comanda',
   'pos.otpTitulo': 'Código de entrega · comanda {correlativo}',
   'pos.otpDictar':
     'Diga ao cliente: é a única coisa que o entregador vai poder verificar. Não aparece de novo.',
@@ -214,7 +216,6 @@ export const PT: Record<ClaveI18n, string> = {
   'pos.avisoCancelada': 'Comanda cancelada e estoque devolvido.',
   'pos.avisoQuitado': '{platillo} removido da comanda.',
 
-  'kds.titulo': 'Fila de comandas',
   'kds.enCola': 'Na fila',
   'kds.enFuego': 'No fogo',
   'kds.minCocina': 'Min. de cozinha',
@@ -238,7 +239,6 @@ export const PT: Record<ClaveI18n, string> = {
   'kds.avisoLista': 'Comanda {correlativo} pronta para servir.',
   'kds.avisoFaltante': 'O garçom foi avisado.',
 
-  'caja.titulo': 'Cobrar e fechar',
   'caja.cobradoHoy': 'Recebido hoje',
   'caja.pagos': 'Pagamentos',
   'caja.porCobrar': 'A cobrar',
@@ -301,7 +301,6 @@ export const PT: Record<ClaveI18n, string> = {
   'caja.avisoCerrada': 'Comanda da mesa {mesa} fechada. A mesa está livre.',
   'caja.avisoFraude': 'O alerta foi para o administrador. A comanda fica fora das vendas.',
 
-  'despacho.titulo': 'Entregas em domicílio',
   'despacho.esperandoConductor': 'Esperando entregador',
   'despacho.sinConductores':
     'Ainda não há nenhum entregador ativo com veículo. Cadastre um antes de entregar comandas.',
@@ -342,12 +341,6 @@ export const PT: Record<ClaveI18n, string> = {
   'despacho.avisoConductorAnotado': '{nombre} cadastrado. Agora o veículo.',
   'despacho.avisoVehiculoAnotado': 'Veículo {placa} cadastrado.',
 
-  'trastienda.secciones': 'Seções da retaguarda',
-  'trastienda.inventario': 'Estoque',
-  'trastienda.carta': 'Cardápio',
-  'trastienda.local': 'Restaurante',
-  'trastienda.bots': 'Bots',
-  'trastienda.outbox': 'Eventos',
 
   'inventario.insumos': 'Insumos',
   'inventario.bajoMinimo': 'Abaixo do mínimo',
@@ -519,7 +512,6 @@ export const PT: Record<ClaveI18n, string> = {
   'outbox.sinEventos': 'Não há eventos com essa situação.',
   'outbox.avisoReintentado': 'Evento devolvido à fila.',
 
-  'personal.titulo': 'Quem trabalha e o que abre',
   'personal.nuevoTrabajador': 'Novo funcionário',
   'personal.sinCargos':
     'Não há nenhum cargo definido. Sem cargo não dá para cadastrar ninguém: é o cargo que decide a quais telas a pessoa entra.',
@@ -575,7 +567,6 @@ export const PT: Record<ClaveI18n, string> = {
   'personal.avisoSesionAbierta':
     'Quem já estiver com a sessão aberta mantém as permissões até entrar de novo.',
 
-  'kpis.titulo': 'Como vai o restaurante',
   'kpis.hoy': 'Hoje',
   'kpis.semana': '7 dias',
   'kpis.mes': '30 dias',

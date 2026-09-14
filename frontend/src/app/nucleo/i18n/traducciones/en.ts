@@ -14,13 +14,6 @@ export const EN: Record<ClaveI18n, string> = {
   'idioma.elegir': 'Interface language',
 
   'titulo.entrar': 'Sign in',
-  'titulo.pos': 'POS',
-  'titulo.kds': 'Kitchen',
-  'titulo.caja': 'Register',
-  'titulo.despacho': 'Dispatch',
-  'titulo.trastienda': 'Back office',
-  'titulo.personal': 'Staff',
-  'titulo.kpis': 'KPIs',
   'titulo.sinPermiso': 'No access',
 
   'comun.cargando': 'Loading…',
@@ -89,13 +82,23 @@ export const EN: Record<ClaveI18n, string> = {
 
   'panel.superficies': 'Screens',
   'panel.modulo': 'Logistics',
-  'panel.pos': 'Point of sale',
+  'panel.pos': 'Take an order',
   'panel.kds': 'Kitchen',
   'panel.caja': 'Register',
   'panel.despacho': 'Dispatch',
-  'panel.trastienda': 'Back office',
   'panel.personal': 'Staff',
-  'panel.kpis': 'KPIs',
+  'panel.menu': 'Menu',
+  'panel.inventario': 'Inventory',
+  'panel.reportes': 'Sales and reports',
+  'panel.configuracion': 'Settings',
+  'panel.grupoOperacion': 'Operations',
+  'panel.grupoGestion': 'Management',
+  'panel.abrirMenu': 'Open the menu',
+  'panel.cerrarMenu': 'Close the menu',
+  'configuracion.secciones': 'Settings sections',
+  'configuracion.local': 'Restaurant',
+  'configuracion.bots': 'Bots',
+  'configuracion.outbox': 'Events',
   'panel.sinRoles': 'no roles',
   'panel.cargarLogo': 'Upload the logo',
   'panel.cambiarLogo': 'Change the logo',
@@ -137,7 +140,6 @@ export const EN: Record<ClaveI18n, string> = {
   'sinPermiso.pide': 'If you need access, ask the administrator for it.',
   'sinPermiso.volver': 'Go to my screen',
 
-  'pos.titulo': 'Take an order',
   'pos.otpTitulo': 'Delivery code · order {correlativo}',
   'pos.otpDictar':
     'Read it out to the customer: it is the only thing the driver will be able to verify. It does not show up again.',
@@ -215,7 +217,6 @@ export const EN: Record<ClaveI18n, string> = {
   'pos.avisoCancelada': 'Order cancelled and stock put back.',
   'pos.avisoQuitado': '{platillo} removed from the order.',
 
-  'kds.titulo': 'Order queue',
   'kds.enCola': 'Queued',
   'kds.enFuego': 'Cooking',
   'kds.minCocina': 'Cooking min.',
@@ -239,7 +240,6 @@ export const EN: Record<ClaveI18n, string> = {
   'kds.avisoLista': 'Order {correlativo} ready to serve.',
   'kds.avisoFaltante': 'The waiter has been told.',
 
-  'caja.titulo': 'Charge and close',
   'caja.cobradoHoy': 'Taken today',
   'caja.pagos': 'Payments',
   'caja.porCobrar': 'To charge',
@@ -302,7 +302,6 @@ export const EN: Record<ClaveI18n, string> = {
   'caja.avisoCerrada': 'Order for table {mesa} closed. The table is free.',
   'caja.avisoFraude': 'The alert went to the administrator. The order is out of the sales figures.',
 
-  'despacho.titulo': 'Home deliveries',
   'despacho.esperandoConductor': 'Waiting for a driver',
   'despacho.sinConductores':
     'There is no active driver with a vehicle yet. Add one to the roster before handing out orders.',
@@ -343,12 +342,6 @@ export const EN: Record<ClaveI18n, string> = {
   'despacho.avisoConductorAnotado': '{nombre} added. Now their vehicle.',
   'despacho.avisoVehiculoAnotado': 'Vehicle {placa} added.',
 
-  'trastienda.secciones': 'Back office sections',
-  'trastienda.inventario': 'Inventory',
-  'trastienda.carta': 'Menu',
-  'trastienda.local': 'Restaurant',
-  'trastienda.bots': 'Bots',
-  'trastienda.outbox': 'Events',
 
   'inventario.insumos': 'Ingredients',
   'inventario.bajoMinimo': 'Below minimum',
@@ -520,7 +513,6 @@ export const EN: Record<ClaveI18n, string> = {
   'outbox.sinEventos': 'There are no events with that status.',
   'outbox.avisoReintentado': 'Event sent back to the queue.',
 
-  'personal.titulo': 'Who works here and what they can open',
   'personal.nuevoTrabajador': 'New worker',
   'personal.sinCargos':
     'There is no job title defined. Nobody can be added without one: the job title is what decides which screens the person gets.',
@@ -576,7 +568,6 @@ export const EN: Record<ClaveI18n, string> = {
   'personal.avisoSesionAbierta':
     'Anyone already signed in keeps their permissions until they sign in again.',
 
-  'kpis.titulo': 'How the restaurant is doing',
   'kpis.hoy': 'Today',
   'kpis.semana': '7 days',
   'kpis.mes': '30 days',

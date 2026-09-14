@@ -25,13 +25,6 @@ export const ES = {
 
   // --- titulos de las rutas (los usa TituloDeRuta) ---------------------------
   'titulo.entrar': 'Entrar',
-  'titulo.pos': 'POS',
-  'titulo.kds': 'Cocina',
-  'titulo.caja': 'Caja',
-  'titulo.despacho': 'Despacho',
-  'titulo.trastienda': 'Trastienda',
-  'titulo.personal': 'Personal',
-  'titulo.kpis': 'KPIs',
   'titulo.sinPermiso': 'Sin permiso',
 
   // --- lo que repiten varias superficies -------------------------------------
@@ -102,13 +95,23 @@ export const ES = {
   // --- panel lateral ---------------------------------------------------------
   'panel.superficies': 'Superficies',
   'panel.modulo': 'Logística',
-  'panel.pos': 'Punto de venta',
+  'panel.pos': 'Tomar comanda',
   'panel.kds': 'Cocina',
   'panel.caja': 'Caja',
   'panel.despacho': 'Despacho',
-  'panel.trastienda': 'Trastienda',
   'panel.personal': 'Personal',
-  'panel.kpis': 'KPIs',
+  'panel.menu': 'Menú',
+  'panel.inventario': 'Inventario',
+  'panel.reportes': 'Ventas y reportes',
+  'panel.configuracion': 'Configuración',
+  'panel.grupoOperacion': 'Operación',
+  'panel.grupoGestion': 'Gestión',
+  'panel.abrirMenu': 'Abrir el menú',
+  'panel.cerrarMenu': 'Cerrar el menú',
+  'configuracion.secciones': 'Secciones de la configuración',
+  'configuracion.local': 'Local',
+  'configuracion.bots': 'Bots',
+  'configuracion.outbox': 'Eventos',
   'panel.sinRoles': 'sin roles',
   'panel.cargarLogo': 'Cargar el logo',
   'panel.cambiarLogo': 'Cambiar el logo',
@@ -155,7 +158,6 @@ export const ES = {
   'sinPermiso.volver': 'Ir a mi pantalla',
 
   // --- POS -------------------------------------------------------------------
-  'pos.titulo': 'Tomar comanda',
   'pos.otpTitulo': 'Código de entrega · comanda {correlativo}',
   'pos.otpDictar':
     'Díctaselo al cliente: es lo único que el repartidor va a poder verificar. No vuelve a aparecer.',
@@ -234,7 +236,6 @@ export const ES = {
   'pos.avisoQuitado': '{platillo} quitado de la comanda.',
 
   // --- cocina ----------------------------------------------------------------
-  'kds.titulo': 'Cola de comandas',
   'kds.enCola': 'En cola',
   'kds.enFuego': 'En fuego',
   'kds.minCocina': 'Min. de cocina',
@@ -259,7 +260,6 @@ export const ES = {
   'kds.avisoFaltante': 'Aviso enviado al mozo.',
 
   // --- caja ------------------------------------------------------------------
-  'caja.titulo': 'Cobrar y cerrar',
   'caja.cobradoHoy': 'Cobrado hoy',
   'caja.pagos': 'Pagos',
   'caja.porCobrar': 'Por cobrar',
@@ -323,7 +323,6 @@ export const ES = {
   'caja.avisoFraude': 'Alerta enviada a administración. La comanda queda fuera de la venta.',
 
   // --- despacho --------------------------------------------------------------
-  'despacho.titulo': 'Entregas a domicilio',
   'despacho.esperandoConductor': 'Esperando conductor',
   'despacho.sinConductores':
     'Todavía no hay ningún conductor activo con vehículo. Anota uno en la libreta antes de entregar comandas.',
@@ -364,13 +363,6 @@ export const ES = {
   'despacho.avisoConductorAnotado': '{nombre} anotado. Ahora su vehículo.',
   'despacho.avisoVehiculoAnotado': 'Vehículo {placa} anotado.',
 
-  // --- trastienda ------------------------------------------------------------
-  'trastienda.secciones': 'Secciones de la trastienda',
-  'trastienda.inventario': 'Inventario',
-  'trastienda.carta': 'Carta',
-  'trastienda.local': 'Local',
-  'trastienda.bots': 'Bots',
-  'trastienda.outbox': 'Eventos',
 
   // --- trastienda · inventario -----------------------------------------------
   'inventario.insumos': 'Insumos',
@@ -549,7 +541,6 @@ export const ES = {
   'outbox.avisoReintentado': 'Evento devuelto a la cola.',
 
   // --- personal --------------------------------------------------------------
-  'personal.titulo': 'Quién trabaja y qué abre',
   'personal.nuevoTrabajador': 'Nuevo trabajador',
   'personal.sinCargos':
     'No hay ningún cargo definido. Sin cargo no se puede dar de alta a nadie: es el cargo el que decide a qué pantallas entra la persona.',
@@ -607,7 +598,6 @@ export const ES = {
     'Quien ya tenga la sesión abierta conserva sus permisos hasta volver a entrar.',
 
   // --- KPIs ------------------------------------------------------------------
-  'kpis.titulo': 'Cómo va el local',
   'kpis.hoy': 'Hoy',
   'kpis.semana': '7 días',
   'kpis.mes': '30 días',

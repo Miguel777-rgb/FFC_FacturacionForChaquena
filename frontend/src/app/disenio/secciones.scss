@@ -1,7 +1,7 @@
-/* El lenguaje de las pantallas administrativas: la trastienda, el personal y
-   los indicadores.
+/* El lenguaje de las pantallas de gestion: menu, inventario, configuracion,
+   personal y reportes.
 
-   Viven en un solo archivo porque las tres son lo mismo por debajo: una barra
+   Viven en un solo archivo porque todas son lo mismo por debajo: una barra
    de filtros, una tabla densa y un formulario que se despliega. La tabla, las
    insignias, los campos y los botones son globales (`src/estilos/`); aqui solo
    queda lo que es de estas pantallas. */
@@ -115,13 +115,19 @@
   gap: var(--e2);
   align-items: center;
 
-  input,
-  select {
+  /* Solo los hijos directos: un input dentro de un .campo (columna) con esta
+     base de 10rem crecia en alto, no en ancho. */
+  > input,
+  > select {
     flex: 1 1 10rem;
     min-width: 0;
   }
 
-  button {
+  > .campo {
+    flex: 1 1 12rem;
+  }
+
+  > button {
     flex: 0 0 auto;
   }
 }
