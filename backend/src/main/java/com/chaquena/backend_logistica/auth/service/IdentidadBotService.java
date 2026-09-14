@@ -113,7 +113,10 @@ public class IdentidadBotService {
 
         trabajador.setDiscordUserId(discordUserId);
         trabajador.setModifiedBy("BOT_DISCORD");
-        trabajadorRepository.save(trabajador);
+        // saveAndFlush y no save: si la base rechaza la fila tiene que fallar
+        // aqui, no al cerrar la transaccion, cuando el log ya dijo que quedo
+        // vinculada.
+        trabajadorRepository.saveAndFlush(trabajador);
 
         log.info("Cuenta de Discord {} ({}) vinculada al trabajador {}.",
                 discordUserId, discordTag, trabajador.getUsername());
