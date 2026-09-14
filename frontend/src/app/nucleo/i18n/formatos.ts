@@ -85,3 +85,28 @@ export function formatearFecha(
 
   return formateador(idioma, estilo).format(fecha);
 }
+
+/**
+ * Minutos transcurridos escritos como se dicen: «47 min», «3 h 5 min», «8 d 4 h».
+ *
+ * El backend manda minutos a secas, y una comanda olvidada de hace ocho dias se
+ * pintaba «11803 min»: un numero que nadie convierte de cabeza y que ademas
+ * rompia la tarjeta de cocina. Pasado un dia los minutos dejan de importar y se
+ * omiten.
+ *
+ * Las unidades son las mismas abreviaturas en espanol, ingles y portugues, por
+ * eso no pasan por el diccionario.
+ */
+export function formatearDuracion(minutos: number | null | undefined): string {
+  if (minutos === null || minutos === undefined || !Number.isFinite(minutos)) return '—';
+
+  const total = Math.max(0, Math.floor(minutos));
+  if (total < 60) return `${total} min`;
+
+  const dias = Math.floor(total / 1440);
+  const horas = Math.floor((total % 1440) / 60);
+  const resto = total % 60;
+
+  if (dias > 0) return horas > 0 ? `${dias} d ${horas} h` : `${dias} d`;
+  return resto > 0 ? `${horas} h ${resto} min` : `${horas} h`;
+}
