@@ -1,0 +1,76 @@
+/* Insignias de estado.
+
+   El texto es el que informa; el color solo refuerza, porque estas insignias se
+   leen tambien en celulares con el brillo al minimo. Cada tono lleva texto
+   oscuro sobre su fondo suave y un borde del mismo color: los fondos saturados
+   con letra blanca de la guia (#FF6B6B, #64B5F6) no llegaban a 4,5:1.
+
+   Viven todas aqui, las de la comanda, el pago, el outbox y los bots: dos copias
+   del mismo ENTREGADO acaban pintandose distinto en el salon y en la caja. */
+
+@mixin tono($texto, $fondo, $borde) {
+  color: $texto;
+  background: $fondo;
+  border-color: $borde;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e1);
+  padding: 1px var(--e2);
+  font-family: var(--f-texto);
+  font-size: var(--t-chico);
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--texto);
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-chico);
+}
+
+.chip.ok,
+.chip[data-estado='ENTREGADO'],
+.chip[data-estado='CONFIRMADO'],
+.chip[data-estado='PROCESADO'],
+.chip[data-estado='CONECTADO'] {
+  @include tono(var(--ok), var(--ok-suave), var(--ok-borde));
+}
+
+.chip.aviso,
+.chip[data-estado='EN_PREPARACION'],
+.chip[data-estado='PENDIENTE'] {
+  @include tono(var(--aviso), var(--aviso-suave), var(--aviso));
+}
+
+.chip.info,
+.chip[data-estado='EN_DESPACHO'] {
+  @include tono(var(--info), var(--info-suave), var(--info));
+}
+
+.chip.acento,
+.chip[data-estado='PAGADO'] {
+  @include tono(var(--acento), var(--acento-suave), var(--acento));
+}
+
+.chip.peligro,
+.chip[data-estado='FRAUDULENTO'],
+.chip[data-estado='RECHAZADO'],
+.chip[data-estado='ERROR'],
+.chip[data-estado='CAIDO'] {
+  @include tono(var(--critico), var(--critico-suave), var(--critico));
+}
+
+/* En cola muerta ya no se reintenta solo: el mismo rojo, con mas peso. */
+.chip[data-estado='DEAD_LETTER'] {
+  @include tono(var(--critico), var(--critico-suave), var(--critico));
+  font-weight: 700;
+}
+
+/* Lo que ya termino se aparta: no es un aviso, es historia. */
+.chip[data-estado='CONCLUIDO'],
+.chip[data-estado='CANCELADO'],
+.chip[data-estado='SIN_TOKEN'] {
+  color: var(--tenue);
+}

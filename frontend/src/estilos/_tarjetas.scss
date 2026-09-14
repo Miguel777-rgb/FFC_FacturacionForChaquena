@@ -1,0 +1,42 @@
+/* Tarjeta de contenido: la superficie de trabajo por defecto. Borde de 1px y la
+   sombra corta; nada de degradados ni de elevarse al pasar el raton. */
+.bloque {
+  padding: var(--e4);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+/* Titulo de tarjeta: 16px en la letra del texto, con peso. Nombra lo que hay
+   dentro sin competir con el titulo de la pantalla. */
+.bloque > h2 {
+  margin: 0 0 var(--e3);
+  font-family: var(--f-texto);
+  font-size: var(--t-h4);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Una tarjeta dentro de otra no se vuelve a enmarcar. */
+.bloque .bloque {
+  box-shadow: none;
+}
+
+/* Cabecera de superficie: el titulo y, a la derecha, lo que actua sobre toda la
+   pantalla. Sin antetitulo: el titulo se sostiene solo. */
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3) var(--e4);
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}

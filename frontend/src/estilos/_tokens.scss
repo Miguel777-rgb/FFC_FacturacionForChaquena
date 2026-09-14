@@ -1,0 +1,226 @@
+/* ==========================================================================
+   Tokens en dos capas.
+
+   1. PALETA: los valores crudos, como variables de Sass. No salen al CSS y no
+      se usan fuera de este archivo: un componente que pide `$borgona-700` se
+      salta el tema oscuro sin darse cuenta.
+   2. SEMANTICA: lo que se usa en las pantallas (`--fondo`, `--acento`,
+      `--critico`…). Cambia de valor con el tema; el nombre no.
+
+   La marca es el borgona del logo, #A41E34. Los estados salen de la guia de
+   componentes, con un ajuste: donde el tono de la guia no llega a 4,5:1 con
+   texto blanco o sobre su fondo suave, se usa el tono vecino que si llega.
+   ========================================================================== */
+
+// --- paleta --------------------------------------------------------------------
+$borgona-900: #5d1220;
+$borgona-800: #7a1529;
+$borgona-700: #a41e34; // el logo: 7,5:1 sobre blanco
+$borgona-600: #c12440;
+$borgona-400: #f04a66; // acento como texto en oscuro: 4,6:1 sobre la superficie
+$borgona-100: #ffe5eb;
+
+$azul-600: #2d5f7f;
+$azul-300: #a8d0e6;
+
+$verde-700: #236030;
+$verde-600: #2d7a3c; // relleno de exito: 5,3:1 con blanco (#3FA952 da 3,0:1)
+$verde-300: #a8e6bb;
+$verde-50: #f0fdf4;
+
+$ambar-500: #ffb81c;
+$ambar-tinta: #8a5a0b; // texto de aviso: 5,8:1 sobre su fondo suave
+$ambar-50: #fffbeb;
+
+$rojo-800: #b71c1c;
+$rojo-relleno: #d32f2f; // relleno de peligro: 5,0:1 con blanco (#E53935 da 4,2:1)
+$rojo-600: #c51d2f; // texto de peligro sobre su fondo suave
+$rojo-50: #fef2f2;
+
+$info-600: #1565c0;
+$info-500: #2196f3;
+$info-50: #eff6ff;
+
+$gris-50: #f9fafb;
+$gris-100: #f3f4f6;
+$gris-200: #e5e7eb;
+$gris-300: #d1d5db;
+$gris-500: #6b7280;
+$gris-600: #4b5563;
+$gris-700: #374151;
+$gris-900: #111827;
+
+$noche-fondo: #0f1419;
+$noche-superficie: #1a1f2e;
+$noche-hundido: #242a3d;
+$noche-linea: #2d3542;
+$noche-linea-fuerte: #3d4556;
+$noche-tinta: #e8e9eb;
+
+// --- semantica: claro ------------------------------------------------------------
+:root {
+  color-scheme: light;
+
+  --fondo: #{$gris-50};
+  --superficie: #ffffff;
+  --hundido: #{$gris-100};
+  --linea: #{$gris-200};
+  --linea-fuerte: #{$gris-300};
+
+  /* `--tinta` para titulos y datos; `--texto` para el cuerpo; `--tenue` para lo
+     secundario. Los tres pasan 4,5:1 sobre la superficie. */
+  --tinta: #{$gris-900};
+  --texto: #{$gris-700};
+  --tenue: #{$gris-500};
+
+  /* `--acento` es el color como texto o borde; `--acento-relleno` es el fondo
+     de la accion principal. En claro coinciden, en oscuro no. */
+  --acento: #{$borgona-700};
+  --acento-relleno: #{$borgona-700};
+  --acento-fuerte: #{$borgona-800};
+  --acento-activo: #{$borgona-900};
+  --acento-suave: #{$borgona-100};
+  --sobre-relleno: #ffffff;
+
+  --secundario: #{$azul-600};
+
+  --ok: #{$verde-600};
+  --ok-relleno: #{$verde-600};
+  --ok-fuerte: #{$verde-700};
+  --ok-suave: #{$verde-50};
+  --ok-borde: #{$verde-300};
+
+  --aviso: #{$ambar-tinta};
+  --aviso-base: #{$ambar-500};
+  --aviso-suave: #{$ambar-50};
+  /* Estrella puntuada: un ambar que pasa 3:1 sobre blanco y sobre la superficie
+     oscura. El #FFB81C de la guia se queda en 1,9:1 sobre blanco. */
+  --estrella: #b97800;
+
+  --critico: #{$rojo-600};
+  --critico-relleno: #{$rojo-relleno};
+  --critico-fuerte: #{$rojo-800};
+  --critico-suave: #{$rojo-50};
+
+  --info: #{$info-600};
+  --info-base: #{$info-500};
+  --info-suave: #{$info-50};
+
+  --boton-secundario: #{$gris-100};
+  --boton-secundario-hover: #{$gris-200};
+  --boton-secundario-texto: #{$gris-600};
+
+  --f-titulo: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-texto: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  /* Escala de la guia. El H1 baja a 24px en el celular: a 32px, «Cobrar y
+     cerrar» se partia en dos lineas en 390px. */
+  --t-h1: 2rem;
+  --t-h2: 1.5rem;
+  --t-h3: 1.25rem;
+  --t-h4: 1rem;
+  --t-texto: 0.875rem;
+  --t-chico: 0.75rem;
+  --t-leyenda: 0.6875rem;
+
+  --e1: 0.25rem;
+  --e2: 0.5rem;
+  --e3: 0.75rem;
+  --e4: 1rem;
+  --e5: 1.5rem;
+  --e6: 2rem;
+  --e7: 3rem;
+
+  --radio: 8px;
+  --radio-chico: 6px;
+
+  /* Alturas de control. El chico (36px) solo existe con puntero fino: en una
+     pantalla tactil sube al minimo de 44px, que es el que rige. */
+  --toque: 44px;
+  --control: var(--toque);
+  --control-chico: 36px;
+  --control-grande: 52px;
+
+  /* Lo que ocupa la barra de idiomas en la esquina inferior derecha. */
+  --hueco-barra: calc(var(--e4) + var(--toque) + var(--e1) * 2 + var(--e2));
+
+  /* Una herramienta de trabajo no flota: la sombra corta es para tarjetas, la
+     elevada solo para lo que de verdad esta encima (dialogos). */
+  --sombra: 0 1px 3px rgb(17 24 39 / 0.08);
+  --sombra-elevada: 0 12px 32px rgb(17 24 39 / 0.18);
+}
+
+// --- semantica: oscuro -----------------------------------------------------------
+@mixin tema-oscuro {
+  color-scheme: dark;
+
+  --fondo: #{$noche-fondo};
+  --superficie: #{$noche-superficie};
+  --hundido: #{$noche-hundido};
+  --linea: #{$noche-linea};
+  --linea-fuerte: #{$noche-linea-fuerte};
+
+  --tinta: #{$noche-tinta};
+  --texto: #c9cdd4;
+  --tenue: #9ca3af;
+
+  /* El relleno se queda en el borgona del logo (7,5:1 con blanco); como texto
+     sube a #F04A66, porque #A41E34 sobre la superficie oscura no se lee. */
+  --acento: #{$borgona-400};
+  --acento-relleno: #{$borgona-700};
+  --acento-fuerte: #{$borgona-600};
+  --acento-activo: #{$borgona-800};
+  --acento-suave: #2a1119;
+
+  --secundario: #{$azul-300};
+
+  --ok: #58ab7c;
+  --ok-relleno: #{$verde-600};
+  --ok-fuerte: #3a8f4c;
+  --ok-suave: #14261b;
+  --ok-borde: #2d6a40;
+
+  --aviso: #e0a83a;
+  --aviso-suave: #2a2013;
+
+  --critico: #ff8a72;
+  --critico-relleno: #{$rojo-relleno};
+  --critico-fuerte: #e04848;
+  --critico-suave: #331813;
+
+  --info: #64b5f6;
+  --info-suave: #10233a;
+
+  --boton-secundario: #{$noche-linea};
+  --boton-secundario-hover: #{$noche-linea-fuerte};
+  --boton-secundario-texto: #{$noche-tinta};
+
+  --sombra: 0 1px 3px rgb(0 0 0 / 0.45);
+  --sombra-elevada: 0 12px 32px rgb(0 0 0 / 0.6);
+}
+
+/* Sin eleccion guardada manda el sistema; con eleccion, `data-tema` gana en las
+   dos direcciones (lo escribe TemaService). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='claro']) {
+    @include tema-oscuro;
+  }
+}
+
+:root[data-tema='oscuro'] {
+  @include tema-oscuro;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --control-chico: var(--toque);
+  }
+}
+
+@media (max-width: 47.99rem) {
+  :root {
+    --t-h1: 1.5rem;
+    --t-h2: 1.25rem;
+  }
+}

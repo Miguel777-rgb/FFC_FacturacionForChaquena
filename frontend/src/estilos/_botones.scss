@@ -1,0 +1,164 @@
+/* ==========================================================================
+   Botones.
+
+   REGLA DE COLOR (la de la guia de componentes):
+
+     - relleno borgona  -> la accion principal de la pantalla (`button` a secas)
+     - gris             -> lo secundario: actualizar, abrir un formulario, editar
+     - contorno borgona -> importante pero no principal
+     - relleno rojo     -> peligro: cancelar, marcar fraude, liberar una cuenta
+     - relleno verde    -> confirmar algo que se da por bueno
+
+   Conviven dos rojos rellenos, marca y peligro. Para que el mozo con prisa no
+   los confunda, un boton de `.peligro` nunca va solo: lleva un verbo explicito
+   («Cancelar y reponer stock»), va dentro de una confirmacion y no se pinta al
+   lado de la accion principal. El gesto que la abre es gris.
+
+   Sin sombras de color ni elevacion al pasar el raton: el hover solo cambia el
+   color. Una herramienta de trabajo no salta.
+   ========================================================================== */
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  min-height: var(--control);
+  padding: 0 var(--e5);
+  font: inherit;
+  font-size: var(--t-texto);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--sobre-relleno);
+  background: var(--acento-relleno);
+  border: 1px solid transparent;
+  border-radius: var(--radio);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--acento-fuerte);
+}
+
+button:active:not(:disabled) {
+  background: var(--acento-activo);
+}
+
+/* Deshabilitado se lee como apagado, no como un rojo desteñido: en el POS el
+   «Enviar a cocina» sin nada que enviar parecia un boton roto. */
+button:disabled {
+  color: var(--tenue);
+  background: var(--hundido);
+  border-color: var(--linea);
+  cursor: not-allowed;
+}
+
+button[aria-busy='true'] {
+  cursor: progress;
+}
+
+/* --- variantes ---------------------------------------------------------------- */
+button.secundario {
+  color: var(--boton-secundario-texto);
+  background: var(--boton-secundario);
+  border-color: var(--linea);
+}
+
+button.secundario:hover:not(:disabled) {
+  color: var(--tinta);
+  background: var(--boton-secundario-hover);
+}
+
+button.secundario:active:not(:disabled) {
+  background: var(--linea-fuerte);
+}
+
+button.contorno {
+  color: var(--acento);
+  background: transparent;
+  border-color: var(--acento);
+}
+
+button.contorno:hover:not(:disabled),
+button.contorno:active:not(:disabled) {
+  background: var(--acento-suave);
+}
+
+/* Un interruptor encendido (filtro activo, rango elegido) se marca con el tinte
+   de la marca y con `aria-pressed`, no con otro color de accion. */
+button.secundario[aria-pressed='true'],
+button.contorno[aria-pressed='true'] {
+  color: var(--acento);
+  background: var(--acento-suave);
+  border-color: var(--acento);
+}
+
+button.peligro {
+  color: var(--sobre-relleno);
+  background: var(--critico-relleno);
+}
+
+button.peligro:hover:not(:disabled),
+button.peligro:active:not(:disabled) {
+  background: var(--critico-fuerte);
+}
+
+button.exito {
+  color: var(--sobre-relleno);
+  background: var(--ok-relleno);
+}
+
+button.exito:hover:not(:disabled),
+button.exito:active:not(:disabled) {
+  background: var(--ok-fuerte);
+}
+
+/* Sin fondo ni borde: acciones de barra (cerrar un dialogo, plegar el panel). */
+button.fantasma {
+  color: var(--tenue);
+  background: transparent;
+  border-color: transparent;
+}
+
+button.fantasma:hover:not(:disabled) {
+  color: var(--tinta);
+  background: var(--hundido);
+}
+
+/* --- tamanos ------------------------------------------------------------------ */
+button.chico {
+  min-height: var(--control-chico);
+  padding: 0 var(--e3);
+  font-size: var(--t-chico);
+}
+
+button.grande {
+  min-height: var(--control-grande);
+  padding: 0 var(--e6);
+  font-size: 1rem;
+}
+
+button.ancho {
+  width: 100%;
+}
+
+/* Solo icono: cuadrado, y el nombre de la accion en `aria-label`. */
+button.icono {
+  width: var(--control);
+  padding: 0;
+}
+
+button.icono.chico {
+  width: var(--control-chico);
+}
+
+@media (max-width: 47.99rem) {
+  button {
+    padding: 0 var(--e4);
+  }
+}

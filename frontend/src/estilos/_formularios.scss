@@ -1,0 +1,119 @@
+/* Campos de formulario. Mismo radio y misma altura que los botones, para que
+   un buscador con su boton al lado se lea como una sola pieza. */
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: var(--control);
+  padding: 0 var(--e4);
+  font: inherit;
+  font-size: var(--t-texto);
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio);
+  caret-color: var(--acento);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+textarea {
+  min-height: 6rem;
+  padding: var(--e3) var(--e4);
+  line-height: 1.5;
+}
+
+input[type='number'] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* El gris claro de la guia (#9CA3AF) se queda en 2,5:1: un placeholder que no
+   se lee no ayuda. Se usa el tenue, que pasa 4,5:1. */
+::placeholder {
+  color: var(--tenue);
+  opacity: 1;
+}
+
+input:hover:not(:disabled):not(:focus),
+select:hover:not(:disabled):not(:focus),
+textarea:hover:not(:disabled):not(:focus) {
+  border-color: var(--tenue);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px var(--acento-suave);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  color: var(--tenue);
+  background: var(--hundido);
+  cursor: not-allowed;
+}
+
+[aria-invalid='true'] {
+  border-color: var(--critico);
+}
+
+[aria-invalid='true']:focus {
+  border-color: var(--critico);
+  box-shadow: 0 0 0 3px var(--critico-suave);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.125rem;
+  height: 1.125rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  cursor: pointer;
+}
+
+input[type='checkbox']:focus,
+input[type='radio']:focus {
+  box-shadow: none;
+}
+
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* Campo con rotulo encima. El rotulo va en la letra del texto y con peso, no en
+   mayusculas espaciadas: se lee como una etiqueta, no como un codigo. */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+  min-width: 0;
+
+  > span {
+    font-size: var(--t-chico);
+    font-weight: 600;
+    color: var(--texto);
+  }
+
+  small {
+    font-size: var(--t-chico);
+    color: var(--tenue);
+  }
+}
+
+/* A 16px iOS no hace zoom al enfocar el campo. */
+@media (max-width: 47.99rem) {
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+}

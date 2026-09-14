@@ -1,0 +1,47 @@
+/* Mensaje en linea: un aviso dentro de la pantalla, no flotante. Borde de 1px en
+   todo el contorno y fondo suave del tono; sin franja gruesa a la izquierda, que
+   es decoracion y no informa nada que el color no diga ya. */
+.mensaje {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e3);
+  margin: 0;
+  padding: var(--e3) var(--e4);
+  font-size: var(--t-texto);
+  color: var(--texto);
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+
+  p {
+    margin: 0;
+  }
+
+  app-icono {
+    margin-top: 1px;
+  }
+}
+
+.mensaje.ok {
+  color: var(--ok);
+  background: var(--ok-suave);
+  border-color: var(--ok-borde);
+}
+
+.mensaje.aviso {
+  color: var(--aviso);
+  background: var(--aviso-suave);
+  border-color: var(--aviso);
+}
+
+.mensaje.peligro {
+  color: var(--critico);
+  background: var(--critico-suave);
+  border-color: var(--critico);
+}
+
+.mensaje.info {
+  color: var(--info);
+  background: var(--info-suave);
+  border-color: var(--info);
+}

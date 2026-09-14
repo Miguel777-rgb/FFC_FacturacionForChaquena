@@ -1,0 +1,114 @@
+/* Lo que pinta el navegador antes que cualquier componente: cuerpo, titulos,
+   enlaces, foco y las superficies que nadie dibuja a mano —la seleccion, el
+   cursor de texto, las casillas y las barras de desplazamiento—. Si esas se
+   quedan con el azul del sistema, la pantalla delata que se armo por piezas. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  accent-color: var(--acento-relleno);
+  scrollbar-color: var(--linea-fuerte) transparent;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--f-texto);
+  font-size: var(--t-texto);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  color: var(--tinta);
+  background: var(--acento-suave);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--tinta);
+  font-family: var(--f-titulo);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* Poppins ya es ancha y apretada en los espacios: con tracking negativo
+   «Cobrar y cerrar» se leia «Cobrary cerrar». Se deja en su valor natural. */
+h1 {
+  font-size: var(--t-h1);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+h2 {
+  font-size: var(--t-h2);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+h3 {
+  font-size: var(--t-h3);
+  font-weight: 600;
+}
+
+/* Cifras que se actualizan solas —importes, cronometros, codigos— no deben
+   bailar de ancho. Es el unico uso de la monoespaciada: datos, no rotulos. */
+.cifra {
+  font-family: var(--f-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* El nombre del local escrito como marca: el mismo borgona del logo, en la
+   familia de los titulos. */
+.marca {
+  font-family: var(--f-titulo);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--acento);
+}
+
+a {
+  color: var(--acento);
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+code {
+  font-family: var(--f-mono);
+  font-size: 0.9em;
+  padding: 0 var(--e1);
+  background: var(--hundido);
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

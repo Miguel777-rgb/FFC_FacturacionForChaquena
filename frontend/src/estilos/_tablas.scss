@@ -1,0 +1,156 @@
+/* Tabla densa: inventario, carta, personal, eventos, indicadores.
+
+   Sin cebreado: las filas desplegables romperian el ritmo par/impar. La
+   separacion la da la linea inferior, y el encabezado va en la letra del texto,
+   con peso y en gris, no en mayusculas monoespaciadas. */
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-texto);
+  font-variant-numeric: tabular-nums;
+
+  th {
+    padding: var(--e2) var(--e3);
+    text-align: left;
+    font-size: var(--t-chico);
+    font-weight: 600;
+    color: var(--tenue);
+    border-bottom: 1px solid var(--linea);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--e2) var(--e3);
+    color: var(--tinta);
+    border-bottom: 1px solid var(--linea);
+    vertical-align: middle;
+  }
+
+  tbody tr:not(.expandida):hover > td {
+    background: var(--fondo);
+  }
+
+  .num {
+    text-align: right;
+  }
+
+  .tenue {
+    color: var(--tenue);
+  }
+
+  /* Un descuadre negativo es el que importa: falta genero que el sistema creia
+     tener. */
+  .negativo {
+    color: var(--critico);
+  }
+
+  /* Bajo minimo: filete a la izquierda ademas del color, porque el color solo
+     no se ve en una pantalla mal calibrada. */
+  tr.bajo td:first-child {
+    box-shadow: inset 3px 0 0 var(--critico);
+    font-weight: 600;
+  }
+
+  tr.baja {
+    opacity: 0.55;
+  }
+
+  .acciones {
+    display: flex;
+    gap: var(--e2);
+    justify-content: flex-end;
+  }
+}
+
+/* Fila desplegada: fondo hundido, se lee como un cajon abierto sobre la fila de
+   arriba y no como otro registro. */
+.tabla tr.expandida > td {
+  padding: var(--e4);
+  background: var(--hundido);
+}
+
+.tabla.interna {
+  font-size: var(--t-chico);
+
+  td,
+  th {
+    padding: var(--e1) var(--e2);
+  }
+}
+
+/* En el celular una tabla de cinco columnas se corta sin avisar. Con `apilable`
+   cada fila pasa a ser una ficha: la primera celda hace de titulo y las demas
+   llevan su rotulo delante, sacado de `data-etiqueta`. */
+@media (max-width: 47.99rem) {
+  .desplazable:has(> .tabla.apilable) {
+    overflow-x: visible;
+  }
+
+  .tabla.apilable {
+    thead {
+      display: none;
+    }
+
+    tbody,
+    tr,
+    td {
+      display: block;
+    }
+
+    tr:not(.expandida) {
+      padding: var(--e3) 0;
+      border-bottom: 1px solid var(--linea);
+    }
+
+    tr:not(.expandida) > td {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--e3);
+      padding: 2px 0;
+      text-align: right;
+      border-bottom: none;
+    }
+
+    tr:not(.expandida) > td[data-etiqueta]::before {
+      content: attr(data-etiqueta);
+      flex: none;
+      font-family: var(--f-texto);
+      font-size: var(--t-chico);
+      font-weight: 600;
+      color: var(--tenue);
+      text-align: left;
+    }
+
+    tr:not(.expandida) > td:first-child {
+      justify-content: flex-start;
+      padding-bottom: var(--e1);
+      font-weight: 600;
+      text-align: left;
+    }
+
+    tr:not(.expandida) > td.acciones {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      padding-top: var(--e2);
+    }
+
+    tr:not(.expandida) > td.vacio {
+      text-align: left;
+    }
+
+    tr.bajo td:first-child {
+      box-shadow: none;
+      color: var(--critico);
+    }
+
+    tr.expandida > td {
+      padding: var(--e3);
+      border-radius: var(--radio);
+    }
+
+    tbody tr:not(.expandida):hover > td {
+      background: none;
+    }
+  }
+}
