@@ -1,0 +1,32 @@
+.bloque p {
+  margin: 0 0 var(--e2);
+}
+
+.preferencias {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+}
+
+.preferencia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2) var(--e4);
+}
+
+/* Se copia tal cual en Discord: que se vea como texto que se escribe. */
+.comando {
+  display: inline-block;
+  max-width: 100%;
+  padding: var(--e1) var(--e2);
+  font-family: var(--f-mono);
+  font-size: var(--t-chico);
+  color: var(--tinta);
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-chico);
+  overflow-wrap: anywhere;
+  user-select: all;
+}

@@ -1,0 +1,95 @@
+<section class="superficie">
+  <header class="cabecera">
+    <h1>{{ t('panel.perfil') }}</h1>
+    <button type="button" class="secundario" (click)="salir()">
+      <app-icono nombre="salir" [tamano]="18" />
+      {{ t('panel.cerrarSesion') }}
+    </button>
+  </header>
+
+  <div class="seccion">
+    @if (sesion.sesion(); as s) {
+      <div class="bloque">
+        <h2>{{ t('perfil.datos') }}</h2>
+        <dl class="detalle">
+          <div>
+            <dt>{{ t('personal.nombre') }}</dt>
+            <dd>{{ s.nombre }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('comun.usuario') }}</dt>
+            <dd>{{ s.username || '—' }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('comun.correo') }}</dt>
+            <dd>{{ s.correo || t('comun.sinCorreo') }}</dd>
+          </div>
+          @if (ficha(); as f) {
+            <div>
+              <dt>{{ t('comun.documento') }}</dt>
+              <dd class="cifra">{{ f.dni || '—' }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('comun.celular') }}</dt>
+              <dd class="cifra">{{ f.celular || t('comun.sinCelular') }}</dd>
+            </div>
+          }
+          <div>
+            <dt>{{ t('comun.cargo') }}</dt>
+            <dd>{{ s.cargo || '—' }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('perfil.roles') }}</dt>
+            <dd>{{ s.roles.join(', ') || t('panel.sinRoles') }}</dd>
+          </div>
+          @if (s.expiraEn) {
+            <div>
+              <dt>{{ t('perfil.sesionVence') }}</dt>
+              <dd>{{ fecha(s.expiraEn) }}</dd>
+            </div>
+          }
+        </dl>
+      </div>
+
+      <div class="columnas">
+        <div class="bloque">
+          <h2>{{ t('perfil.preferencias') }}</h2>
+          <div class="preferencias">
+            <div class="preferencia">
+              <span>{{ t('perfil.idioma') }}</span>
+              <app-barra-idiomas variante="integrada" />
+            </div>
+            <div class="preferencia">
+              <span>{{ t('perfil.tema') }}</span>
+              <app-selector-tema />
+            </div>
+          </div>
+        </div>
+
+        <div class="bloque">
+          <h2>{{ t('perfil.contrasena') }}</h2>
+          @if (esAdmin()) {
+            <p>{{ t('perfil.contrasenaAdmin') }}</p>
+            <a routerLink="/personal">{{ t('perfil.irAPersonal') }}</a>
+          } @else {
+            <p>{{ t('perfil.contrasenaOtros') }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- /vincular solo acepta el correo de alguien del personal que no sea
+           administrador: la misma regla que el ingreso con Google. -->
+      <div class="bloque">
+        <h2>{{ t('perfil.discord') }}</h2>
+        @if (esAdmin()) {
+          <p>{{ t('perfil.discordAdmin') }}</p>
+        } @else if (s.correo) {
+          <p>{{ t('perfil.discordTexto') }}</p>
+          <p><code class="comando">/vincular correo:{{ s.correo }}</code></p>
+        } @else {
+          <p>{{ t('perfil.discordSinCorreo') }}</p>
+        }
+      </div>
+    }
+  </div>
+</section>
