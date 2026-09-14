@@ -2,6 +2,7 @@ package com.chaquena.backend_logistica.pedidos.dto;
 
 import com.chaquena.backend_logistica.pedidos.domain.*;
 import com.chaquena.backend_logistica.pedidos.service.MaquinaEstadosOrden;
+import com.chaquena.backend_logistica.pedidos.service.ReglaDescuentos;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -30,6 +31,12 @@ public class OrdenResponseDto {
     private BigDecimal montoSubtotal;
     private BigDecimal montoDescuento;
     private BigDecimal montoTotal;
+    /** Nivel de lealtad cuyo descuento se aplico, si alguno. */
+    private String nivelLealtadNombre;
+    /** El total ya incluye el IGV: estos tres lo desglosan, no lo suman. */
+    private BigDecimal porcentajeIgv;
+    private BigDecimal montoBaseImponible;
+    private BigDecimal montoIgv;
     private TipoPagoEnum tipoPago;
     private EstadoOrdenEnum estado;
     private String promocionNombre;
@@ -84,6 +91,10 @@ public class OrdenResponseDto {
                 .montoSubtotal(o.getMontoSubtotal())
                 .montoDescuento(o.getMontoDescuento())
                 .montoTotal(o.getMontoTotal())
+                .nivelLealtadNombre(o.getNivelLealtadNombre())
+                .porcentajeIgv(o.getPorcentajeIgv())
+                .montoBaseImponible(ReglaDescuentos.baseImponible(o.getMontoTotal(), o.getPorcentajeIgv()))
+                .montoIgv(ReglaDescuentos.igv(o.getMontoTotal(), o.getPorcentajeIgv()))
                 .tipoPago(o.getTipoPago())
                 .estado(o.getEstado())
                 .promocionNombre(o.getPromocion() != null ? o.getPromocion().getNombre() : null)

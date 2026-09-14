@@ -28,6 +28,11 @@ import com.chaquena.backend_logistica.pagos.dto.RegistrarPagoRequestDto;
 import com.chaquena.backend_logistica.pagos.service.PagoService;
 import com.chaquena.backend_logistica.fidelizacion.dto.FeedbackRequestDto;
 import com.chaquena.backend_logistica.fidelizacion.service.FidelizacionService;
+import com.chaquena.backend_logistica.fidelizacion.domain.NivelLealtad;
+import com.chaquena.backend_logistica.fidelizacion.repository.NivelLealtadRepository;
+import com.chaquena.backend_logistica.local.dto.DatosLocalDto;
+import com.chaquena.backend_logistica.local.dto.HorarioLocalDto;
+import com.chaquena.backend_logistica.local.service.DatosLocalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
@@ -42,7 +47,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -88,6 +96,8 @@ public class DatosDemoSeeder {
     private final OrdenService ordenService;
     private final PagoService pagoService;
     private final FidelizacionService fidelizacionService;
+    private final NivelLealtadRepository nivelLealtadRepository;
+    private final DatosLocalService datosLocalService;
 
     @Bean
     @Order(2) // despues de DatosInicialesSeeder, que crea roles y cargos
@@ -110,6 +120,7 @@ public class DatosDemoSeeder {
             Map<String, Insumo> insumos = sembrarInsumos(admin.getId());
             Map<String, Platillo> platillos = sembrarCarta(insumos);
             sembrarComplementosYPromociones(insumos);
+            sembrarLocalYNiveles();
             List<Mesa> mesas = sembrarMesas();
             List<Cliente> clientes = sembrarClientes();
             sembrarDelivery();
@@ -396,6 +407,46 @@ public class DatosDemoSeeder {
                 .bloqueadoPorFraude(false)
                 .createdBy("SEED_DEMO")
                 .build());
+    }
+
+    // -----------------------------------------------------------------
+    // Datos del local y niveles de lealtad
+    // -----------------------------------------------------------------
+
+    /** Los lunes cerrado y el resto de 12:00 a 22:00; tres niveles con rebaja creciente. */
+    private void sembrarLocalYNiveles() {
+        List<HorarioLocalDto> horarios = Arrays.stream(DayOfWeek.values())
+                .map(dia -> dia == DayOfWeek.MONDAY
+                        ? HorarioLocalDto.builder().dia(dia).cerrado(true).build()
+                        : HorarioLocalDto.builder().dia(dia).cerrado(false)
+                                .abre(LocalTime.of(12, 0)).cierra(LocalTime.of(22, 0)).build())
+                .toList();
+
+        datosLocalService.actualizar(DatosLocalDto.builder()
+                .nombreComercial("Chaquena")
+                .ruc("20612345678")
+                .direccion("Av. Arequipa 1234, Lince, Lima")
+                .telefono("014567890")
+                .correo("contacto@chaquena.pe")
+                .porcentajeIgv(new BigDecimal("18.00"))
+                .horarios(horarios)
+                .build());
+
+        if (nivelLealtadRepository.count() == 0) {
+            nivelLealtadRepository.saveAll(List.of(
+                    nivel("Bronce", 0, "0.00"),
+                    nivel("Plata", 5, "5.00"),
+                    nivel("Oro", 15, "10.00")));
+        }
+    }
+
+    private NivelLealtad nivel(String nombre, int puntosMinimos, String porcentaje) {
+        return NivelLealtad.builder()
+                .nombre(nombre)
+                .puntosMinimos(puntosMinimos)
+                .porcentajeDescuento(new BigDecimal(porcentaje))
+                .createdBy("SEED_DEMO")
+                .build();
     }
 
     private void sembrarDelivery() {

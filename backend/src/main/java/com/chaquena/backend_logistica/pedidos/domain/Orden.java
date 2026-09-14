@@ -74,12 +74,27 @@ public class Orden {
     @Column(name = "cupon_codigo", length = 20)
     private String cuponCodigo;
 
+    /**
+     * Nivel de lealtad cuyo descuento se aplico. Nulo si no se aplico ninguno:
+     * el cliente no tenia nivel, la comanda no vino del POS o el cupon rebajaba mas.
+     */
+    @Column(name = "nivel_lealtad_nombre", length = 60)
+    private String nivelLealtadNombre;
+
     /** Obligatorio al cancelar: alimenta el historico de cancelaciones. */
     @Column(name = "motivo_cancelacion", columnDefinition = "TEXT")
     private String motivoCancelacion;
 
     @Column(name = "monto_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal montoTotal;
+
+    /**
+     * IGV vigente al crear la comanda. Los precios ya lo incluyen, asi que se
+     * desglosa del total; se congela aqui para que cambiar la tasa no reescriba
+     * las ventas pasadas (bd/migracion_05_igv_y_nivel_en_ordenes.sql).
+     */
+    @Column(name = "porcentaje_igv", nullable = false, precision = 5, scale = 2)
+    private BigDecimal porcentajeIgv;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_pago", nullable = false, length = 20)
@@ -161,6 +176,8 @@ public class Orden {
             this.canalOrigen = CanalOrigenEnum.POS;
         if (this.montoDescuento == null)
             this.montoDescuento = BigDecimal.ZERO;
+        if (this.porcentajeIgv == null)
+            this.porcentajeIgv = com.chaquena.backend_logistica.local.domain.DatosLocal.PORCENTAJE_IGV_POR_DEFECTO;
         if (this.scoringRiesgoOrden == null)
             this.scoringRiesgoOrden = 0;
         if (this.flagCierreRecepcion == null)

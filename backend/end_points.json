@@ -5536,6 +5536,116 @@
             "description": "Calificacion de una comanda"
           },
           "response": []
+        },
+        {
+          "name": "Niveles de lealtad, de menos a mas puntos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/niveles-lealtad",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "niveles-lealtad"
+              ]
+            },
+            "description": "Niveles de lealtad, de menos a mas puntos"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear un nivel de lealtad (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/niveles-lealtad",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "niveles-lealtad"
+              ]
+            },
+            "description": "Crear un nivel de lealtad (ADMIN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Plata\",\n  \"puntosMinimos\": 5,\n  \"porcentajeDescuento\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar un nivel de lealtad (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/niveles-lealtad/{{nivel_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "niveles-lealtad",
+                "{{nivel_id}}"
+              ]
+            },
+            "description": "Actualizar un nivel de lealtad (ADMIN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Plata\",\n  \"puntosMinimos\": 5,\n  \"porcentajeDescuento\": 7.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar un nivel de lealtad (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/niveles-lealtad/{{nivel_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "niveles-lealtad",
+                "{{nivel_id}}"
+              ]
+            },
+            "description": "Eliminar un nivel de lealtad (ADMIN)"
+          },
+          "response": []
         }
       ],
       "description": "Calificaciones, cupones y parametros del local"
@@ -6101,6 +6211,65 @@
         }
       ],
       "description": "Los bots fallan en silencio: un token caducado no rompe ninguna pantalla, solo hace que nadie conteste. Estas dos llamadas son lo que permite verlo."
+    },
+    {
+      "name": "25 · Local",
+      "item": [
+        {
+          "name": "Datos del local, su horario y el IGV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/local",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "local"
+              ]
+            },
+            "description": "Datos del local, su horario y el IGV"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar los datos del local, su horario y el IGV (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/local",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "local"
+              ]
+            },
+            "description": "Actualizar los datos del local, su horario y el IGV (ADMIN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreComercial\": \"Chaquena\",\n  \"ruc\": \"20612345678\",\n  \"direccion\": \"Av. Arequipa 1234, Lince, Lima\",\n  \"telefono\": \"014567890\",\n  \"correo\": \"contacto@chaquena.pe\",\n  \"porcentajeIgv\": 18,\n  \"horarios\": [\n    {\n      \"dia\": \"MONDAY\",\n      \"cerrado\": true\n    },\n    {\n      \"dia\": \"TUESDAY\",\n      \"cerrado\": false,\n      \"abre\": \"12:00\",\n      \"cierra\": \"22:00\"\n    },\n    {\n      \"dia\": \"WEDNESDAY\",\n      \"cerrado\": false,\n      \"abre\": \"12:00\",\n      \"cierra\": \"22:00\"\n    },\n    {\n      \"dia\": \"THURSDAY\",\n      \"cerrado\": false,\n      \"abre\": \"12:00\",\n      \"cierra\": \"22:00\"\n    },\n    {\n      \"dia\": \"FRIDAY\",\n      \"cerrado\": false,\n      \"abre\": \"12:00\",\n      \"cierra\": \"22:00\"\n    },\n    {\n      \"dia\": \"SATURDAY\",\n      \"cerrado\": false,\n      \"abre\": \"12:00\",\n      \"cierra\": \"22:00\"\n    },\n    {\n      \"dia\": \"SUNDAY\",\n      \"cerrado\": false,\n      \"abre\": \"12:00\",\n      \"cierra\": \"22:00\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -6288,6 +6457,10 @@
       "key": "mesaNuevoNumero",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "nivel_id",
+      "value": ""
     }
   ]
 }

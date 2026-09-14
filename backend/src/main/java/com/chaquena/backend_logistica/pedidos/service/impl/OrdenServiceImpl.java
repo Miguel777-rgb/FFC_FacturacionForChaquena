@@ -5,7 +5,9 @@ import com.chaquena.backend_logistica.clientes.domain.Cliente;
 import com.chaquena.backend_logistica.clientes.repository.ClienteRepository;
 import com.chaquena.backend_logistica.fidelizacion.domain.Cupon;
 import com.chaquena.backend_logistica.fidelizacion.domain.EstadoCuponEnum;
+import com.chaquena.backend_logistica.fidelizacion.domain.NivelLealtad;
 import com.chaquena.backend_logistica.fidelizacion.repository.CuponRepository;
+import com.chaquena.backend_logistica.fidelizacion.service.NivelLealtadService;
 import com.chaquena.backend_logistica.inventario.domain.ComplementoPlatillo;
 import com.chaquena.backend_logistica.inventario.domain.Platillo;
 import com.chaquena.backend_logistica.inventario.domain.Promocion;
@@ -16,6 +18,7 @@ import com.chaquena.backend_logistica.inventario.repository.PlatilloRepository;
 import com.chaquena.backend_logistica.inventario.repository.PromocionRepository;
 import com.chaquena.backend_logistica.inventario.service.InventarioService;
 import com.chaquena.backend_logistica.inventario.service.PromocionService;
+import com.chaquena.backend_logistica.local.service.DatosLocalService;
 import com.chaquena.backend_logistica.mesas.domain.EstadoMesaEnum;
 import com.chaquena.backend_logistica.mesas.domain.Mesa;
 import com.chaquena.backend_logistica.mesas.repository.MesaRepository;
@@ -25,6 +28,7 @@ import com.chaquena.backend_logistica.pedidos.dto.*;
 import com.chaquena.backend_logistica.pedidos.repository.OrdenRepository;
 import com.chaquena.backend_logistica.pedidos.service.MaquinaEstadosOrden;
 import com.chaquena.backend_logistica.pedidos.service.OrdenService;
+import com.chaquena.backend_logistica.pedidos.service.ReglaDescuentos;
 import com.chaquena.backend_logistica.shared.dto.PageResponseDto;
 import com.chaquena.backend_logistica.shared.exception.ConflictoException;
 import com.chaquena.backend_logistica.shared.exception.RecursoNoEncontradoException;
@@ -63,6 +67,8 @@ public class OrdenServiceImpl implements OrdenService {
     private final MaquinaEstadosOrden maquinaEstados;
     private final TrabajadorContexto trabajadorContexto;
     private final ApplicationEventPublisher eventos;
+    private final DatosLocalService datosLocalService;
+    private final NivelLealtadService nivelLealtadService;
 
     /**
      * Crear la comanda es la operacion critica del POS y ocurre entera dentro
@@ -112,6 +118,8 @@ public class OrdenServiceImpl implements OrdenService {
                 .tiempoInicioGlobal(ZonedDateTime.now())
                 .montoSubtotal(BigDecimal.ZERO)
                 .montoTotal(BigDecimal.ZERO)
+                // La tasa se congela ahora: si cambia manana, esta venta no se reescribe.
+                .porcentajeIgv(datosLocalService.porcentajeIgv())
                 .createdBy(registradoPor)
                 .build();
 
@@ -424,6 +432,15 @@ public class OrdenServiceImpl implements OrdenService {
                 .setScale(2, RoundingMode.HALF_UP));
     }
 
+    /**
+     * Promocion, cupon y nivel de lealtad.
+     *
+     * <p>La promocion se suma a lo demas. El cupon y el nivel no se acumulan:
+     * gana el que mas rebaja ({@link ReglaDescuentos#ganaElNivel}). El nivel
+     * solo cuenta en el POS, donde el cliente se identifica delante de alguien;
+     * una comanda que llega por el bot no lo recibe. Si gana el nivel, la
+     * comanda sale sin {@code cuponCodigo}, y por eso el POS no canjea el cupon.
+     */
     private void aplicarDescuentos(Orden orden, UUID promocionId, String cuponCodigo) {
         BigDecimal subtotal = orden.getDetalles().stream()
                 .map(OrdenDetalle::getMontoSubtotal)
@@ -434,18 +451,21 @@ public class OrdenServiceImpl implements OrdenService {
 
         orden.setPromocion(null);
         orden.setCuponCodigo(null);
+        orden.setNivelLealtadNombre(null);
 
         if (promocionId != null) {
             Promocion promocion = promocionRepository.findById(promocionId)
                     .orElseThrow(() -> RecursoNoEncontradoException.de("la promocion", promocionId));
             exigirPromocionVigente(promocion);
-            descuento = descuento.add(descuentoDe(subtotal,
+            descuento = descuento.add(ReglaDescuentos.descuentoDe(subtotal,
                     promocion.getPorcentajeDescuento(), promocion.getMontoDescuento()));
             orden.setPromocion(promocion);
         }
 
+        Cupon cupon = null;
+        BigDecimal descuentoCupon = BigDecimal.ZERO;
         if (cuponCodigo != null && !cuponCodigo.isBlank()) {
-            Cupon cupon = cuponRepository.findByCodigoIgnoreCase(cuponCodigo.trim())
+            cupon = cuponRepository.findByCodigoIgnoreCase(cuponCodigo.trim())
                     .orElseThrow(() -> new RecursoNoEncontradoException(
                             "No existe el cupon " + cuponCodigo + "."));
             if (!cupon.estaVigente()) {
@@ -456,8 +476,20 @@ public class OrdenServiceImpl implements OrdenService {
                     || !cupon.getCliente().getId().equals(orden.getCliente().getId())) {
                 throw new ConflictoException("El cupon pertenece a otro cliente.");
             }
-            descuento = descuento.add(descuentoDe(subtotal,
-                    cupon.getPorcentajeDescuento(), cupon.getMontoDescuento()));
+            descuentoCupon = ReglaDescuentos.descuentoDe(subtotal,
+                    cupon.getPorcentajeDescuento(), cupon.getMontoDescuento());
+        }
+
+        NivelLealtad nivel = nivelAplicable(orden);
+        BigDecimal descuentoNivel = nivel != null
+                ? ReglaDescuentos.descuentoDe(subtotal, nivel.getPorcentajeDescuento(), null)
+                : BigDecimal.ZERO;
+
+        if (ReglaDescuentos.ganaElNivel(descuentoCupon, descuentoNivel)) {
+            descuento = descuento.add(descuentoNivel);
+            orden.setNivelLealtadNombre(nivel.getNombre());
+        } else if (cupon != null) {
+            descuento = descuento.add(descuentoCupon);
             orden.setCuponCodigo(cupon.getCodigo());
         }
 
@@ -467,16 +499,15 @@ public class OrdenServiceImpl implements OrdenService {
         orden.setMontoTotal(subtotal.subtract(descuento).setScale(2, RoundingMode.HALF_UP));
     }
 
-    private BigDecimal descuentoDe(BigDecimal subtotal, BigDecimal porcentaje, BigDecimal monto) {
-        BigDecimal total = BigDecimal.ZERO;
-        if (porcentaje != null && porcentaje.signum() > 0) {
-            total = total.add(subtotal.multiply(porcentaje)
-                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+    /** El nivel que le toca al cliente por sus puntos, solo en el POS y solo si rebaja algo. */
+    private NivelLealtad nivelAplicable(Orden orden) {
+        if (orden.getCanalOrigen() != CanalOrigenEnum.POS || orden.getCliente() == null) {
+            return null;
         }
-        if (monto != null && monto.signum() > 0) {
-            total = total.add(monto);
-        }
-        return total;
+        Integer puntos = orden.getCliente().getPuntosFidelidad();
+        return nivelLealtadService.nivelDe(puntos != null ? puntos : 0)
+                .filter(n -> n.getPorcentajeDescuento() != null && n.getPorcentajeDescuento().signum() > 0)
+                .orElse(null);
     }
 
     private void exigirPromocionVigente(Promocion promocion) {
