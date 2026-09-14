@@ -1,0 +1,38 @@
+/* Las tres familias van alojadas en el propio front, en `public/fuentes/`, con
+   el subconjunto latino (cubre espanol y portugues) y sus licencias OFL al lado.
+   Nada se pide a Google Fonts: una tablet de cocina con wifi regular no puede
+   depender de un tercero para pintar un importe.
+
+   Inter es variable: un solo archivo sirve los pesos 400, 500 y 600. */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fuentes/inter-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fuentes/poppins-600-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fuentes/poppins-700-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fuentes/jetbrains-mono-500-latin.woff2') format('woff2');
+}
