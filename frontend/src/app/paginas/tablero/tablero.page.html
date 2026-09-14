@@ -1,0 +1,143 @@
+<section class="superficie">
+  <header class="cabecera">
+    <h1>{{ t('panel.tablero') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
+    </button>
+  </header>
+
+  @if (hoy(); as h) {
+    <!-- Como va el dia. -->
+    <ul class="indicadores">
+      <li>
+        <span class="rotulo">{{ t('tablero.vendidoHoy') }}</span>
+        <span class="cifra dato">S/ {{ h.ventas?.total ?? 0 | number: '1.2-2' }}</span>
+        @if (comparacionVentas(); as c) {
+          <span class="comparacion" [attr.data-sentido]="c.sentido">
+            {{ t(c.clave, { pct: c.pct }) }}
+          </span>
+        }
+      </li>
+      <li>
+        <span class="rotulo">{{ t('kpis.comandasCobradas') }}</span>
+        <span class="cifra dato">{{ h.ventas?.comandas ?? 0 }}</span>
+        @if (comparacionComandas(); as c) {
+          <span class="comparacion" [attr.data-sentido]="c.sentido">
+            {{ t(c.clave, { pct: c.pct }) }}
+          </span>
+        }
+      </li>
+      <li>
+        <span class="rotulo">{{ t('kpis.ticketPromedio') }}</span>
+        <span class="cifra dato">S/ {{ h.ventas?.ticketPromedio ?? 0 | number: '1.2-2' }}</span>
+      </li>
+      <li [class.alerta]="cocinaFuera()">
+        <span class="rotulo">{{ t('tablero.cocina') }}</span>
+        <span class="cifra dato">
+          @if (h.operacion?.minutosPromedioCocina != null) {
+            {{ h.operacion?.minutosPromedioCocina | number: '1.0-0' }} {{ t('comun.minutos') }}
+          } @else {
+            —
+          }
+        </span>
+        @if (h.operacion?.minutosObjetivoCocina; as objetivo) {
+          <span class="comparacion">{{ t('tablero.objetivo', { min: objetivo }) }}</span>
+        }
+      </li>
+    </ul>
+
+    <!-- Lo que hay que ir a resolver. Cada fila lleva a su pantalla si el rol
+         puede entrar; si no, se queda en dato. -->
+    <section class="bloque">
+      <h2>{{ t('tablero.ahoraMismo') }}</h2>
+      <ul class="pendientes">
+        @for (p of pendientes(); track p.clave) {
+          <li [class.alerta]="p.alerta && p.valor > 0">
+            @if (p.enlace) {
+              <a [routerLink]="p.ruta">
+                <app-icono [nombre]="p.icono" [tamano]="18" />
+                <span class="nombre">{{ t(p.clave) }}</span>
+                <span class="cifra valor"
+                  >{{ p.valor }}@if (p.de != null) {
+                    <span class="tenue"> / {{ p.de }}</span>
+                  }</span
+                >
+                <app-icono nombre="siguiente" [tamano]="16" />
+              </a>
+            } @else {
+              <div class="sin-enlace">
+                <app-icono [nombre]="p.icono" [tamano]="18" />
+                <span class="nombre">{{ t(p.clave) }}</span>
+                <span class="cifra valor">{{ p.valor }}</span>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+
+    <div class="columnas-tablero">
+      <!-- Como va la semana. -->
+      <section class="bloque">
+        <h2>{{ t('tablero.ventas7dias') }}</h2>
+        @if (grafica(); as g) {
+          <svg
+            class="area"
+            [attr.viewBox]="'0 0 ' + GRAFICA.ancho + ' ' + (GRAFICA.alto + 24)"
+            role="img"
+            [attr.aria-label]="t('tablero.graficaAria', { total: (g.total | number: '1.2-2') ?? '' })"
+          >
+            <path class="relleno" [attr.d]="g.area" />
+            <path class="linea" [attr.d]="g.linea" />
+            @for (c of g.coords; track $index) {
+              <circle [attr.cx]="c.x" [attr.cy]="c.y" r="4">
+                <title>
+                  {{ t('tablero.puntoTitulo', { dia: c.etiqueta, total: (c.total | number: '1.2-2') ?? '' }) }}
+                </title>
+              </circle>
+              <text class="eje" [attr.x]="c.x" [attr.y]="GRAFICA.alto + 18" text-anchor="middle">
+                {{ c.etiqueta }}
+              </text>
+            }
+          </svg>
+          <p class="pie-grafica">
+            {{ t('tablero.totalSemana', { total: (g.total | number: '1.2-2') ?? '' }) }}
+          </p>
+        } @else {
+          <p class="vacio">{{ t(cargando() ? 'comun.cargando' : 'tablero.sinVentas7dias') }}</p>
+        }
+      </section>
+
+      <section class="bloque">
+        <h2>{{ t('tablero.topHoy') }}</h2>
+        @if (topConBarra().length > 0) {
+          <ol class="top">
+            @for (p of topConBarra(); track p.platillo) {
+              <li>
+                <div class="fila">
+                  <span class="nombre">{{ p.platillo }}</span>
+                  <span class="cifra">S/ {{ p.montoTotal ?? 0 | number: '1.2-2' }}</span>
+                </div>
+                <div class="barra-top" aria-hidden="true">
+                  <span [style.width.%]="p.pct"></span>
+                </div>
+                <span class="unidades">{{ tp('tablero.unidades', p.unidadesVendidas ?? 0) }}</span>
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="vacio">{{ t(cargando() ? 'comun.cargando' : 'tablero.sinTopHoy') }}</p>
+        }
+      </section>
+    </div>
+  } @else if (!cargando()) {
+    <p class="vacio">{{ t('tablero.sinDatos') }}</p>
+  }
+</section>

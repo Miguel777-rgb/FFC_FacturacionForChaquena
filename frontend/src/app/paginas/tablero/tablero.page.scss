@@ -1,0 +1,203 @@
+/* --- como va el dia ---------------------------------------------------------- */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  gap: var(--e3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: var(--e4);
+    background: var(--superficie);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+  }
+
+  .rotulo {
+    font-size: var(--t-chico);
+    font-weight: 600;
+    color: var(--tenue);
+  }
+
+  .dato {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    color: var(--tinta);
+    overflow-wrap: anywhere;
+  }
+
+  .comparacion {
+    font-size: var(--t-chico);
+    color: var(--tenue);
+  }
+
+  .comparacion[data-sentido='sube'] {
+    color: var(--ok);
+  }
+
+  .comparacion[data-sentido='baja'] {
+    color: var(--critico);
+  }
+
+  li.alerta {
+    border-color: var(--critico);
+  }
+
+  li.alerta .dato {
+    color: var(--critico);
+  }
+}
+
+/* --- lo que hay que resolver --------------------------------------------------- */
+.pendientes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  a,
+  .sin-enlace {
+    display: flex;
+    align-items: center;
+    gap: var(--e3);
+    min-height: var(--control);
+    padding: var(--e2) var(--e3);
+    color: var(--texto);
+    text-decoration: none;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+  }
+
+  a:hover {
+    color: var(--tinta);
+    background: var(--hundido);
+  }
+
+  .nombre {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .valor {
+    font-size: 1.1rem;
+    color: var(--tinta);
+  }
+
+  li.alerta a,
+  li.alerta .sin-enlace {
+    border-color: var(--critico);
+    background: var(--critico-suave);
+  }
+
+  li.alerta .valor {
+    color: var(--critico);
+  }
+}
+
+/* --- como va la semana ---------------------------------------------------------- */
+.columnas-tablero {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--e4);
+  align-items: start;
+}
+
+.area {
+  display: block;
+  width: 100%;
+  height: auto;
+
+  .relleno {
+    fill: var(--acento-suave);
+  }
+
+  .linea {
+    fill: none;
+    stroke: var(--acento);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  circle {
+    fill: var(--superficie);
+    stroke: var(--acento);
+    stroke-width: 2;
+  }
+
+  .eje {
+    fill: var(--tenue);
+    font-family: var(--f-texto);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.pie-grafica {
+  margin: var(--e2) 0 0;
+  font-size: var(--t-chico);
+  color: var(--tenue);
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  .fila {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--e3);
+    color: var(--tinta);
+  }
+
+  .barra-top {
+    height: 6px;
+    margin: var(--e1) 0 2px;
+    overflow: hidden;
+    background: var(--hundido);
+    border-radius: 3px;
+  }
+
+  .barra-top span {
+    display: block;
+    height: 100%;
+    background: var(--acento-relleno);
+    border-radius: 3px;
+  }
+
+  .unidades {
+    font-size: var(--t-chico);
+    color: var(--tenue);
+  }
+}
+
+@media (max-width: 63.99rem) {
+  .columnas-tablero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    li {
+      padding: var(--e3);
+    }
+
+    .dato {
+      font-size: 1.3rem;
+    }
+  }
+}
