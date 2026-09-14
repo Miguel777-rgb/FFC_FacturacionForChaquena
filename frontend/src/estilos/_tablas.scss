@@ -122,8 +122,10 @@
       text-align: left;
     }
 
+    /* La primera celda es el titulo de la ficha: en bloque, para que un nombre
+       y su descripcion se lean seguidos y no repartidos a los lados. */
     tr:not(.expandida) > td:first-child {
-      justify-content: flex-start;
+      display: block;
       padding-bottom: var(--e1);
       font-weight: 600;
       text-align: left;
