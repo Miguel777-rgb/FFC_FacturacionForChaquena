@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { NgTemplateOutlet } from '@angular/common';
 
 import { Icono } from '../../disenio/icono';
+import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -61,6 +62,7 @@ export class PersonalPage implements OnInit {
   private readonly avisos = inject(AvisosService);
 
   protected readonly t = inject(I18nService).t;
+  private readonly confirmacion = inject(ConfirmacionService);
 
   /** La plantilla lo escribe dentro del aviso de la contrasena nueva. */
   protected readonly MINIMO_PASSWORD = MINIMO_PASSWORD;
@@ -254,8 +256,18 @@ export class PersonalPage implements OnInit {
    * Google. No borra a la persona, que sigue siendo el autor de todo lo que
    * registro.
    */
-  protected cambiarActivo(trabajador: TrabajadorResponseDto): void {
+  protected async cambiarActivo(trabajador: TrabajadorResponseDto): Promise<void> {
     if (!trabajador.id || this.guardando()) return;
+
+    // Reactivar no pide nada; dar de baja cierra el acceso y se confirma.
+    if (trabajador.activo) {
+      const confirmado = await this.confirmacion.pedir({
+        titulo: this.t('personal.darDeBajaA', { nombre: this.nombreCompleto(trabajador) }),
+        mensaje: this.t('personal.bajaMensaje'),
+        confirmar: this.t('comun.darDeBaja'),
+      });
+      if (!confirmado || this.guardando()) return;
+    }
 
     this.guardando.set(true);
     this.trabajadoresApi

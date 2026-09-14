@@ -1,6 +1,13 @@
 <div class="seccion">
   <div class="barra">
-    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
       {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </div>
@@ -107,7 +114,7 @@
         <p class="vacio">{{ tp('bots.pendientes', sinVincular()) }}</p>
       }
       <div class="desplazable">
-        <table class="tabla">
+        <table class="tabla apilable">
           <thead>
             <tr>
               <th>{{ t('comun.persona') }}</th>
@@ -126,13 +133,13 @@
                     <span class="tenue"> {{ t('bots.deBaja') }}</span>
                   }
                 </td>
-                <td class="cifra">{{ v.username }}</td>
-                <td>{{ v.cargoNombre }}</td>
-                <td class="cifra tenue">{{ v.discordUserId }}</td>
+                <td [attr.data-etiqueta]="t('comun.usuario')">{{ v.username }}</td>
+                <td [attr.data-etiqueta]="t('comun.cargo')">{{ v.cargoNombre }}</td>
+                <td class="cifra tenue" [attr.data-etiqueta]="t('bots.cuenta')">{{ v.discordUserId }}</td>
                 <td class="acciones">
                   <button
                     type="button"
-                    class="chico destructivo"
+                    class="secundario chico"
                     (click)="desvincular(v)"
                     [disabled]="guardando()"
                   >

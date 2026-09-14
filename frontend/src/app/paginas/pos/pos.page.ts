@@ -7,6 +7,9 @@ import {
   signal,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { Icono } from '../../disenio/icono';
+import { formatearDuracion } from '../../nucleo/i18n/formatos';
+import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -79,7 +82,7 @@ const TIPOS = CrearOrdenRequestDtoTipoOrdenEnum;
  */
 @Component({
   selector: 'app-pos',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pos.page.html',
   styleUrl: './pos.page.scss',
@@ -94,6 +97,8 @@ export class PosPage implements OnInit {
   private readonly comandasApi = inject(ComandasApi);
   private readonly avisos = inject(AvisosService);
   private readonly i18n = inject(I18nService);
+  private readonly confirmacion = inject(ConfirmacionService);
+  protected readonly duracion = formatearDuracion;
 
   /** La plantilla los llama directamente; leen la senal del idioma al hacerlo. */
   protected readonly t = this.i18n.t;
@@ -761,9 +766,21 @@ export class PosPage implements OnInit {
       });
   }
 
-  protected quitarDetalle(detalle: OrdenDetalleDto): void {
+  /**
+   * La comanda ya esta en cocina: quitar una linea cambia lo que se cocina, asi
+   * que se pregunta antes. El gesto que abre la pregunta es gris; el rojo vive
+   * dentro del dialogo.
+   */
+  protected async quitarDetalle(detalle: OrdenDetalleDto): Promise<void> {
     const orden = this.editando();
     if (!orden?.id || !detalle.id || this.guardandoLinea()) return;
+
+    const confirmado = await this.confirmacion.pedir({
+      titulo: this.t('pos.quitarDetalleTitulo', { platillo: detalle.platilloNombre ?? '' }),
+      mensaje: this.t('pos.quitarDetalleMensaje'),
+      confirmar: this.t('pos.quitarDetalleConfirmar'),
+    });
+    if (!confirmado || this.guardandoLinea()) return;
 
     this.guardandoLinea.set(true);
     this.comandasApi.eliminarDetalle({ id: orden.id, detalleId: detalle.id }).subscribe({

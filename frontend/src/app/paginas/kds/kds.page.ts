@@ -7,6 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { Icono } from '../../disenio/icono';
+import { formatearDuracion } from '../../nucleo/i18n/formatos';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, interval, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -43,7 +45,7 @@ const MINUTOS_SUGERIDOS = [10, 15, 20, 30, 45];
  */
 @Component({
   selector: 'app-kds',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kds.page.html',
   styleUrl: './kds.page.scss',
@@ -53,6 +55,7 @@ export class KdsPage implements OnInit {
   private readonly insumosApi = inject(InventarioInsumosApi);
   private readonly avisos = inject(AvisosService);
   private readonly i18n = inject(I18nService);
+  protected readonly duracion = formatearDuracion;
 
   protected readonly t = this.i18n.t;
   protected readonly tEnum = this.i18n.tEnum;

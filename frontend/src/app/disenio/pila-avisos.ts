@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { AvisosService } from '../nucleo/http/avisos.service';
 import { I18nService } from '../nucleo/i18n/i18n.service';
+import { Icono } from './icono';
 
 /**
  * Avisos apilados en una esquina. `role="status"` con `aria-live="polite"`
@@ -10,6 +11,7 @@ import { I18nService } from '../nucleo/i18n/i18n.service';
  */
 @Component({
   selector: 'app-pila-avisos',
+  imports: [Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="pila" role="status" aria-live="polite">
@@ -20,9 +22,9 @@ import { I18nService } from '../nucleo/i18n/i18n.service';
             type="button"
             class="cerrar"
             (click)="avisos.cerrar(a.id)"
-            aria-label="Cerrar aviso"
+            [attr.aria-label]="t('comun.cerrarAviso')"
           >
-            &times;
+            <app-icono nombre="quitar" [tamano]="16" />
           </button>
         </div>
       }
@@ -51,13 +53,12 @@ import { I18nService } from '../nucleo/i18n/i18n.service';
       gap: var(--e2);
       padding: var(--e3);
       border-radius: var(--radio);
+      /* Borde de 1px en el color del tono y fondo suave: se identifica de un
+         vistazo sin franjas gruesas. */
       border: 1px solid currentColor;
-      /* Franja del tono a la izquierda: el aviso se identifica de un vistazo
-         lateral, sin llegar a leerlo. */
-      border-left-width: 3px;
       background: var(--superficie);
       box-shadow: var(--sombra);
-      font-size: 0.9rem;
+      font-size: var(--t-texto);
     }
 
     .aviso p {
@@ -75,18 +76,23 @@ import { I18nService } from '../nucleo/i18n/i18n.service';
       background: var(--ok-suave);
     }
     .aviso.info {
-      color: var(--acento);
-      background: var(--acento-suave);
+      color: var(--info);
+      background: var(--info-suave);
     }
 
     .cerrar {
-      min-height: 24px;
-      padding: 0 var(--e2);
-      font-size: 1.1rem;
-      line-height: 1;
+      flex: none;
+      width: var(--control-chico);
+      min-height: var(--control-chico);
+      margin: calc(var(--e2) * -1) calc(var(--e2) * -1) 0 0;
+      padding: 0;
       color: inherit;
       background: transparent;
       border: none;
+    }
+
+    .cerrar:hover:not(:disabled) {
+      background: rgb(0 0 0 / 0.06);
     }
   `,
 })

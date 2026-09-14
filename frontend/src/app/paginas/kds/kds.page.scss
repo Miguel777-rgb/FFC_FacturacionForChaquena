@@ -1,6 +1,7 @@
-/* La pantalla de cocina se lee de pie y a un metro de distancia: tipografia
-   grande, tarjetas anchas y el cronometro como dato dominante. Nada de esto es
-   decorativo, es lo que decide si el plato sale a tiempo. */
+/* La pantalla de cocina se lee de pie, a veces en el celular del cocinero y a
+   veces en la PC de la cocina: el cronometro es el dato dominante y las
+   comandas tienen que verse sin bajar. Nada de esto es decorativo, es lo que
+   decide si el plato sale a tiempo. */
 
 .kds {
   display: flex;
@@ -9,13 +10,7 @@
   padding: var(--e5);
 }
 
-/* `.cabecera`, `.chip` y sus estados son globales: viven en `src/styles.scss`
-   porque las tres superficies los pintan igual. */
-
 /* --- kpis ----------------------------------------------------------------- */
-/* `min()` en el suelo del minmax: sin el, una columna de 9rem no baja de 144px
-   aunque la pantalla mida menos, y la rejilla empuja la pagina a lo ancho en
-   lugar de encogerse. */
 .kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
@@ -27,9 +22,6 @@
   li {
     display: flex;
     flex-direction: column;
-    /* Una celda de rejilla no se encoge por debajo de su contenido salvo que se
-       le diga. Un dato largo del servidor no puede decidir el ancho de la
-       pantalla. */
     min-width: 0;
     padding: var(--e3);
     background: var(--superficie);
@@ -47,22 +39,40 @@
   }
 
   .dato {
-    font-size: 1.6rem;
-    font-weight: 600;
-    line-height: 1.1;
+    font-size: 1.5rem;
+    line-height: 1.15;
+    color: var(--tinta);
     overflow-wrap: anywhere;
   }
 
   .rotulo {
-    font-size: 0.75rem;
+    font-size: var(--t-chico);
     color: var(--tenue);
   }
 }
 
+/* En el celular las cuatro cifras van en dos filas compactas: apiladas a lo
+   ancho empujaban las comandas fuera de la primera pantalla. */
+@media (max-width: 47.99rem) {
+  .kds {
+    padding: var(--e4);
+  }
+
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    li {
+      padding: var(--e2) var(--e3);
+    }
+
+    .dato {
+      font-size: 1.2rem;
+    }
+  }
+}
+
 /* --- tablero -------------------------------------------------------------- */
-/* Tres columnas fijas: la posicion de una comanda dentro de la pantalla pasa a
-   significar en que fase esta. Con `auto-fill` esa lectura se perderia en cuanto
-   la pantalla cambiara de ancho. */
+/* Tres columnas fijas en PC: la posicion de una comanda dice en que fase esta. */
 .columnas {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -82,11 +92,11 @@
     justify-content: space-between;
     gap: var(--e2);
     margin: 0;
-    font-family: var(--f-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--tenue);
+    font-family: var(--f-texto);
+    font-size: var(--t-texto);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--tinta);
   }
 }
 
@@ -114,6 +124,7 @@
 
   > footer {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--e2);
@@ -122,11 +133,11 @@
   }
 }
 
-/* Fuera de objetivo: filete grueso a la izquierda ademas del color, para que se
-   distinga tambien en una pantalla con reflejos o mal calibrada. */
+/* Fuera de objetivo: el contorno entero en rojo y con doble grosor, ademas del
+   cronometro. Se distingue tambien con reflejos o sin color. */
 .comanda.tarde {
   border-color: var(--critico);
-  box-shadow: inset 3px 0 0 var(--critico);
+  box-shadow: 0 0 0 1px var(--critico);
 
   .reloj {
     color: var(--critico);
@@ -136,23 +147,25 @@
 .quien {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .correlativo {
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
+  font-size: var(--t-chico);
   color: var(--tenue);
 }
 
 .donde {
   font-size: 1.05rem;
   font-weight: 600;
+  color: var(--tinta);
 }
 
 .reloj {
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 1.5rem;
   line-height: 1;
+  white-space: nowrap;
+  color: var(--tinta);
 }
 
 .lineas {
@@ -166,7 +179,7 @@
   li {
     display: flex;
     gap: var(--e2);
-    align-items: baseline;
+    align-items: flex-start;
   }
 
   .cantidad {
@@ -177,21 +190,23 @@
   .plato {
     display: flex;
     flex-direction: column;
-    font-size: 1.05rem;
+    font-size: 1rem;
+    color: var(--tinta);
   }
 
   .complementos {
-    font-size: 0.8rem;
+    font-size: var(--t-chico);
     color: var(--tenue);
   }
 
-  /* La nota cambia como se cocina el plato: se marca con tinte y borde, no con
-     letra pequena gris que se pasa por alto en plena hora punta. */
+  /* La nota cambia como se cocina el plato: tinte y borde, no letra gris que se
+     pasa por alto en plena hora punta. */
   .nota {
     align-self: flex-start;
     margin-top: 2px;
     padding: 1px var(--e2);
-    font-size: 0.8rem;
+    font-size: var(--t-chico);
+    font-weight: 600;
     color: var(--aviso);
     background: var(--aviso-suave);
     border: 1px solid var(--aviso);
@@ -200,7 +215,7 @@
 }
 
 .servida {
-  font-size: 0.8rem;
+  font-size: var(--t-chico);
   color: var(--ok);
 }
 
@@ -210,14 +225,14 @@
   color: var(--tenue);
   text-align: center;
   background: var(--superficie);
-  border: 1px dashed var(--linea);
+  border: 1px dashed var(--linea-fuerte);
   border-radius: var(--radio);
   grid-column: 1 / -1;
 }
 
 /* --- promesa de tiempo ----------------------------------------------------- */
 /* Se pide de un toque y no escribiendo: en cocina se trabaja con las manos
-   ocupadas y un teclado numerico es un gesto de mas. */
+   ocupadas. */
 .prometer {
   display: flex;
   flex-wrap: wrap;
@@ -226,44 +241,38 @@
 
   .rotulo {
     flex: 1 1 100%;
-    font-size: 0.8rem;
+    font-size: var(--t-chico);
     color: var(--tenue);
   }
 }
 
 .minutos {
-  min-height: 2.25rem;
+  min-height: var(--control-chico);
   padding: 0 var(--e3);
 }
 
 .promesa {
   margin: 0;
-  font-size: 0.85rem;
   color: var(--tenue);
 }
 
-/* Incumplida no se pinta en rojo relleno: el filete del borde ya avisa, y dos
-   alarmas para el mismo hecho se anulan entre si. */
+/* Incumplida no se pinta en rojo relleno: el contorno ya avisa, y dos alarmas
+   para el mismo hecho se anulan entre si. */
 .promesa.incumplida {
   color: var(--critico);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* --- tilde por platillo ---------------------------------------------------- */
-.lineas li {
-  align-items: flex-start;
-}
-
 .tilde {
   flex: 0 0 auto;
-  width: 1.75rem;
-  min-height: 1.75rem;
+  width: var(--control-chico);
+  min-height: var(--control-chico);
   padding: 0;
-  font-size: 0.9rem;
   line-height: 1;
   color: var(--ok);
   background: transparent;
-  border-color: var(--linea);
+  border-color: var(--linea-fuerte);
   border-radius: var(--radio-chico);
 }
 
@@ -272,10 +281,10 @@
   border-color: var(--ok);
 }
 
-/* Servido no se tacha: en una pantalla de cocina el texto tachado se vuelve
-   ilegible a dos metros. Se baja el contraste y el tilde queda de testigo. */
+/* Servido no se tacha: tachado se vuelve ilegible a dos metros. Se baja el
+   contraste y el tilde queda de testigo. */
 .lineas li.servido {
-  opacity: 0.5;
+  opacity: 0.55;
 
   .tilde {
     background: var(--ok-suave);
@@ -286,9 +295,10 @@
 
 /* --- aviso de faltante ----------------------------------------------------- */
 .falta {
-  min-height: 2.25rem;
-  padding: 0 var(--e2);
-  font-size: 0.8rem;
+  min-height: var(--control-chico);
+  padding: 0 var(--e3);
+  font-size: var(--t-chico);
+  white-space: nowrap;
 }
 
 .faltante {
@@ -298,5 +308,5 @@
   padding: var(--e3);
   background: var(--critico-suave);
   border: 1px solid var(--critico);
-  border-radius: var(--radio-chico);
+  border-radius: var(--radio);
 }

@@ -85,6 +85,20 @@ export const ES = {
   'comun.hasta': 'Hasta',
   'comun.identificador': 'Identificador',
 
+  // --- tema y confirmaciones de peligro ------------------------------------
+  'tema.alternar': 'Tema: {actual}. Pulsa para pasar a {siguiente}.',
+  'tema.sistema': 'el del sistema',
+  'tema.claro': 'claro',
+  'tema.oscuro': 'oscuro',
+  'despacho.bajaTitulo': 'Dar de baja a {nombre}',
+  'despacho.bajaMensaje': 'Deja de aparecer al asignar comandas. Las que ya se llevó conservan su nombre y su placa, y se le puede reactivar después.',
+  'personal.bajaMensaje': 'No podrá entrar al sistema, ni con usuario y contraseña ni con Google, hasta que se le reactive. Todo lo que registró sigue a su nombre.',
+  'bots.liberarTitulo': 'Liberar la cuenta de {usuario}',
+  'bots.liberarMensaje': 'El bot deja de reconocer esa cuenta de Discord. Sigue entrando al sistema con su usuario; para volver a usar el bot tendrá que escribir /vincular otra vez.',
+  'pos.quitarDetalleTitulo': 'Quitar {platillo} de la comanda',
+  'pos.quitarDetalleMensaje': 'La comanda ya está en cocina. La línea desaparece de la comanda y de la cola de cocina.',
+  'pos.quitarDetalleConfirmar': 'Quitar de la comanda',
+
   // --- panel lateral ---------------------------------------------------------
   'panel.superficies': 'Superficies',
   'panel.modulo': 'Logística',
@@ -141,7 +155,6 @@ export const ES = {
   'sinPermiso.volver': 'Ir a mi pantalla',
 
   // --- POS -------------------------------------------------------------------
-  'pos.marca': 'Punto de venta',
   'pos.titulo': 'Tomar comanda',
   'pos.otpTitulo': 'Código de entrega · comanda {correlativo}',
   'pos.otpDictar':
@@ -221,7 +234,6 @@ export const ES = {
   'pos.avisoQuitado': '{platillo} quitado de la comanda.',
 
   // --- cocina ----------------------------------------------------------------
-  'kds.marca': 'Cocina',
   'kds.titulo': 'Cola de comandas',
   'kds.enCola': 'En cola',
   'kds.enFuego': 'En fuego',
@@ -247,7 +259,6 @@ export const ES = {
   'kds.avisoFaltante': 'Aviso enviado al mozo.',
 
   // --- caja ------------------------------------------------------------------
-  'caja.marca': 'Caja',
   'caja.titulo': 'Cobrar y cerrar',
   'caja.cobradoHoy': 'Cobrado hoy',
   'caja.pagos': 'Pagos',
@@ -312,7 +323,6 @@ export const ES = {
   'caja.avisoFraude': 'Alerta enviada a administración. La comanda queda fuera de la venta.',
 
   // --- despacho --------------------------------------------------------------
-  'despacho.marca': 'Despacho',
   'despacho.titulo': 'Entregas a domicilio',
   'despacho.esperandoConductor': 'Esperando conductor',
   'despacho.sinConductores':
@@ -355,7 +365,6 @@ export const ES = {
   'despacho.avisoVehiculoAnotado': 'Vehículo {placa} anotado.',
 
   // --- trastienda ------------------------------------------------------------
-  'trastienda.marca': 'Trastienda',
   'trastienda.secciones': 'Secciones de la trastienda',
   'trastienda.inventario': 'Inventario',
   'trastienda.carta': 'Carta',
@@ -540,7 +549,6 @@ export const ES = {
   'outbox.avisoReintentado': 'Evento devuelto a la cola.',
 
   // --- personal --------------------------------------------------------------
-  'personal.marca': 'Personal',
   'personal.titulo': 'Quién trabaja y qué abre',
   'personal.nuevoTrabajador': 'Nuevo trabajador',
   'personal.sinCargos':
@@ -599,7 +607,6 @@ export const ES = {
     'Quien ya tenga la sesión abierta conserva sus permisos hasta volver a entrar.',
 
   // --- KPIs ------------------------------------------------------------------
-  'kpis.marca': 'Indicadores',
   'kpis.titulo': 'Cómo va el local',
   'kpis.hoy': 'Hoy',
   'kpis.semana': '7 días',

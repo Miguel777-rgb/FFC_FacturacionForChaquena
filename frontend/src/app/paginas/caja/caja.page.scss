@@ -9,9 +9,6 @@
   padding: var(--e5);
 }
 
-/* `.cabecera`, `.bloque`, `.chip` y `.vacio` son globales: viven en
-   `src/styles.scss` porque las tres superficies los pintan igual. */
-
 .tablero {
   display: grid;
   grid-template-columns: 22rem minmax(0, 1fr);
@@ -26,18 +23,17 @@
 }
 
 /* --- arqueo del dia -------------------------------------------------------- */
-/* Cifra grande arriba y rotulo debajo: en una barra de KPIs lo que se compara
-   son los numeros, y llevan la vista si no compiten con su etiqueta. */
 .kpis {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--e5);
+  gap: var(--e4) var(--e6);
   margin: 0;
   padding: var(--e4);
   list-style: none;
   background: var(--superficie);
   border: 1px solid var(--linea);
   border-radius: var(--radio);
+  box-shadow: var(--sombra);
 
   li {
     display: flex;
@@ -45,14 +41,14 @@
   }
 
   .dato {
-    font-size: 1.6rem;
-    font-weight: 600;
-    line-height: 1.1;
+    font-size: 1.5rem;
+    line-height: 1.15;
+    color: var(--tinta);
   }
 
   .rotulo {
-    font-size: 0.75rem;
-    color: var(--tenue);
+    margin: 0;
+    font-weight: 400;
   }
 }
 
@@ -66,8 +62,6 @@
   padding: 0;
   list-style: none;
 
-  /* Borde en vez de fondo hundido: el chip de estado lleva su propio tinte
-     suave y sobre otro fondo se emborrona. */
   li:not(.vacio) {
     display: flex;
     flex-wrap: wrap;
@@ -75,33 +69,32 @@
     gap: var(--e2);
     padding: var(--e2) var(--e3);
     border: 1px solid var(--linea);
-    border-radius: var(--radio-chico);
+    border-radius: var(--radio);
   }
 
   .mesa,
   .referencia {
     font-weight: 500;
+    color: var(--tinta);
   }
 
   .monto {
     margin-left: auto;
-    font-weight: 600;
+    color: var(--tinta);
   }
 
   .nota-estado {
-    font-size: 0.85rem;
     color: var(--tenue);
   }
 
   button {
-    min-height: 2.25rem;
+    min-height: var(--control-chico);
     padding: 0 var(--e3);
-    font-size: 0.85rem;
   }
 }
 
-/* La bandeja de acreditacion se distingue con el tinte de aviso: es dinero que
-   se dio por cobrado y todavia no ha llegado. */
+/* La bandeja de acreditacion lleva el tinte de aviso: dinero que se dio por
+   cobrado y todavia no ha llegado. */
 .bandeja {
   border-color: var(--aviso);
 
@@ -137,6 +130,7 @@
 
   .nombre {
     flex: 1;
+    color: var(--tinta);
   }
 }
 
@@ -153,15 +147,14 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--e3);
-  font-size: 0.9rem;
 }
 
 .linea-total.tenue {
   color: var(--tenue);
 }
 
-/* Lo que espera acreditacion se pinta en aviso, no en critico: no es un error,
-   es dinero en transito. */
+/* Lo que espera acreditacion va en aviso, no en peligro: no es un error, es
+   dinero en transito. */
 .linea-total.espera {
   color: var(--aviso);
 }
@@ -172,6 +165,7 @@
   justify-content: space-between;
   gap: var(--e3);
   margin: var(--e1) 0 0;
+  color: var(--tinta);
 
   strong {
     font-size: 1.5rem;
@@ -193,36 +187,37 @@
   }
 }
 
-/* Tres formas de pago, siempre visibles. Un desplegable esconderia justo la
-   decision que cambia el resto del formulario. */
+/* Tres formas de pago como selector segmentado, siempre visibles: un
+   desplegable esconderia la decision que cambia el resto del formulario. */
 .metodos {
   display: flex;
-  gap: var(--e2);
+  gap: 2px;
+  padding: 2px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
 
   button {
     flex: 1;
-    color: var(--acento);
-    background: transparent;
-    font-size: 0.9rem;
-  }
-
-  button.elegido {
-    color: #ffffff;
-    background: var(--acento);
-  }
-}
-
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e1);
-
-  > span {
-    font-family: var(--f-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    min-width: 0;
+    padding: 0 var(--e2);
+    font-weight: 500;
     color: var(--tenue);
+    background: transparent;
+    border-radius: var(--radio-chico);
+  }
+
+  button:hover:not(:disabled) {
+    color: var(--tinta);
+    background: transparent;
+  }
+
+  button.elegido,
+  button.elegido:hover:not(:disabled) {
+    font-weight: 600;
+    color: var(--acento);
+    background: var(--acento-suave);
+    border-color: var(--acento);
   }
 }
 
@@ -242,7 +237,7 @@
 .vuelto.entregado {
   padding: var(--e2) var(--e3);
   background: var(--ok-suave);
-  border-radius: var(--radio-chico);
+  border-radius: var(--radio);
 }
 
 /* --- calificacion ----------------------------------------------------------- */
@@ -252,7 +247,7 @@
   gap: var(--e3);
   padding: var(--e3);
   background: var(--hundido);
-  border-radius: var(--radio-chico);
+  border-radius: var(--radio);
 }
 
 .criterio {
@@ -260,7 +255,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--e3);
-  font-size: 0.9rem;
+  color: var(--tinta);
 }
 
 .estrellas {
@@ -268,40 +263,36 @@
   gap: 2px;
 }
 
-/* Botones de verdad y no un input range: en una caja se puntua con el dedo o
-   con un clic, y hace falta que el area sea grande y el estado se vea desde
-   lejos. Se anulan los estilos globales del boton, que pintan el rojo relleno
-   de la accion principal. */
+/* Botones de verdad y no un `range`: se puntua con el dedo o con un clic, y el
+   estado tiene que verse desde lejos. La estrella es el icono dibujado; al
+   puntuarla se rellena. */
 .estrella {
-  min-height: 2rem;
-  min-width: 2rem;
+  width: var(--control-chico);
+  min-height: var(--control-chico);
   padding: 0;
-  font-size: 1.25rem;
-  line-height: 1;
-  color: var(--linea);
+  color: var(--linea-fuerte);
   background: transparent;
   border: none;
 }
 
-.estrella.marcada {
-  color: var(--aviso);
+.estrella:hover:not(:disabled),
+.estrella.marcada,
+.estrella.marcada:hover:not(:disabled) {
+  color: var(--estrella);
+  background: transparent;
 }
 
-.estrella:hover {
-  color: var(--aviso);
-}
-
-/* El cupon recien emitido. Va en verde y no en rojo: es una buena noticia que
-   hay que leer en voz alta, no una advertencia. */
+/* El cupon recien emitido va en verde: es una buena noticia que hay que leer en
+   voz alta, no una advertencia. */
 .calificada {
   display: flex;
   flex-direction: column;
   gap: var(--e2);
   padding: var(--e3);
-  font-size: 0.9rem;
+  color: var(--tinta);
   background: var(--ok-suave);
   border: 1px solid var(--ok);
-  border-radius: var(--radio-chico);
+  border-radius: var(--radio);
 
   p {
     margin: 0;
@@ -321,19 +312,13 @@
   padding: var(--e3);
   background: var(--critico-suave);
   border: 1px solid var(--critico);
-  border-radius: var(--radio-chico);
+  border-radius: var(--radio);
 }
 
 .casilla {
   display: flex;
   align-items: center;
   gap: var(--e2);
-  font-size: 0.9rem;
-
-  input {
-    width: auto;
-    min-height: auto;
-  }
 }
 
 /* --- reportes del dia ------------------------------------------------------ */
@@ -343,12 +328,11 @@
   gap: var(--e5);
 }
 
+/* Rotulo de dato o de subseccion: letra del texto, pequeña y con peso. */
 .rotulo {
   margin: 0 0 var(--e2);
-  font-family: var(--f-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--t-chico);
+  font-weight: 600;
   color: var(--tenue);
 }
 
@@ -365,7 +349,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: var(--e3);
-    font-size: 0.9rem;
+    color: var(--tinta);
   }
 }
 
@@ -373,5 +357,11 @@
   .tablero,
   .dos {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .caja {
+    padding: var(--e4);
   }
 }

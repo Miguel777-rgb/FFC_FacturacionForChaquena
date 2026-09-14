@@ -41,7 +41,7 @@
     gap: var(--e2);
     padding: var(--e3);
     border: 1px solid var(--linea);
-    border-radius: var(--radio-chico);
+    border-radius: var(--radio);
   }
 }
 
@@ -49,30 +49,31 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--e3);
+  gap: var(--e2) var(--e3);
 }
 
 .items,
 .espera,
 .detalle {
-  font-size: 0.85rem;
+  font-size: var(--t-texto);
   color: var(--tenue);
 }
 
 .monto {
   margin-left: auto;
-  font-weight: 600;
+  color: var(--tinta);
 }
 
 .conductor {
   font-weight: 600;
+  color: var(--tinta);
 }
 
-/* La placa es lo que queda anotado de por donde salio el pedido: se lee como un
-   dato duro, no como texto corrido. */
+/* La placa es lo que queda anotado de por donde salio el pedido. */
 .placa {
-  padding: 2px var(--e2);
-  font-size: 0.85rem;
+  padding: 1px var(--e2);
+  font-size: var(--t-texto);
+  color: var(--tinta);
   background: var(--hundido);
   border: 1px solid var(--linea);
   border-radius: var(--radio-chico);
@@ -80,7 +81,7 @@
 
 .direccion {
   margin: 0;
-  font-size: 0.9rem;
+  color: var(--tinta);
 }
 
 .entrega,
@@ -126,23 +127,24 @@
     gap: var(--e2);
     padding: var(--e3);
     border: 1px solid var(--linea);
-    border-radius: var(--radio-chico);
+    border-radius: var(--radio);
   }
 
   .quien {
     display: flex;
     flex-direction: column;
     flex: 1;
+    min-width: 0;
   }
 
   .detalle {
-    font-size: 0.8rem;
+    font-size: var(--t-chico);
   }
 
   button {
-    min-height: 2.25rem;
+    min-height: var(--control-chico);
     padding: 0 var(--e3);
-    font-size: 0.85rem;
+    font-size: var(--t-chico);
   }
 }
 
@@ -172,9 +174,6 @@
 
 .chico {
   align-self: flex-start;
-  min-height: 2rem;
-  padding: 0 var(--e2);
-  font-size: 0.8rem;
 }
 
 .formulario {
@@ -183,11 +182,17 @@
   gap: var(--e2);
   padding: var(--e3);
   background: var(--hundido);
-  border-radius: var(--radio-chico);
+  border-radius: var(--radio);
 }
 
 @media (max-width: 60rem) {
   .tablero {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .despacho {
+    padding: var(--e4);
   }
 }

@@ -1,10 +1,14 @@
 <section class="personal">
   <header class="cabecera">
-    <div>
-      <p class="marca">{{ t('personal.marca') }}</p>
-      <h1>{{ t('personal.titulo') }}</h1>
-    </div>
-    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+    <h1>{{ t('personal.titulo') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
       {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
@@ -115,7 +119,7 @@
     }
 
     <div class="desplazable">
-      <table class="tabla">
+      <table class="tabla apilable">
         <thead>
           <tr>
             <th>{{ t('comun.persona') }}</th>
@@ -138,10 +142,10 @@
                   <span class="tenue"> · {{ t('comun.sinCorreo') }}</span>
                 }
               </td>
-              <td class="cifra">{{ trabajador.username }}</td>
-              <td class="cifra tenue">{{ trabajador.dni }}</td>
-              <td>{{ trabajador.cargoNombre }}</td>
-              <td class="tenue">{{ rolesDe(trabajador.cargoId) }}</td>
+              <td [attr.data-etiqueta]="t('comun.usuario')">{{ trabajador.username }}</td>
+              <td class="cifra tenue" [attr.data-etiqueta]="t('comun.documento')">{{ trabajador.dni }}</td>
+              <td [attr.data-etiqueta]="t('comun.cargo')">{{ trabajador.cargoNombre }}</td>
+              <td class="tenue" [attr.data-etiqueta]="t('personal.abre')">{{ rolesDe(trabajador.cargoId) }}</td>
               <!-- Cuatro iconos y ningun rotulo: la columna se repite en cada
                  fila, y con veinte personas cuatro palabras por fila tapan los
                  datos. Cada boton lleva su nombre en `aria-label` y en `title`,
@@ -392,8 +396,10 @@
       <ul class="listado">
         @for (c of cargos(); track c.id) {
           <li>
-            <span>{{ c.nombre }}</span>
-            <span class="tenue">{{ rolesDeCargo(c) }}</span>
+            <div class="cargo">
+              <strong>{{ c.nombre }}</strong>
+              <span class="tenue">{{ rolesDeCargo(c) }}</span>
+            </div>
             <button type="button" class="secundario chico" (click)="editarCargo(c)">
               {{ t(cargoEnEdicion() === c.id ? 'comun.dejarlo' : 'comun.editar') }}
             </button>

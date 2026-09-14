@@ -73,6 +73,20 @@ export const EN: Record<ClaveI18n, string> = {
   'comun.hasta': 'To',
   'comun.identificador': 'Identifier',
 
+  // --- tema y confirmaciones de peligro ------------------------------------
+  'tema.alternar': 'Theme: {actual}. Press to switch to {siguiente}.',
+  'tema.sistema': 'system default',
+  'tema.claro': 'light',
+  'tema.oscuro': 'dark',
+  'despacho.bajaTitulo': 'Deactivate {nombre}',
+  'despacho.bajaMensaje': 'They stop showing up when assigning orders. The orders they already took keep their name and plate, and they can be reactivated later.',
+  'personal.bajaMensaje': 'They will not be able to sign in, neither with username and password nor with Google, until reactivated. Everything they recorded stays under their name.',
+  'bots.liberarTitulo': 'Release the account of {usuario}',
+  'bots.liberarMensaje': 'The bot stops recognizing that Discord account. They can still sign in with their username; to use the bot again they will have to type /vincular again.',
+  'pos.quitarDetalleTitulo': 'Remove {platillo} from the order',
+  'pos.quitarDetalleMensaje': 'The order is already in the kitchen. The line disappears from the order and from the kitchen queue.',
+  'pos.quitarDetalleConfirmar': 'Remove from order',
+
   'panel.superficies': 'Screens',
   'panel.modulo': 'Logistics',
   'panel.pos': 'Point of sale',
@@ -123,7 +137,6 @@ export const EN: Record<ClaveI18n, string> = {
   'sinPermiso.pide': 'If you need access, ask the administrator for it.',
   'sinPermiso.volver': 'Go to my screen',
 
-  'pos.marca': 'Point of sale',
   'pos.titulo': 'Take an order',
   'pos.otpTitulo': 'Delivery code · order {correlativo}',
   'pos.otpDictar':
@@ -202,7 +215,6 @@ export const EN: Record<ClaveI18n, string> = {
   'pos.avisoCancelada': 'Order cancelled and stock put back.',
   'pos.avisoQuitado': '{platillo} removed from the order.',
 
-  'kds.marca': 'Kitchen',
   'kds.titulo': 'Order queue',
   'kds.enCola': 'Queued',
   'kds.enFuego': 'Cooking',
@@ -227,7 +239,6 @@ export const EN: Record<ClaveI18n, string> = {
   'kds.avisoLista': 'Order {correlativo} ready to serve.',
   'kds.avisoFaltante': 'The waiter has been told.',
 
-  'caja.marca': 'Register',
   'caja.titulo': 'Charge and close',
   'caja.cobradoHoy': 'Taken today',
   'caja.pagos': 'Payments',
@@ -291,7 +302,6 @@ export const EN: Record<ClaveI18n, string> = {
   'caja.avisoCerrada': 'Order for table {mesa} closed. The table is free.',
   'caja.avisoFraude': 'The alert went to the administrator. The order is out of the sales figures.',
 
-  'despacho.marca': 'Dispatch',
   'despacho.titulo': 'Home deliveries',
   'despacho.esperandoConductor': 'Waiting for a driver',
   'despacho.sinConductores':
@@ -333,7 +343,6 @@ export const EN: Record<ClaveI18n, string> = {
   'despacho.avisoConductorAnotado': '{nombre} added. Now their vehicle.',
   'despacho.avisoVehiculoAnotado': 'Vehicle {placa} added.',
 
-  'trastienda.marca': 'Back office',
   'trastienda.secciones': 'Back office sections',
   'trastienda.inventario': 'Inventory',
   'trastienda.carta': 'Menu',
@@ -511,7 +520,6 @@ export const EN: Record<ClaveI18n, string> = {
   'outbox.sinEventos': 'There are no events with that status.',
   'outbox.avisoReintentado': 'Event sent back to the queue.',
 
-  'personal.marca': 'Staff',
   'personal.titulo': 'Who works here and what they can open',
   'personal.nuevoTrabajador': 'New worker',
   'personal.sinCargos':
@@ -568,7 +576,6 @@ export const EN: Record<ClaveI18n, string> = {
   'personal.avisoSesionAbierta':
     'Anyone already signed in keeps their permissions until they sign in again.',
 
-  'kpis.marca': 'Indicators',
   'kpis.titulo': 'How the restaurant is doing',
   'kpis.hoy': 'Today',
   'kpis.semana': '7 days',

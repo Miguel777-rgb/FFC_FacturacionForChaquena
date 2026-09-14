@@ -1,10 +1,14 @@
 <section class="caja">
   <header class="cabecera">
-    <div>
-      <p class="marca">{{ t('caja.marca') }}</p>
-      <h1>{{ t('caja.titulo') }}</h1>
-    </div>
-    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+    <h1>{{ t('caja.titulo') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
       {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
@@ -40,7 +44,7 @@
               <span class="chip" [attr.data-estado]="o.estado">{{
                 tEnum('estado', o.estado)
               }}</span>
-              <span class="mesa cifra">
+              <span class="mesa">
                 {{
                   o.mesaNumero
                     ? t('comun.mesa', { numero: o.mesaNumero })
@@ -282,7 +286,7 @@
                       [attr.aria-label]="t('caja.estrellaAria', { n: e, criterio: t(c.nombre) })"
                       (click)="puntuar(c.id, e)"
                     >
-                      ★
+                      <app-icono nombre="estrella" [tamano]="24" [relleno]="puntajes()[c.id] >= e" />
                     </button>
                   }
                 </div>
@@ -332,7 +336,7 @@
         <!-- --- billete falso --- -->
         <!-- FRAUDULENTO es terminal: de ahi no se sale. Por eso el gesto va
              contorneado, pide un motivo escrito y no se confunde con Cobrar. -->
-        <button type="button" class="destructivo" (click)="abrirAlerta()">
+        <button type="button" class="secundario" (click)="abrirAlerta()">
           {{ t(alertando() ? 'comun.dejarlo' : 'caja.billeteFalso') }}
         </button>
 
@@ -351,7 +355,7 @@
             </label>
             <button
               type="button"
-              class="destructivo"
+              class="peligro"
               (click)="alertarFraude()"
               [disabled]="!motivoFraude().trim() || cobrando()"
             >

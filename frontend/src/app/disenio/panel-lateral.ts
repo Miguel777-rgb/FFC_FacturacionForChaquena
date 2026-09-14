@@ -7,6 +7,7 @@ import { I18nService } from '../nucleo/i18n/i18n.service';
 import type { ClaveI18n } from '../nucleo/i18n/traducciones/es';
 import type { Rol } from '../nucleo/sesion/rol';
 import { Icono } from './icono';
+import { SelectorTema } from './selector-tema';
 import type { NombreIcono } from './iconos';
 
 interface Destino {
@@ -62,7 +63,7 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
  */
 @Component({
   selector: 'app-panel-lateral',
-  imports: [RouterLink, RouterLinkActive, Icono],
+  imports: [RouterLink, RouterLinkActive, Icono, SelectorTema],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <aside [class.plegado]="plegado()">
@@ -138,6 +139,8 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
           </div>
         }
 
+        <app-selector-tema />
+
         <button
           type="button"
           class="icono-solo"
@@ -173,15 +176,17 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       padding: var(--e3);
       background: var(--superficie);
       border-right: 1px solid var(--linea);
-      /* El rojo entra por un filete de un pixel, no por un fondo: el panel
-         queda a la vista todo el turno y un lateral rojo cansaria. */
-      box-shadow: inset 2px 0 0 -1px var(--acento);
       transition: width 0.15s ease;
       overflow: hidden;
     }
 
     aside.plegado {
       width: calc(var(--toque) + var(--e3) * 2);
+    }
+
+    /* Plegado, el pie apila sus botones: en la regleta no caben dos en fila. */
+    aside.plegado footer {
+      flex-direction: column;
     }
 
     /* --- marca ------------------------------------------------------------ */
@@ -280,12 +285,14 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       min-height: var(--toque);
       padding: 0 var(--e3);
       border-radius: var(--radio-chico);
-      color: var(--tinta);
+      font-weight: 500;
+      color: var(--texto);
       text-decoration: none;
       white-space: nowrap;
     }
 
     a:hover {
+      color: var(--tinta);
       background: var(--hundido);
     }
 
@@ -296,7 +303,7 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
       color: var(--acento);
       background: var(--acento-suave);
       font-weight: 600;
-      box-shadow: inset 2px 0 0 var(--acento);
+      box-shadow: inset 3px 0 0 var(--acento);
     }
 
     /* --- idioma ----------------------------------------------------------- */
@@ -317,17 +324,16 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
     }
 
     .nombre {
-      font-size: 0.85rem;
-      font-weight: 500;
+      font-size: var(--t-texto);
+      font-weight: 600;
+      color: var(--tinta);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .roles {
-      font-family: var(--f-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.06em;
+      font-size: var(--t-leyenda);
       color: var(--tenue);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -373,6 +379,10 @@ const CLAVE_PLEGADO = 'chaquena.panel.plegado';
     @media (max-width: 40rem) {
       aside {
         width: calc(var(--toque) + var(--e3) * 2);
+      }
+
+      footer {
+        flex-direction: column;
       }
 
       aside:not(.plegado) .identidad,

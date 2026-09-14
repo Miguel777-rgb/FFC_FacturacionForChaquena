@@ -41,13 +41,20 @@
         <option [value]="f.id">{{ t(f.nombre) }}</option>
       }
     </select>
-    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
       {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </div>
 
   <div class="desplazable">
-    <table class="tabla">
+    <table class="tabla apilable">
       <thead>
         <tr>
           <th>{{ t('outbox.cuando') }}</th>
@@ -62,14 +69,14 @@
         @for (e of eventos(); track e.id) {
           <tr [class.bajo]="e.status === ESTADOS.DEAD_LETTER">
             <td class="tenue">{{ fecha(e.fecha) }}</td>
-            <td>{{ e.eventType }}</td>
-            <td class="cifra tenue">{{ e.aggregateType }}</td>
-            <td>
+            <td [attr.data-etiqueta]="t('outbox.evento')">{{ e.eventType }}</td>
+            <td class="cifra tenue" [attr.data-etiqueta]="t('outbox.sobre')">{{ e.aggregateType }}</td>
+            <td [attr.data-etiqueta]="t('comun.estado')">
               <span class="chip" [attr.data-estado]="e.status">
                 {{ tEnum('outboxEstado', e.status) }}
               </span>
             </td>
-            <td class="num cifra">{{ e.retryCount ?? 0 }}</td>
+            <td class="num cifra" [attr.data-etiqueta]="t('outbox.intentos')">{{ e.retryCount ?? 0 }}</td>
             <td class="acciones">
               <button type="button" class="secundario chico" (click)="abrirDetalle(e)">
                 {{ t(detalleDe()?.id === e.id ? 'comun.cerrar' : 'outbox.ver') }}

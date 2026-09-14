@@ -1,10 +1,14 @@
 <section class="kds">
   <header class="cabecera">
-    <div>
-      <p class="marca">{{ t('kds.marca') }}</p>
-      <h1>{{ t('kds.titulo') }}</h1>
-    </div>
-    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+    <h1>{{ t('kds.titulo') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
       {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
@@ -74,7 +78,7 @@
               <!-- El cronometro es el dato que se lee desde lejos: va grande y en
                    cifra tabular para que no baile al pasar de 9 a 10. Lo calcula
                    el cliente cada segundo, no el servidor cada quince. -->
-              <span class="reloj cifra">{{ minutos(c) }}′</span>
+              <span class="reloj cifra">{{ duracion(minutos(c)) }}</span>
             </header>
 
             @if (c.tiempoEstimadoCocinaMinutos) {
@@ -160,7 +164,7 @@
               @if (!c.flagCierrePlatillo) {
                 <button
                   type="button"
-                  class="destructivo falta"
+                  class="secundario falta"
                   [disabled]="ocupada() !== null"
                   (click)="pedirFaltante(c)"
                 >

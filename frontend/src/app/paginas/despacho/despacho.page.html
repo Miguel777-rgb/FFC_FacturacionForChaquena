@@ -1,10 +1,14 @@
 <section class="despacho">
   <header class="cabecera">
-    <div>
-      <p class="marca">{{ t('despacho.marca') }}</p>
-      <h1>{{ t('despacho.titulo') }}</h1>
-    </div>
-    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+    <h1>{{ t('despacho.titulo') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
       {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
@@ -29,7 +33,7 @@
                 <span class="items">{{ tp('comun.items', o.cantidadItems ?? 0) }}</span>
                 <span class="monto cifra">S/ {{ o.montoTotal }}</span>
                 <span class="espera cifra"
-                  >{{ o.minutosTranscurridos }} {{ t('comun.minutos') }}</span
+                  >{{ duracion(o.minutosTranscurridos) }}</span
                 >
               </div>
 
@@ -170,8 +174,7 @@
               </div>
               <button
                 type="button"
-                [class.destructivo]="c.activo"
-                [class.secundario]="!c.activo"
+                class="secundario"
                 (click)="cambiarActivo(c)"
                 [disabled]="ocupada() !== null"
               >

@@ -75,7 +75,7 @@ export class TrastiendaPage {
 
   protected readonly titulo = computed(() => {
     const abierta = this.pestanas().find((p) => p.id === this.activa());
-    return this.t(abierta?.nombre ?? 'trastienda.marca');
+    return this.t(abierta?.nombre ?? 'titulo.trastienda');
   });
 
   protected abrir(id: Pestana): void {

@@ -10,6 +10,8 @@ import {
 import { BotsApi, type EstadoBotsDto, type VinculacionBotDto } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
+import { Icono } from '../../disenio/icono';
 import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 
 /** Que hace cada identidad. El nombre del canal no lo dice por si solo. */
@@ -33,6 +35,7 @@ const AUDIENCIA: Record<string, ClaveI18n> = {
  */
 @Component({
   selector: 'app-bots-seccion',
+  imports: [Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './bots.seccion.html',
   styleUrl: '../../disenio/secciones.scss',
@@ -41,6 +44,7 @@ export class BotsSeccion implements OnInit {
   private readonly botsApi = inject(BotsApi);
   private readonly avisos = inject(AvisosService);
   private readonly i18n = inject(I18nService);
+  private readonly confirmacion = inject(ConfirmacionService);
 
   protected readonly t = this.i18n.t;
   protected readonly tp = this.i18n.tp;
@@ -100,8 +104,15 @@ export class BotsSeccion implements OnInit {
    * es el boton que lo libera. No da de baja a nadie: quien queda desvinculado
    * sigue entrando al front con su usuario, solo pierde el atajo por chat.
    */
-  protected desvincular(v: VinculacionBotDto): void {
+  protected async desvincular(v: VinculacionBotDto): Promise<void> {
     if (!v.trabajadorId || this.guardando()) return;
+
+    const confirmado = await this.confirmacion.pedir({
+      titulo: this.t('bots.liberarTitulo', { usuario: v.username ?? '' }),
+      mensaje: this.t('bots.liberarMensaje'),
+      confirmar: this.t('bots.liberar'),
+    });
+    if (!confirmado || this.guardando()) return;
 
     this.guardando.set(true);
     this.botsApi.desvincularCuentaBot({ trabajadorId: v.trabajadorId }).subscribe({

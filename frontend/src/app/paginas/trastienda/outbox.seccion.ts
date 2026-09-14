@@ -12,6 +12,7 @@ import { catchError } from 'rxjs/operators';
 import { OutboxApi, OutboxEventDtoStatusEnum, type OutboxEventDto } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { Icono } from '../../disenio/icono';
 import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 
 const ESTADOS = OutboxEventDtoStatusEnum;
@@ -41,6 +42,7 @@ const FILTROS: ReadonlyArray<{ id: OutboxEventDtoStatusEnum | ''; nombre: ClaveI
  */
 @Component({
   selector: 'app-outbox-seccion',
+  imports: [Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './outbox.seccion.html',
   styleUrl: '../../disenio/secciones.scss',

@@ -28,8 +28,8 @@
     />
     <button
       type="button"
-      [class.secundario]="!soloAlertas()"
-      [class.destructivo]="soloAlertas()"
+      class="secundario"
+      [attr.aria-pressed]="soloAlertas()"
       (click)="alternarAlertas()"
     >
       {{ t(soloAlertas() ? 'inventario.viendoAlertas' : 'inventario.soloBajoMinimo') }}
@@ -112,7 +112,7 @@
     <div class="bloque">
       <h2>{{ t('inventario.noCuadraba') }}</h2>
       <div class="desplazable">
-        <table class="tabla">
+        <table class="tabla apilable">
           <thead>
             <tr>
               <th>{{ t('inventario.insumo') }}</th>
@@ -125,9 +125,13 @@
             @for (d of descuadres(); track d.insumoId) {
               <tr>
                 <td>{{ d.insumoNombre }}</td>
-                <td class="num cifra">{{ d.stockSistema | number: '1.0-3' }}</td>
-                <td class="num cifra">{{ d.stockContado | number: '1.0-3' }}</td>
-                <td class="num cifra" [class.negativo]="(d.diferencia ?? 0) < 0">
+                <td class="num cifra" [attr.data-etiqueta]="t('inventario.sistema')">{{ d.stockSistema | number: '1.0-3' }}</td>
+                <td class="num cifra" [attr.data-etiqueta]="t('inventario.contado')">{{ d.stockContado | number: '1.0-3' }}</td>
+                <td
+                  class="num cifra"
+                  [class.negativo]="(d.diferencia ?? 0) < 0"
+                  [attr.data-etiqueta]="t('inventario.diferencia')"
+                >
                   {{ (d.diferencia ?? 0) > 0 ? '+' : '' }}{{ d.diferencia | number: '1.0-3' }}
                   {{ d.unidadMedida }}
                 </td>
@@ -140,7 +144,7 @@
   }
 
   <div class="desplazable">
-    <table class="tabla">
+    <table class="tabla apilable">
       <thead>
         <tr>
           <th>{{ t('inventario.insumo') }}</th>
@@ -157,11 +161,15 @@
         @for (i of visibles(); track i.id) {
           <tr [class.bajo]="i.bajoMinimo">
             <td>{{ i.nombre }}</td>
-            <td class="tenue">{{ tEnum('insumo', i.tipoInsumo) }}</td>
-            <td class="num cifra">{{ i.stockActual | number: '1.0-3' }} {{ i.unidadMedida }}</td>
-            <td class="num cifra tenue">{{ i.stockMinimo | number: '1.0-3' }}</td>
+            <td class="tenue" [attr.data-etiqueta]="t('inventario.tipo')">{{ tEnum('insumo', i.tipoInsumo) }}</td>
+            <td class="num cifra" [attr.data-etiqueta]="t('inventario.stock')">
+              {{ i.stockActual | number: '1.0-3' }} {{ i.unidadMedida }}
+            </td>
+            <td class="num cifra tenue" [attr.data-etiqueta]="t('inventario.minimo')">
+              {{ i.stockMinimo | number: '1.0-3' }}
+            </td>
             @if (contando()) {
-              <td class="num">
+              <td class="num" [attr.data-etiqueta]="t('inventario.contado')">
                 <input
                   type="number"
                   step="0.001"
@@ -232,7 +240,7 @@
           @if (kardexDe()?.id === i.id) {
             <tr class="expandida">
               <td [attr.colspan]="contando() ? 6 : 5">
-                <table class="tabla interna">
+                <table class="tabla interna apilable">
                   <thead>
                     <tr>
                       <th>{{ t('comun.fecha') }}</th>
@@ -247,14 +255,14 @@
                     @for (m of kardex(); track m.id) {
                       <tr>
                         <td class="cifra tenue">{{ fecha(m.fecha) }}</td>
-                        <td>{{ tEnum('movimiento', m.tipoControl) }}</td>
-                        <td class="num cifra">{{ m.cantidad | number: '1.0-3' }}</td>
-                        <td class="num cifra tenue">
+                        <td [attr.data-etiqueta]="t('inventario.movimiento')">{{ tEnum('movimiento', m.tipoControl) }}</td>
+                        <td class="num cifra" [attr.data-etiqueta]="t('comun.cantidad')">{{ m.cantidad | number: '1.0-3' }}</td>
+                        <td class="num cifra tenue" [attr.data-etiqueta]="t('inventario.antesDespues')">
                           {{ m.stockAnterior | number: '1.0-3' }} →
                           {{ m.stockNuevo | number: '1.0-3' }}
                         </td>
-                        <td class="tenue">{{ m.registradoPor }}</td>
-                        <td class="tenue">{{ m.motivoObservacion }}</td>
+                        <td class="tenue" [attr.data-etiqueta]="t('inventario.quien')">{{ m.registradoPor }}</td>
+                        <td class="tenue" [attr.data-etiqueta]="t('comun.motivo')">{{ m.motivoObservacion }}</td>
                       </tr>
                     } @empty {
                       <tr>

@@ -2,13 +2,9 @@
    los indicadores.
 
    Viven en un solo archivo porque las tres son lo mismo por debajo: una barra
-   de filtros, una tabla densa y un formulario que se despliega. Una copia por
-   pantalla se desincroniza, y entonces la misma fila se lee distinta segun
-   donde este.
-
-   Estan en `disenio/` y no dentro de una superficie desde que el personal y los
-   indicadores dejaron de ser pestanas de la trastienda: unos estilos que tres
-   pantallas comparten no pueden vivir en la carpeta de una de ellas. */
+   de filtros, una tabla densa y un formulario que se despliega. La tabla, las
+   insignias, los campos y los botones son globales (`src/estilos/`); aqui solo
+   queda lo que es de estas pantallas. */
 
 .seccion {
   display: flex;
@@ -20,48 +16,53 @@
 .barra {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--e2);
 
   input[type='search'] {
     flex: 1 1 14rem;
   }
 
+  select {
+    flex: 0 1 14rem;
+  }
+
   button {
     flex: 0 0 auto;
-    min-height: 2.5rem;
-    padding: 0 var(--e3);
-    font-size: 0.9rem;
   }
 }
 
 /* --- KPIs ------------------------------------------------------------------ */
 .kpis {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e5);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(9rem, 100%), 1fr));
+  gap: var(--e4) var(--e5);
   margin: 0;
   padding: var(--e4);
   list-style: none;
   background: var(--superficie);
   border: 1px solid var(--linea);
   border-radius: var(--radio);
+  box-shadow: var(--sombra);
 
   li {
     display: flex;
     flex-direction: column;
+    gap: 2px;
     min-width: 0;
   }
 
   .dato {
     font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1.1;
+    font-weight: 500;
+    line-height: 1.15;
+    color: var(--tinta);
     /* Ningun dato del servidor puede ensanchar la caja que lo contiene. */
     overflow-wrap: anywhere;
   }
 
   .rotulo {
-    font-size: 0.7rem;
+    font-size: var(--t-chico);
     color: var(--tenue);
   }
 
@@ -70,82 +71,23 @@
   }
 }
 
-/* --- tabla densa ------------------------------------------------------------ */
-/* Sin cebreado: las filas expandidas romperian el ritmo par/impar y el resultado
-   se lee peor que sin nada. La separacion la da la linea inferior. */
-.tabla {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
+/* Dentro de una tarjeta, las cifras no se vuelven a enmarcar. */
+.bloque .kpis {
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
 
-  th {
-    padding: var(--e2) var(--e3);
-    text-align: left;
-    font-family: var(--f-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--tenue);
-    border-bottom: 1px solid var(--linea);
-    white-space: nowrap;
-  }
-
-  td {
-    padding: var(--e2) var(--e3);
-    border-bottom: 1px solid var(--linea);
-    vertical-align: middle;
-  }
-
-  .num {
-    text-align: right;
-  }
-
-  .tenue {
-    color: var(--tenue);
-  }
-
-  /* Un descuadre negativo es el que importa: falta genero que el sistema creia
-     tener. El positivo se deja en tinta normal porque sobrar no es una perdida. */
-  .negativo {
-    color: var(--critico);
-  }
-
-  /* Bajo minimo: filete a la izquierda ademas del color, porque el color solo
-     no se ve en una pantalla mal calibrada. */
-  tr.bajo td:first-child {
-    box-shadow: inset 3px 0 0 var(--critico);
-    font-weight: 600;
-  }
-
-  tr.baja {
-    opacity: 0.55;
-  }
-
-  .acciones {
-    display: flex;
-    gap: var(--e2);
-    justify-content: flex-end;
+@media (max-width: 47.99rem) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Fila desplegada: fondo hundido para que se lea como un cajon abierto sobre la
-   fila de arriba y no como otro registro. */
-.tabla tr.expandida > td {
-  padding: var(--e3);
-  background: var(--hundido);
-}
-
-.tabla.interna {
-  font-size: 0.85rem;
-
-  td,
-  th {
-    padding: var(--e1) var(--e2);
-  }
-}
-
+/* Cantidad contada dentro de la tabla del inventario. */
 .contado {
-  min-height: 2rem;
+  min-height: var(--control-chico);
   max-width: 7rem;
   margin-left: auto;
   font-family: var(--f-mono);
@@ -156,15 +98,14 @@
 .formulario {
   display: flex;
   flex-direction: column;
-  gap: var(--e2);
+  gap: var(--e3);
 
   > h2 {
     margin: 0;
-    font-family: var(--f-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--tenue);
+    font-family: var(--f-texto);
+    font-size: var(--t-h4);
+    font-weight: 600;
+    letter-spacing: 0;
   }
 }
 
@@ -185,36 +126,6 @@
   }
 }
 
-/* Campo con rotulo y una linea que explica a que afecta. Los parametros del
-   local cambian el comportamiento de otras pantallas, y un numero suelto sin
-   esa frase se toca a ciegas. */
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e1);
-  flex: 1 1 12rem;
-  min-width: 0;
-
-  > span {
-    font-family: var(--f-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--tenue);
-  }
-
-  small {
-    font-size: 0.75rem;
-    color: var(--tenue);
-  }
-}
-
-.chico {
-  min-height: 2rem;
-  padding: 0 var(--e2);
-  font-size: 0.8rem;
-}
-
 /* --- listas simples --------------------------------------------------------- */
 .listado {
   display: flex;
@@ -231,111 +142,124 @@
     gap: var(--e3);
     padding: var(--e2) var(--e3);
     border: 1px solid var(--linea);
-    border-radius: var(--radio-chico);
+    border-radius: var(--radio);
+  }
+
+  /* El nombre del cargo arriba y lo que abre debajo: juntos en una linea se
+     leian como una sola palabra («ADMINISTRADOR ADMIN»). */
+  .cargo {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 12rem;
+    min-width: 0;
+
+    strong {
+      color: var(--tinta);
+      font-weight: 600;
+    }
+
+    .tenue {
+      font-size: var(--t-chico);
+    }
   }
 }
 
+/* El formulario de un cargo se despliega dentro de la lista, bajo la fila que
+   se esta tocando. */
+.listado li.edicion {
+  display: block;
+  background: var(--hundido);
+}
+
 /* --- bandeja de eventos ----------------------------------------------------- */
-/* Los cuatro estados del outbox no estaban en los chips compartidos, que solo
-   conocen los de una comanda. Un evento en cola muerta se lee igual de rojo que
-   uno con error, pero sin relleno: ya no se reintenta solo. */
-.chip[data-estado='ERROR'] {
-  color: var(--critico);
-  background: var(--critico-suave);
-  border-color: var(--critico);
-}
-
-.chip[data-estado='DEAD_LETTER'] {
-  color: var(--critico);
-  border-color: var(--critico);
-  font-weight: 600;
-}
-
-.chip[data-estado='PROCESADO'] {
-  color: var(--ok);
-  background: var(--ok-suave);
-  border-color: var(--ok);
-}
-
 /* El texto del servidor, tal cual. Es lo que dice por que fallo. */
 .fallo {
   margin: 0 0 var(--e3);
   padding: var(--e2) var(--e3);
-  font-size: 0.85rem;
+  font-size: var(--t-texto);
   color: var(--critico);
   background: var(--critico-suave);
-  border-left: 3px solid var(--critico);
-  border-radius: var(--radio-chico);
+  border: 1px solid var(--critico);
+  border-radius: var(--radio);
 }
 
 .detalle {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--e5);
+  gap: var(--e3) var(--e5);
   margin: 0 0 var(--e3);
 
   dt {
-    font-family: var(--f-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: var(--t-chico);
+    font-weight: 600;
     color: var(--tenue);
   }
 
   dd {
     margin: 0;
-    font-size: 0.85rem;
+    color: var(--tinta);
   }
 }
 
-/* El cuerpo del evento se desplaza dentro de su caja y con altura tope: un
-   payload largo no debe empujar la tabla fuera de la pantalla. */
+/* El cuerpo del evento se desplaza dentro de su caja y con altura tope. */
 .payload {
   max-height: 18rem;
   margin: 0;
   padding: var(--e3);
   overflow: auto;
   font-family: var(--f-mono);
-  font-size: 0.75rem;
+  font-size: var(--t-chico);
   line-height: 1.5;
   color: var(--tinta);
   background: var(--superficie);
   border: 1px solid var(--linea);
-  border-radius: var(--radio-chico);
+  border-radius: var(--radio);
   white-space: pre;
 }
 
 /* --- tablero ---------------------------------------------------------------- */
-/* Los tres rangos van pegados y se leen como un selector, no como tres acciones
-   sueltas: elegir "7 dias" no hace nada, solo cambia lo que ya se esta mirando. */
+/* Los tres rangos se leen como un selector segmentado, no como tres acciones
+   sueltas: elegir "7 dias" no hace nada, solo cambia lo que se esta mirando. */
 .rangos {
-  display: flex;
-  gap: var(--e1);
-  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
 
-  button.activo {
-    color: var(--superficie);
-    background: var(--tinta);
-    border-color: var(--tinta);
+  button,
+  button.secundario {
+    min-height: var(--control-chico);
+    color: var(--tenue);
+    background: transparent;
+    border-color: transparent;
+    border-radius: var(--radio-chico);
+  }
+
+  button:hover:not(:disabled) {
+    color: var(--tinta);
+    background: transparent;
+  }
+
+  button[aria-pressed='true'] {
+    color: var(--tinta);
+    background: var(--superficie);
+    border-color: var(--linea);
+    box-shadow: var(--sombra);
   }
 }
 
-/* Dos tablas cortas caben una al lado de la otra en un escritorio y se apilan
-   en tablet. Ninguna de las dos crece: si una tiene ocho filas y la otra dos,
-   compararlas de arriba abajo sigue funcionando. */
+/* Dos tablas cortas una al lado de la otra en un escritorio, apiladas en el
+   celular. `min(19rem, 100%)` deja que el suelo ceda cuando no hay sitio. */
 .columnas {
   display: grid;
   gap: var(--e4);
-  /* El `min()` es lo que hace que esto sea responsivo de verdad: `minmax(19rem,
-     1fr)` nunca baja de 304px, asi que en un movil la columna no encoge, se
-     sale. Con `min(19rem, 100%)` el suelo cede cuando no hay sitio. */
   grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
   align-items: start;
 }
 
-/* Barras sin ejes ni rejilla. Lo que se lee aqui es la forma del servicio
-   —donde estan los dos picos del dia—, y para eso la altura relativa basta;
-   las cifras exactas estan arriba, en los indicadores. */
+/* Barras sin ejes ni rejilla: lo que se lee es la forma del servicio. */
 .grafica {
   display: block;
   width: 100%;
@@ -343,20 +267,21 @@
   height: 11rem;
 
   .barra {
-    fill: var(--acento);
+    fill: var(--acento-relleno);
   }
 
   .eje {
     fill: var(--tenue);
-    font-family: var(--f-mono);
+    font-family: var(--f-texto);
     font-size: 10px;
+    font-variant-numeric: tabular-nums;
   }
 }
 
 /* --- bots ------------------------------------------------------------------- */
-/* Una tarjeta por identidad. Son dos cuentas distintas y mezclarlas en una tabla
-   es justo el error que este panel existe para evitar: el bot del personal y el
-   de los clientes no se pueden confundir. */
+/* Una tarjeta por identidad: el bot del personal y el de los clientes no se
+   pueden confundir. El estado lo dice la insignia; el borde solo se enciende
+   cuando hay credenciales y no conecta, que es el caso que hay que ver. */
 .canales {
   display: grid;
   gap: var(--e3);
@@ -369,21 +294,14 @@
     display: flex;
     flex-direction: column;
     gap: var(--e2);
-    padding: var(--e3);
+    padding: var(--e3) var(--e4);
     background: var(--superficie);
     border: 1px solid var(--linea);
-    border-left: 3px solid var(--linea);
     border-radius: var(--radio);
   }
 
-  /* El filete de la izquierda dice el estado antes de leer nada: verde conecta,
-     rojo tiene credenciales y no conecta, gris ni siquiera esta configurado. */
-  li.conectado {
-    border-left-color: var(--ok);
-  }
-
   li.caido {
-    border-left-color: var(--critico);
+    border-color: var(--critico);
   }
 
   .titulo {
@@ -392,39 +310,19 @@
     justify-content: space-between;
     gap: var(--e2);
     font-weight: 600;
+    color: var(--tinta);
   }
 
   .detalle {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--t-texto);
     color: var(--tenue);
   }
 }
 
-/* Los tres estados de un bot son suyos y no se toman prestados de los de una
-   comanda: que "conectado" se pintara con el chip de ENTREGADO funcionaba, pero
-   ataba el color de esta pantalla a un cambio en el ciclo de vida del pedido. */
-.chip[data-estado='CONECTADO'] {
-  color: var(--ok);
-  background: var(--ok-suave);
-  border-color: var(--ok);
-}
-
-/* Con token y sin conexion es el caso que hay que ver: token caducado, intent
-   sin encender, o Discord caido. Sin token es solo algo que no se configuro. */
-.chip[data-estado='CAIDO'] {
-  color: var(--critico);
-  background: var(--critico-suave);
-  border-color: var(--critico);
-}
-
-.chip[data-estado='SIN_TOKEN'] {
-  color: var(--tenue);
-}
-
 /* --- cargos y roles ---------------------------------------------------------- */
-/* Cada casilla es un permiso, no una preferencia. Se listan con su descripcion
-   al lado para que nadie tenga que acordarse de que MOZO significa el POS. */
+/* Cada casilla es un permiso. Se listan con su descripcion al lado para que
+   nadie tenga que acordarse de que MOZO significa el POS. */
 .roles {
   display: grid;
   gap: var(--e2);
@@ -432,14 +330,12 @@
   margin: 0;
   padding: var(--e3);
   border: 1px solid var(--linea);
-  border-radius: var(--radio-chico);
+  border-radius: var(--radio);
 
   legend {
     padding: 0 var(--e1);
-    font-family: var(--f-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: var(--t-chico);
+    font-weight: 600;
     color: var(--tenue);
   }
 
@@ -452,55 +348,37 @@
     cursor: pointer;
   }
 
-  input[type='checkbox'] {
-    width: 1.1rem;
-    height: 1.1rem;
-    margin: 0;
-  }
-
   small {
     grid-column: 2;
-    font-size: 0.75rem;
+    font-size: var(--t-chico);
     color: var(--tenue);
   }
-}
-
-/* El formulario de un cargo se despliega dentro de la lista, bajo la fila que
-   se esta tocando, para no perder de vista cual de todos se esta cambiando. */
-.listado li.edicion {
-  display: block;
-  background: var(--hundido);
 }
 
 /* Cabecera de bloque con una accion a la derecha. */
 .bloque > .barra {
-  align-items: center;
   justify-content: space-between;
 
   > h2 {
     margin: 0;
-    font-family: var(--f-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--tenue);
+    font-family: var(--f-texto);
+    font-size: var(--t-h4);
+    font-weight: 600;
+    letter-spacing: 0;
   }
 }
 
 /* --- acciones por fila ------------------------------------------------------ */
 /* Botones de solo icono. En una columna que se repite en cada fila, cuatro
-   palabras por fila tapan los datos que la tabla existe para ensenar; el nombre
-   de la accion no se pierde, se mueve a `title` y `aria-label`.
-
-   Se anulan a mano los estilos globales del elemento button, que por defecto
-   pintan el rojo relleno de la accion principal: ninguna de estas cuatro lo es. */
+   palabras por fila tapan los datos; el nombre de la accion va en `title` y
+   `aria-label`. */
 .icono-accion {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 2rem;
-  min-height: 2rem;
+  width: var(--control-chico);
+  min-height: var(--control-chico);
   padding: 0;
   color: var(--tenue);
   background: transparent;
@@ -513,17 +391,15 @@
   background: var(--hundido);
 }
 
-/* El cajon abierto se marca en su propio icono: con cuatro por fila y un panel
-   desplegado debajo, sin esto no se sabe cual de los cuatro lo abrio. */
+/* El cajon abierto se marca en su propio icono. */
 .icono-accion.abierto {
   color: var(--acento);
   background: var(--acento-suave);
   border-color: var(--acento);
 }
 
-/* Dar de baja tine en rojo; reactivar, en verde. El color va sobre el trazo y
-   no sobre un relleno: son acciones de fila, no la accion principal de la
-   pantalla, y catorce botones rellenos convertirian la tabla en un semaforo. */
+/* Dar de baja tine en rojo; reactivar, en verde. El color va sobre el trazo:
+   catorce botones rellenos convertirian la tabla en un semaforo. */
 .icono-accion.destructiva:hover:not(:disabled) {
   color: var(--critico);
   background: var(--critico-suave);

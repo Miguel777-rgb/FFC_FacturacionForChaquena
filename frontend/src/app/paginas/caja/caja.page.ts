@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { Icono } from '../../disenio/icono';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -49,7 +50,7 @@ const METODOS = RegistrarPagoRequestDtoTipoPagoEnum;
  */
 @Component({
   selector: 'app-caja',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './caja.page.html',
   styleUrl: './caja.page.scss',

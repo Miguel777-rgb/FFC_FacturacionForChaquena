@@ -71,6 +71,20 @@ export const PT: Record<ClaveI18n, string> = {
   'comun.hasta': 'Até',
   'comun.identificador': 'Identificador',
 
+  // --- tema y confirmaciones de peligro ------------------------------------
+  'tema.alternar': 'Tema: {actual}. Toque para mudar para {siguiente}.',
+  'tema.sistema': 'o do sistema',
+  'tema.claro': 'claro',
+  'tema.oscuro': 'escuro',
+  'despacho.bajaTitulo': 'Desativar {nombre}',
+  'despacho.bajaMensaje': 'Deixa de aparecer ao atribuir comandas. As que já levou mantêm o nome e a placa, e pode ser reativado depois.',
+  'personal.bajaMensaje': 'Não poderá entrar no sistema, nem com usuário e senha nem com o Google, até ser reativado. Tudo o que registrou continua em seu nome.',
+  'bots.liberarTitulo': 'Liberar a conta de {usuario}',
+  'bots.liberarMensaje': 'O bot deixa de reconhecer essa conta do Discord. Continua entrando no sistema com seu usuário; para voltar a usar o bot, terá que escrever /vincular de novo.',
+  'pos.quitarDetalleTitulo': 'Tirar {platillo} da comanda',
+  'pos.quitarDetalleMensaje': 'A comanda já está na cozinha. A linha some da comanda e da fila da cozinha.',
+  'pos.quitarDetalleConfirmar': 'Tirar da comanda',
+
   'panel.superficies': 'Telas',
   'panel.modulo': 'Logística',
   'panel.pos': 'Ponto de venda',
@@ -121,7 +135,6 @@ export const PT: Record<ClaveI18n, string> = {
   'sinPermiso.pide': 'Se precisar de acesso, peça ao administrador.',
   'sinPermiso.volver': 'Ir para a minha tela',
 
-  'pos.marca': 'Ponto de venda',
   'pos.titulo': 'Abrir comanda',
   'pos.otpTitulo': 'Código de entrega · comanda {correlativo}',
   'pos.otpDictar':
@@ -201,7 +214,6 @@ export const PT: Record<ClaveI18n, string> = {
   'pos.avisoCancelada': 'Comanda cancelada e estoque devolvido.',
   'pos.avisoQuitado': '{platillo} removido da comanda.',
 
-  'kds.marca': 'Cozinha',
   'kds.titulo': 'Fila de comandas',
   'kds.enCola': 'Na fila',
   'kds.enFuego': 'No fogo',
@@ -226,7 +238,6 @@ export const PT: Record<ClaveI18n, string> = {
   'kds.avisoLista': 'Comanda {correlativo} pronta para servir.',
   'kds.avisoFaltante': 'O garçom foi avisado.',
 
-  'caja.marca': 'Caixa',
   'caja.titulo': 'Cobrar e fechar',
   'caja.cobradoHoy': 'Recebido hoje',
   'caja.pagos': 'Pagamentos',
@@ -290,7 +301,6 @@ export const PT: Record<ClaveI18n, string> = {
   'caja.avisoCerrada': 'Comanda da mesa {mesa} fechada. A mesa está livre.',
   'caja.avisoFraude': 'O alerta foi para o administrador. A comanda fica fora das vendas.',
 
-  'despacho.marca': 'Despacho',
   'despacho.titulo': 'Entregas em domicílio',
   'despacho.esperandoConductor': 'Esperando entregador',
   'despacho.sinConductores':
@@ -332,7 +342,6 @@ export const PT: Record<ClaveI18n, string> = {
   'despacho.avisoConductorAnotado': '{nombre} cadastrado. Agora o veículo.',
   'despacho.avisoVehiculoAnotado': 'Veículo {placa} cadastrado.',
 
-  'trastienda.marca': 'Retaguarda',
   'trastienda.secciones': 'Seções da retaguarda',
   'trastienda.inventario': 'Estoque',
   'trastienda.carta': 'Cardápio',
@@ -510,7 +519,6 @@ export const PT: Record<ClaveI18n, string> = {
   'outbox.sinEventos': 'Não há eventos com essa situação.',
   'outbox.avisoReintentado': 'Evento devolvido à fila.',
 
-  'personal.marca': 'Equipe',
   'personal.titulo': 'Quem trabalha e o que abre',
   'personal.nuevoTrabajador': 'Novo funcionário',
   'personal.sinCargos':
@@ -567,7 +575,6 @@ export const PT: Record<ClaveI18n, string> = {
   'personal.avisoSesionAbierta':
     'Quem já estiver com a sessão aberta mantém as permissões até entrar de novo.',
 
-  'kpis.marca': 'Indicadores',
   'kpis.titulo': 'Como vai o restaurante',
   'kpis.hoy': 'Hoje',
   'kpis.semana': '7 dias',

@@ -1,10 +1,14 @@
 <section class="pos">
   <header class="cabecera">
-    <div>
-      <p class="marca">{{ t('pos.marca') }}</p>
-      <h1>{{ t('pos.titulo') }}</h1>
-    </div>
-    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+    <h1>{{ t('pos.titulo') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
       {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
@@ -71,7 +75,7 @@
                 [attr.aria-pressed]="esMesaElegida(m)"
                 (click)="elegirMesa(m)"
               >
-                <span class="numero cifra">{{ m.numero }}</span>
+                <span class="numero">{{ m.numero }}</span>
                 <span class="detalle">{{ m.zona || t('comun.sinZona') }}</span>
                 <span class="estado">{{ tEnum('mesa', m.estado) }}</span>
               </button>
@@ -259,7 +263,7 @@
                 </button>
               }
 
-              <button type="button" class="destructivo quitar" (click)="quitar(l)">
+              <button type="button" class="secundario quitar" (click)="quitar(l)">
                 {{ t('comun.quitar') }}
               </button>
             </div>
@@ -413,7 +417,7 @@
         <li>
           <div class="fila">
             <span class="chip" [attr.data-estado]="o.estado">{{ tEnum('estado', o.estado) }}</span>
-            <span class="mesa cifra">
+            <span class="mesa">
               {{
                 o.mesaNumero
                   ? t('comun.mesa', { numero: o.mesaNumero })
@@ -422,7 +426,7 @@
             </span>
             <span class="items">{{ tp('comun.items', o.cantidadItems ?? 0) }}</span>
             <span class="monto cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</span>
-            <span class="espera cifra">{{ o.minutosTranscurridos }} {{ t('comun.minutos') }}</span>
+            <span class="espera cifra">{{ duracion(o.minutosTranscurridos) }}</span>
 
             <!-- Los gestos salen de `transicionesPermitidas`, que calcula el
                  servidor con la misma tabla que despues valida el cambio. -->
@@ -435,7 +439,7 @@
               </button>
             }
             @if (sePuedeCancelar(o)) {
-              <button type="button" class="destructivo" (click)="pedirMotivo(o)">
+              <button type="button" class="secundario" (click)="pedirMotivo(o)">
                 {{ t(cancelando() === o.id ? 'comun.dejarlo' : 'pos.cancelar') }}
               </button>
             }
@@ -485,7 +489,7 @@
                       <span class="monto cifra">S/ {{ d.montoSubtotal | number: '1.2-2' }}</span>
                       <button
                         type="button"
-                        class="destructivo quitar"
+                        class="secundario quitar"
                         [disabled]="guardandoLinea()"
                         (click)="quitarDetalle(d)"
                       >
@@ -539,7 +543,7 @@
               />
               <button
                 type="button"
-                class="destructivo"
+                class="peligro"
                 (click)="cancelar(o)"
                 [disabled]="!motivo().trim()"
               >

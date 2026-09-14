@@ -1,6 +1,5 @@
 /* La trastienda es de escritorio y densa: tablas y formularios sobre DTOs ya
-   tipados. Lo que cambia respecto a las demas superficies es que aqui se lee
-   mas de lo que se toca, asi que la escala baja y cabe mas en pantalla. */
+   tipados. */
 
 .trastienda {
   display: flex;
@@ -9,17 +8,20 @@
   padding: var(--e5);
 }
 
-/* Pestanas subrayadas y no botones rellenos: son navegacion, no acciones, y el
-   relleno esta reservado a la accion principal (ver la REGLA DE COLOR). */
+/* Pestanas subrayadas y no botones rellenos: son navegacion, no acciones. En el
+   celular no se parten en dos filas: se desplazan en horizontal. */
 .pestanas {
   display: flex;
-  flex-wrap: wrap;
   gap: var(--e1);
+  overflow-x: auto;
   border-bottom: 1px solid var(--linea);
+  scrollbar-width: none;
 
   button {
-    min-height: 2.5rem;
+    flex: none;
+    min-height: var(--control);
     padding: 0 var(--e4);
+    font-weight: 500;
     color: var(--tenue);
     background: transparent;
     border: none;
@@ -36,5 +38,11 @@
     color: var(--acento);
     border-bottom-color: var(--acento);
     font-weight: 600;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .trastienda {
+    padding: var(--e4);
   }
 }

@@ -89,7 +89,7 @@
   }
 
   <div class="desplazable">
-    <table class="tabla">
+    <table class="tabla apilable">
       <thead>
         <tr>
           <th>{{ t('carta.platillo') }}</th>
@@ -108,9 +108,11 @@
                 <span class="tenue"> · {{ p.descripcion }}</span>
               }
             </td>
-            <td class="tenue">{{ p.categoriaNombre || nombreCategoriaDe(p.categoriaId) }}</td>
-            <td class="num cifra">S/ {{ p.precioVentaBase | number: '1.2-2' }}</td>
-            <td>
+            <td class="tenue" [attr.data-etiqueta]="t('carta.seccion')">
+              {{ p.categoriaNombre || nombreCategoriaDe(p.categoriaId) }}
+            </td>
+            <td class="num cifra" [attr.data-etiqueta]="t('comun.precio')">S/ {{ p.precioVentaBase | number: '1.2-2' }}</td>
+            <td [attr.data-etiqueta]="t('comun.estado')">
               <span class="chip">{{ t(p.activo ? 'carta.enCarta' : 'carta.fuera') }}</span>
             </td>
             <td class="acciones">
@@ -119,9 +121,7 @@
               </button>
               <button
                 type="button"
-                class="chico"
-                [class.destructivo]="p.activo"
-                [class.secundario]="!p.activo"
+                class="secundario chico"
                 (click)="cambiarActivo(p)"
                 [disabled]="guardando()"
               >
@@ -144,7 +144,7 @@
                       </span>
                       <button
                         type="button"
-                        class="destructivo chico"
+                        class="secundario chico"
                         (click)="quitarIngrediente(i)"
                       >
                         {{ t('comun.quitar') }}

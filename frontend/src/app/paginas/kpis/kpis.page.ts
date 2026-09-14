@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { Icono } from '../../disenio/icono';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -62,7 +63,7 @@ const GRAFICA = { ancho: 720, alto: 160, hueco: 2 };
  */
 @Component({
   selector: 'app-kpis',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kpis.page.html',
   styleUrls: ['../../disenio/secciones.scss', './kpis.page.scss'],

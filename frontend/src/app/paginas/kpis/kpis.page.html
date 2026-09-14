@@ -1,10 +1,14 @@
 <section class="indicadores">
   <header class="cabecera">
-    <div>
-      <p class="marca">{{ t('kpis.marca') }}</p>
-      <h1>{{ t('kpis.titulo') }}</h1>
-    </div>
-    <button type="button" class="secundario" (click)="cargar()" [disabled]="cargando()">
+    <h1>{{ t('kpis.titulo') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
       {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
     </button>
   </header>
@@ -169,7 +173,7 @@
       <div class="bloque">
         <h2>{{ t('kpis.ventaPorMozo') }}</h2>
         <div class="desplazable">
-          <table class="tabla">
+          <table class="tabla apilable">
             <thead>
               <tr>
                 <th>{{ t('kpis.mozo') }}</th>
@@ -182,9 +186,11 @@
               @for (m of mozos(); track m.mozoId) {
                 <tr>
                   <td>{{ m.mozo || t('kpis.sinIdentificar') }}</td>
-                  <td class="num cifra">{{ m.comandas ?? 0 }}</td>
-                  <td class="num cifra">S/ {{ m.total ?? 0 | number: '1.2-2' }}</td>
-                  <td class="num cifra tenue">S/ {{ m.ticketPromedio ?? 0 | number: '1.2-2' }}</td>
+                  <td class="num cifra" [attr.data-etiqueta]="t('kpis.comandas')">{{ m.comandas ?? 0 }}</td>
+                  <td class="num cifra" [attr.data-etiqueta]="t('comun.total')">S/ {{ m.total ?? 0 | number: '1.2-2' }}</td>
+                  <td class="num cifra tenue" [attr.data-etiqueta]="t('kpis.ticket')">
+                    S/ {{ m.ticketPromedio ?? 0 | number: '1.2-2' }}
+                  </td>
                 </tr>
               } @empty {
                 <tr>
@@ -201,7 +207,7 @@
       <div class="bloque">
         <h2>{{ t('kpis.loMasVendido') }}</h2>
         <div class="desplazable">
-          <table class="tabla">
+          <table class="tabla apilable">
             <thead>
               <tr>
                 <th>{{ t('kpis.platillo') }}</th>
@@ -213,8 +219,8 @@
               @for (p of top(); track p.platillo) {
                 <tr>
                   <td>{{ p.platillo }}</td>
-                  <td class="num cifra">{{ p.unidadesVendidas ?? 0 }}</td>
-                  <td class="num cifra">S/ {{ p.montoTotal ?? 0 | number: '1.2-2' }}</td>
+                  <td class="num cifra" [attr.data-etiqueta]="t('kpis.unidades')">{{ p.unidadesVendidas ?? 0 }}</td>
+                  <td class="num cifra" [attr.data-etiqueta]="t('comun.total')">S/ {{ p.montoTotal ?? 0 | number: '1.2-2' }}</td>
                 </tr>
               } @empty {
                 <tr>
