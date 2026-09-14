@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 82qN8yCrLauhRX3vYbCxHGkOjLwpeFaU6WA3AgzIwMXnQPKaGUfNwXSIabAnxIX
+\restrict DkFWi6SrLAfGtH99OBQGgbK2o2gg0JPlGItjB3HkD4zEBTjM6Cs4tWgIanLb525
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -269,6 +269,25 @@ CREATE TABLE public.cupones (
 
 
 --
+-- Name: datos_local; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.datos_local (
+    id integer NOT NULL,
+    correo character varying(120),
+    created_by character varying(50) NOT NULL,
+    date_created timestamp(6) with time zone NOT NULL,
+    direccion text,
+    last_date_modified timestamp(6) with time zone NOT NULL,
+    modified_by character varying(50) NOT NULL,
+    nombre_comercial character varying(120),
+    porcentaje_igv numeric(5,2) NOT NULL,
+    ruc character varying(11),
+    telefono character varying(20)
+);
+
+
+--
 -- Name: empresas; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -282,6 +301,24 @@ CREATE TABLE public.empresas (
     modified_by character varying(50) DEFAULT 'SYSTEM'::character varying NOT NULL,
     razon_social character varying(200) NOT NULL,
     ruc character varying(11) NOT NULL
+);
+
+
+--
+-- Name: horarios_local; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.horarios_local (
+    id uuid NOT NULL,
+    abre time(0) without time zone,
+    cerrado boolean NOT NULL,
+    cierra time(0) without time zone,
+    created_by character varying(50) NOT NULL,
+    date_created timestamp(6) with time zone NOT NULL,
+    dia character varying(10) NOT NULL,
+    last_date_modified timestamp(6) with time zone NOT NULL,
+    modified_by character varying(50) NOT NULL,
+    CONSTRAINT horarios_local_dia_check CHECK (((dia)::text = ANY ((ARRAY['MONDAY'::character varying, 'TUESDAY'::character varying, 'WEDNESDAY'::character varying, 'THURSDAY'::character varying, 'FRIDAY'::character varying, 'SATURDAY'::character varying, 'SUNDAY'::character varying])::text[])))
 );
 
 
@@ -352,6 +389,22 @@ CREATE TABLE public.mesas (
     reservada_para timestamp(6) with time zone,
     zona character varying(50),
     CONSTRAINT mesas_estado_check CHECK (((estado)::text = ANY ((ARRAY['LIBRE'::character varying, 'OCUPADA'::character varying, 'RESERVADA'::character varying, 'INHABILITADA'::character varying])::text[])))
+);
+
+
+--
+-- Name: niveles_lealtad; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.niveles_lealtad (
+    id uuid NOT NULL,
+    created_by character varying(50) NOT NULL,
+    date_created timestamp(6) with time zone NOT NULL,
+    last_date_modified timestamp(6) with time zone NOT NULL,
+    modified_by character varying(50) NOT NULL,
+    nombre character varying(60) NOT NULL,
+    porcentaje_descuento numeric(5,2) NOT NULL,
+    puntos_minimos integer NOT NULL
 );
 
 
@@ -478,6 +531,8 @@ CREATE TABLE public.ordenes (
     cliente_id uuid,
     mesa_id uuid,
     promocion_id uuid,
+    porcentaje_igv numeric(5,2) DEFAULT 18.00 NOT NULL,
+    nivel_lealtad_nombre character varying(60),
     CONSTRAINT ordenes_canal_origen_check CHECK (((canal_origen)::text = ANY ((ARRAY['POS'::character varying, 'WHATSAPP_BOT'::character varying, 'DISCORD_BOT'::character varying, 'WEB'::character varying])::text[]))),
     CONSTRAINT ordenes_estado_check CHECK (((estado)::text = ANY ((ARRAY['ENCOLADO'::character varying, 'EN_PREPARACION'::character varying, 'EN_DESPACHO'::character varying, 'ENTREGADO'::character varying, 'PAGADO'::character varying, 'CONCLUIDO'::character varying, 'CANCELADO'::character varying, 'FRAUDULENTO'::character varying])::text[]))),
     CONSTRAINT ordenes_tipo_orden_check CHECK (((tipo_orden)::text = ANY ((ARRAY['MESA'::character varying, 'RETIRO_LOCAL'::character varying, 'DELIVERY'::character varying])::text[]))),
@@ -823,11 +878,27 @@ ALTER TABLE ONLY public.cupones
 
 
 --
+-- Name: datos_local datos_local_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.datos_local
+    ADD CONSTRAINT datos_local_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: empresas empresas_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.empresas
     ADD CONSTRAINT empresas_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: horarios_local horarios_local_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.horarios_local
+    ADD CONSTRAINT horarios_local_pkey PRIMARY KEY (id);
 
 
 --
@@ -852,6 +923,14 @@ ALTER TABLE ONLY public.insumos_platillo
 
 ALTER TABLE ONLY public.mesas
     ADD CONSTRAINT mesas_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: niveles_lealtad niveles_lealtad_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.niveles_lealtad
+    ADD CONSTRAINT niveles_lealtad_pkey PRIMARY KEY (id);
 
 
 --
@@ -1012,6 +1091,30 @@ ALTER TABLE ONLY public.cargos
 
 ALTER TABLE ONLY public.clientes
     ADD CONSTRAINT uk_clientes_discord_user_id UNIQUE (discord_user_id);
+
+
+--
+-- Name: horarios_local uk_horarios_local_dia; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.horarios_local
+    ADD CONSTRAINT uk_horarios_local_dia UNIQUE (dia);
+
+
+--
+-- Name: niveles_lealtad uk_niveles_lealtad_nombre; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.niveles_lealtad
+    ADD CONSTRAINT uk_niveles_lealtad_nombre UNIQUE (nombre);
+
+
+--
+-- Name: niveles_lealtad uk_niveles_lealtad_puntos; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.niveles_lealtad
+    ADD CONSTRAINT uk_niveles_lealtad_puntos UNIQUE (puntos_minimos);
 
 
 --
@@ -1370,5 +1473,5 @@ ALTER TABLE ONLY public.cliente_empresas
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 82qN8yCrLauhRX3vYbCxHGkOjLwpeFaU6WA3AgzIwMXnQPKaGUfNwXSIabAnxIX
+\unrestrict DkFWi6SrLAfGtH99OBQGgbK2o2gg0JPlGItjB3HkD4zEBTjM6Cs4tWgIanLb525
 
