@@ -6,7 +6,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -15,30 +14,23 @@ import {
   FeedbackYFidelizacionApi,
   type ConfiguracionLocalDto,
   type EmpresaResponseDto,
-  type ReporteSatisfaccionDto,
 } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
 
-/** Un mes hacia atras: es el periodo que el servidor toma por defecto. */
-const DIAS_POR_DEFECTO = 30;
-
 /**
- * Local: los numeros que gobiernan el resto del sistema, y lo que opinan los
- * comensales.
+ * Local: los numeros que gobiernan el resto del sistema.
  *
  * Los cuatro parametros no son preferencias de pantalla: el umbral decide
  * cuando la caja emite un cupon, el descuento decide cuanto vale, la vigencia
  * cuando caduca y el objetivo de cocina es la vara contra la que el KDS mide
  * sus tiempos. Cambiar uno cambia lo que hacen tres superficies.
  *
- * Debajo, el reporte de satisfaccion: es la contrapartida de esos cupones, y
- * lo unico que dice si el programa esta comprando calificaciones buenas o solo
- * calificaciones.
+ * El reporte de satisfaccion, que antes vivia aqui, esta en Ventas y reportes:
+ * es una cifra que se compara por periodo, no un ajuste.
  */
 @Component({
   selector: 'app-local-seccion',
-  imports: [DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './local.seccion.html',
   styleUrl: '../../disenio/secciones.scss',
@@ -62,12 +54,6 @@ export class LocalSeccion implements OnInit {
 
   /** Lo que habia al cargar, para saber si de verdad se cambio algo. */
   private readonly original = signal<ConfiguracionLocalDto | null>(null);
-
-  // --- satisfaccion ---------------------------------------------------------
-
-  protected readonly satisfaccion = signal<ReporteSatisfaccionDto | null>(null);
-  protected readonly desde = signal(this.haceUnMes());
-  protected readonly hasta = signal(this.hoy());
 
   // --- empresas -------------------------------------------------------------
 
@@ -98,16 +84,12 @@ export class LocalSeccion implements OnInit {
 
     forkJoin({
       configuracion: this.fidelizacionApi.configuracion(),
-      satisfaccion: this.fidelizacionApi
-        .satisfaccion({ desde: this.inicioDe(this.desde()), hasta: this.finDe(this.hasta()) })
-        .pipe(catchError(() => of(null))),
       empresas: this.empresasApi
         .listarEmpresas({ pageable: { page: 0, size: 50, sort: ['razonSocial,asc'] } })
         .pipe(catchError(() => of({ contenido: [] as EmpresaResponseDto[] }))),
     }).subscribe({
-      next: ({ configuracion, satisfaccion, empresas }) => {
+      next: ({ configuracion, empresas }) => {
         this.aplicar(configuracion);
-        this.satisfaccion.set(satisfaccion);
         this.empresas.set(empresas.contenido ?? []);
         this.cargando.set(false);
       },
@@ -173,23 +155,6 @@ export class LocalSeccion implements OnInit {
     if (antes) this.aplicar(antes);
   }
 
-  // --- satisfaccion ---------------------------------------------------------
-
-  protected anotarDesde(v: string): void {
-    this.desde.set(v);
-  }
-
-  protected anotarHasta(v: string): void {
-    this.hasta.set(v);
-  }
-
-  protected consultarSatisfaccion(): void {
-    this.fidelizacionApi
-      .satisfaccion({ desde: this.inicioDe(this.desde()), hasta: this.finDe(this.hasta()) })
-      .pipe(catchError(() => of(null)))
-      .subscribe((r) => this.satisfaccion.set(r));
-  }
-
   // --- empresas -------------------------------------------------------------
 
   protected abrirAlta(): void {
@@ -250,31 +215,6 @@ export class LocalSeccion implements OnInit {
         },
         error: () => this.guardando.set(false),
       });
-  }
-
-  // --- fechas ---------------------------------------------------------------
-
-  /**
-   * El servidor espera un instante ISO completo, y el input de fecha solo da el
-   * dia. Se abre en el primer segundo y se cierra en el ultimo: un rango que
-   * terminara a medianoche dejaria fuera todo el turno de la cena.
-   */
-  private inicioDe(dia: string): string {
-    return `${dia}T00:00:00Z`;
-  }
-
-  private finDe(dia: string): string {
-    return `${dia}T23:59:59Z`;
-  }
-
-  private hoy(): string {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  private haceUnMes(): string {
-    const d = new Date();
-    d.setDate(d.getDate() - DIAS_POR_DEFECTO);
-    return d.toISOString().slice(0, 10);
   }
 
   private entero(v: string): number | null {

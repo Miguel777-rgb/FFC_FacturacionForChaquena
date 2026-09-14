@@ -1,4 +1,4 @@
-<section class="indicadores">
+<section class="superficie">
   <header class="cabecera">
     <h1>{{ t('panel.reportes') }}</h1>
     <button
@@ -13,16 +13,27 @@
     </button>
   </header>
 
+  <nav class="pestanas" [attr.aria-label]="t('reportes.secciones')">
+    @for (p of pestanas(); track p.id) {
+      <button
+        type="button"
+        [class.activa]="pestana() === p.id"
+        [attr.aria-current]="pestana() === p.id ? 'page' : null"
+        (click)="pestana.set(p.id)"
+      >
+        {{ t(p.nombre) }}
+      </button>
+    }
+  </nav>
+
   <div class="seccion">
-    <!-- El rango vive junto a las cifras y no en la cabecera: cambiarlo no es
-         una accion de la pantalla, es decir cuales de estos numeros se miran. -->
+    <!-- El rango vale para las tres pestanas: cambiar de pestana no cambia de periodo. -->
     <div class="barra">
       <div class="rangos" role="group" [attr.aria-label]="t('kpis.rango')">
         @for (r of RANGOS; track r.id) {
           <button
             type="button"
             class="secundario chico"
-            [class.activo]="rango() === r.id"
             [attr.aria-pressed]="rango() === r.id"
             (click)="cambiarRango(r.id)"
           >
@@ -32,226 +43,245 @@
       </div>
     </div>
 
-    <!-- Lo que paso en el rango. -->
-    @if (tablero(); as resumen) {
-      <ul class="kpis">
-        <li>
-          <span class="cifra dato">S/ {{ resumen.ventas?.total ?? 0 | number: '1.2-2' }}</span>
-          <span class="rotulo">{{ t('kpis.vendido') }}</span>
-        </li>
-        <li>
-          <span class="cifra dato">{{ resumen.ventas?.comandas ?? 0 }}</span>
-          <span class="rotulo">{{ t('kpis.comandasCobradas') }}</span>
-        </li>
-        <li>
-          <span class="cifra dato"
-            >S/ {{ resumen.ventas?.ticketPromedio ?? 0 | number: '1.2-2' }}</span
-          >
-          <span class="rotulo">{{ t('kpis.ticketPromedio') }}</span>
-        </li>
-
-        <!-- El promedio de cocina se lee contra el objetivo del local, no solo.
-             Doce minutos son buenos o malos segun lo que el local haya prometido. -->
-        <li [class.alerta]="(desvioCocina() ?? 0) > 0">
-          <span class="cifra dato">
-            @if (resumen.operacion?.minutosPromedioCocina != null) {
-              {{ resumen.operacion?.minutosPromedioCocina | number: '1.0-0' }}
-              {{ t('comun.minutos') }}
-            } @else {
-              —
-            }
-          </span>
-          <span class="rotulo">
-            {{ t('kpis.cocina') }}
-            @if (resumen.operacion?.minutosObjetivoCocina; as objetivo) {
-              {{ t('kpis.objetivo', { min: objetivo }) }}
-            }
-          </span>
-        </li>
-
-        <li [class.alerta]="(resumen.operacion?.comandasCanceladas ?? 0) > 0">
-          <span class="cifra dato">{{ resumen.operacion?.comandasCanceladas ?? 0 }}</span>
-          <span class="rotulo">{{ t('kpis.canceladas') }}</span>
-        </li>
-        <li [class.alerta]="(resumen.operacion?.comandasFraudulentas ?? 0) > 0">
-          <span class="cifra dato">{{ resumen.operacion?.comandasFraudulentas ?? 0 }}</span>
-          <span class="rotulo">{{ t('kpis.fraudulentas') }}</span>
-        </li>
-      </ul>
-    }
-
-    <!-- Y lo que esta pasando ahora. Esta fila no depende del rango: son cosas
-         que hay que ir a resolver, no cifras que comparar. -->
-    @if (tablero()?.ahoraMismo; as a) {
-      <div class="bloque">
-        <h2>{{ t('kpis.ahoraMismo') }}</h2>
-        @if (pendientes() === 0) {
-          <p class="vacio">{{ t('kpis.nadaPendiente') }}</p>
-        }
-        <ul class="kpis">
-          <li>
-            <span class="cifra dato">{{ a.comandasAbiertas ?? 0 }}</span>
-            <span class="rotulo">{{ t('kpis.comandasAbiertas') }}</span>
-          </li>
-          <li>
-            <span class="cifra dato">{{ a.mesasOcupadas ?? 0 }}/{{ a.mesasActivas ?? 0 }}</span>
-            <span class="rotulo">{{ t('kpis.mesasOcupadas') }}</span>
-          </li>
-          <li [class.alerta]="(a.insumosBajoMinimo ?? 0) > 0">
-            <span class="cifra dato">{{ a.insumosBajoMinimo ?? 0 }}</span>
-            <span class="rotulo">{{ t('kpis.insumosBajoMinimo') }}</span>
-          </li>
-          <li [class.alerta]="(a.pagosPorAcreditar ?? 0) > 0">
-            <span class="cifra dato">{{ a.pagosPorAcreditar ?? 0 }}</span>
-            <span class="rotulo">{{ t('kpis.cobrosPorAcreditar') }}</span>
-          </li>
-          <li [class.alerta]="(a.alertasDeFraude ?? 0) > 0">
-            <span class="cifra dato">{{ a.alertasDeFraude ?? 0 }}</span>
-            <span class="rotulo">{{ t('kpis.alertasFraude') }}</span>
-          </li>
-          <li [class.alerta]="(a.eventosOutboxEnError ?? 0) > 0">
-            <span class="cifra dato">{{ a.eventosOutboxEnError ?? 0 }}</span>
-            <span class="rotulo">{{ t('kpis.eventosAtascados') }}</span>
-          </li>
-          <li>
-            <span class="cifra dato">{{ a.eventosOutboxPendientes ?? 0 }}</span>
-            <span class="rotulo">{{ t('kpis.eventosEnCola') }}</span>
-          </li>
-        </ul>
-      </div>
-    }
-
-    <!-- La forma del servicio. Por horas cuando se mira el dia, por dias en los
-         otros dos rangos. -->
-    <div class="bloque">
-      <h2>{{ t(rango() === 'hoy' ? 'kpis.ventaPorHora' : 'kpis.ventaPorDia') }}</h2>
-
-      @if (barras().length > 0) {
-        <div class="desplazable">
-          <svg
-            class="grafica"
-            [attr.viewBox]="'0 0 ' + GRAFICA.ancho + ' ' + (GRAFICA.alto + 18)"
-            preserveAspectRatio="none"
-            role="img"
-            [attr.aria-label]="
-              t('kpis.graficaAria', { n: barras().length, total: totalSerie().toFixed(2) })
-            "
-          >
-            @for (b of barras(); track b.x; let i = $index) {
-              <rect
-                class="barra"
-                [attr.x]="b.x"
-                [attr.y]="b.y"
-                [attr.width]="b.ancho"
-                [attr.height]="b.alto"
-              >
-                <title>{{ b.titulo }}</title>
-              </rect>
-              @if (i % pasoEtiquetas() === 0) {
-                <text
-                  class="eje"
-                  [attr.x]="b.x + b.ancho / 2"
-                  [attr.y]="GRAFICA.alto + 13"
-                  text-anchor="middle"
-                >
-                  {{ b.etiqueta }}
-                </text>
-              }
-            }
-          </svg>
-        </div>
-      } @else {
-        <p class="vacio">
-          {{ t(cargando() ? 'kpis.cargandoSerie' : 'kpis.sinVentasRango') }}
-        </p>
-      }
-    </div>
-
-    <div class="columnas">
-      <!-- Quien vende. No es un ranking para premiar a nadie: sirve para saber
-           si una mesa se quedo sin atender porque faltaba gente en el turno. -->
-      <div class="bloque">
-        <h2>{{ t('kpis.ventaPorMozo') }}</h2>
-        <div class="desplazable">
-          <table class="tabla apilable">
-            <thead>
-              <tr>
-                <th>{{ t('kpis.mozo') }}</th>
-                <th class="num">{{ t('kpis.comandas') }}</th>
-                <th class="num">{{ t('comun.total') }}</th>
-                <th class="num">{{ t('kpis.ticket') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (m of mozos(); track m.mozoId) {
-                <tr>
-                  <td>{{ m.mozo || t('kpis.sinIdentificar') }}</td>
-                  <td class="num cifra" [attr.data-etiqueta]="t('kpis.comandas')">{{ m.comandas ?? 0 }}</td>
-                  <td class="num cifra" [attr.data-etiqueta]="t('comun.total')">S/ {{ m.total ?? 0 | number: '1.2-2' }}</td>
-                  <td class="num cifra tenue" [attr.data-etiqueta]="t('kpis.ticket')">
-                    S/ {{ m.ticketPromedio ?? 0 | number: '1.2-2' }}
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="4" class="vacio">
-                    {{ t(cargando() ? 'comun.cargando' : 'kpis.sinMozos') }}
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="bloque">
-        <h2>{{ t('kpis.loMasVendido') }}</h2>
-        <div class="desplazable">
-          <table class="tabla apilable">
-            <thead>
-              <tr>
-                <th>{{ t('kpis.platillo') }}</th>
-                <th class="num">{{ t('kpis.unidades') }}</th>
-                <th class="num">{{ t('comun.total') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (p of top(); track p.platillo) {
-                <tr>
-                  <td>{{ p.platillo }}</td>
-                  <td class="num cifra" [attr.data-etiqueta]="t('kpis.unidades')">{{ p.unidadesVendidas ?? 0 }}</td>
-                  <td class="num cifra" [attr.data-etiqueta]="t('comun.total')">S/ {{ p.montoTotal ?? 0 | number: '1.2-2' }}</td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="3" class="vacio">
-                    {{ t(cargando() ? 'comun.cargando' : 'kpis.sinPlatillos') }}
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- El desglose por estado explica el hueco entre lo pedido y lo cobrado:
-         lo que falta esta abierto, cancelado o marcado como fraude. -->
-    @if (tablero()?.porEstado?.length) {
-      <div class="bloque">
-        <h2>{{ t('kpis.porEstado') }}</h2>
-        <ul class="listado">
-          @for (e of tablero()?.porEstado; track e.estado) {
+    @switch (pestana()) {
+      @case ('resumen') {
+        @if (tablero(); as resumen) {
+          <ul class="kpis">
             <li>
-              <span class="chip" [attr.data-estado]="e.estado">{{
-                tEnum('estado', e.estado)
-              }}</span>
-              <span class="cifra">{{ e.comandas ?? 0 }}</span>
-              <span class="tenue cifra">S/ {{ e.total ?? 0 | number: '1.2-2' }}</span>
+              <span class="cifra dato">S/ {{ resumen.ventas?.total ?? 0 | number: '1.2-2' }}</span>
+              <span class="rotulo">{{ t('kpis.vendido') }}</span>
             </li>
+            <li>
+              <span class="cifra dato">{{ resumen.ventas?.comandas ?? 0 }}</span>
+              <span class="rotulo">{{ t('kpis.comandasCobradas') }}</span>
+            </li>
+            <li>
+              <span class="cifra dato"
+                >S/ {{ resumen.ventas?.ticketPromedio ?? 0 | number: '1.2-2' }}</span
+              >
+              <span class="rotulo">{{ t('kpis.ticketPromedio') }}</span>
+            </li>
+
+            <!-- El promedio de cocina se lee contra el objetivo del local, no solo.
+                 Doce minutos son buenos o malos segun lo que el local haya prometido. -->
+            <li [class.alerta]="(desvioCocina() ?? 0) > 0">
+              <span class="cifra dato">
+                @if (resumen.operacion?.minutosPromedioCocina != null) {
+                  {{ resumen.operacion?.minutosPromedioCocina | number: '1.0-0' }}
+                  {{ t('comun.minutos') }}
+                } @else {
+                  —
+                }
+              </span>
+              <span class="rotulo">
+                {{ t('kpis.cocina') }}
+                @if (resumen.operacion?.minutosObjetivoCocina; as objetivo) {
+                  {{ t('kpis.objetivo', { min: objetivo }) }}
+                }
+              </span>
+            </li>
+
+            <li [class.alerta]="(resumen.operacion?.comandasCanceladas ?? 0) > 0">
+              <span class="cifra dato">{{ resumen.operacion?.comandasCanceladas ?? 0 }}</span>
+              <span class="rotulo">{{ t('kpis.canceladas') }}</span>
+            </li>
+            <li [class.alerta]="(resumen.operacion?.comandasFraudulentas ?? 0) > 0">
+              <span class="cifra dato">{{ resumen.operacion?.comandasFraudulentas ?? 0 }}</span>
+              <span class="rotulo">{{ t('kpis.fraudulentas') }}</span>
+            </li>
+          </ul>
+        }
+
+        <!-- La forma del servicio. Por horas cuando se mira el dia, por dias en los
+             otros dos rangos. -->
+        <div class="bloque">
+          <h2>{{ t(rango() === 'hoy' ? 'kpis.ventaPorHora' : 'kpis.ventaPorDia') }}</h2>
+
+          @if (barras().length > 0) {
+            <div class="desplazable">
+              <svg
+                class="grafica"
+                [attr.viewBox]="'0 0 ' + GRAFICA.ancho + ' ' + (GRAFICA.alto + 18)"
+                preserveAspectRatio="none"
+                role="img"
+                [attr.aria-label]="
+                  t('kpis.graficaAria', { n: barras().length, total: totalSerie().toFixed(2) })
+                "
+              >
+                @for (b of barras(); track b.x; let i = $index) {
+                  <rect
+                    class="barra"
+                    [attr.x]="b.x"
+                    [attr.y]="b.y"
+                    [attr.width]="b.ancho"
+                    [attr.height]="b.alto"
+                  >
+                    <title>{{ b.titulo }}</title>
+                  </rect>
+                  @if (i % pasoEtiquetas() === 0) {
+                    <text
+                      class="eje"
+                      [attr.x]="b.x + b.ancho / 2"
+                      [attr.y]="GRAFICA.alto + 13"
+                      text-anchor="middle"
+                    >
+                      {{ b.etiqueta }}
+                    </text>
+                  }
+                }
+              </svg>
+            </div>
+          } @else {
+            <p class="vacio">
+              {{ t(cargando() ? 'kpis.cargandoSerie' : 'kpis.sinVentasRango') }}
+            </p>
           }
-        </ul>
-      </div>
+        </div>
+
+        <div class="columnas">
+          <div class="bloque">
+            <h2>{{ t('kpis.loMasVendido') }}</h2>
+            <div class="desplazable">
+              <table class="tabla apilable">
+                <thead>
+                  <tr>
+                    <th>{{ t('kpis.platillo') }}</th>
+                    <th class="num">{{ t('kpis.unidades') }}</th>
+                    <th class="num">{{ t('comun.total') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of top(); track p.platillo) {
+                    <tr>
+                      <td>{{ p.platillo }}</td>
+                      <td class="num cifra" [attr.data-etiqueta]="t('kpis.unidades')">
+                        {{ p.unidadesVendidas ?? 0 }}
+                      </td>
+                      <td class="num cifra" [attr.data-etiqueta]="t('comun.total')">
+                        S/ {{ p.montoTotal ?? 0 | number: '1.2-2' }}
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="3" class="vacio">
+                        {{ t(cargando() ? 'comun.cargando' : 'kpis.sinPlatillos') }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- El desglose por estado explica el hueco entre lo pedido y lo cobrado:
+               lo que falta esta abierto, cancelado o marcado como fraude. -->
+          @if (tablero()?.porEstado?.length) {
+            <div class="bloque">
+              <h2>{{ t('kpis.porEstado') }}</h2>
+              <ul class="listado">
+                @for (e of tablero()?.porEstado; track e.estado) {
+                  <li>
+                    <span class="chip" [attr.data-estado]="e.estado">{{
+                      tEnum('estado', e.estado)
+                    }}</span>
+                    <span class="cifra">{{ e.comandas ?? 0 }}</span>
+                    <span class="tenue cifra">S/ {{ e.total ?? 0 | number: '1.2-2' }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      }
+
+      @case ('mozos') {
+        <!-- Quien vende. Sirve para saber si una mesa se quedo sin atender porque
+             faltaba gente en el turno. -->
+        <div class="bloque">
+          <h2>{{ t('kpis.ventaPorMozo') }}</h2>
+          <div class="desplazable">
+            <table class="tabla apilable">
+              <thead>
+                <tr>
+                  <th>{{ t('kpis.mozo') }}</th>
+                  <th class="num">{{ t('kpis.comandas') }}</th>
+                  <th class="num">{{ t('comun.total') }}</th>
+                  <th class="num">{{ t('kpis.ticket') }}</th>
+                  <th>{{ t('reportes.parte') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (m of mozosConParte(); track $index) {
+                  <tr>
+                    <td>{{ m.mozo || t('kpis.sinIdentificar') }}</td>
+                    <td class="num cifra" [attr.data-etiqueta]="t('kpis.comandas')">
+                      {{ m.comandas ?? 0 }}
+                    </td>
+                    <td class="num cifra" [attr.data-etiqueta]="t('comun.total')">
+                      S/ {{ m.total ?? 0 | number: '1.2-2' }}
+                    </td>
+                    <td class="num cifra tenue" [attr.data-etiqueta]="t('kpis.ticket')">
+                      S/ {{ m.ticketPromedio ?? 0 | number: '1.2-2' }}
+                    </td>
+                    <td [attr.data-etiqueta]="t('reportes.parte')">
+                      <span class="parte">
+                        <span class="barra-parte" aria-hidden="true">
+                          <span [style.width.%]="m.parte"></span>
+                        </span>
+                        <span class="cifra tenue">{{ m.parte }} %</span>
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="vacio">
+                      {{ t(cargando() ? 'comun.cargando' : 'kpis.sinMozos') }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      @case ('satisfaccion') {
+        <!-- La contrapartida de los cupones: dice si el programa consigue
+             buenas calificaciones o solo muchas. -->
+        <div class="bloque">
+          <h2>{{ t('reportes.satisfaccion') }}</h2>
+          @if (satisfaccion(); as s) {
+            @if ((s.totalCalificaciones ?? 0) === 0) {
+              <p class="vacio">{{ t('reportes.sinCalificaciones') }}</p>
+            } @else {
+              <ul class="kpis">
+                <li>
+                  <span class="cifra dato">{{ s.promedioGeneral | number: '1.1-1' }}</span>
+                  <span class="rotulo">{{ t('reportes.general') }}</span>
+                </li>
+                <li>
+                  <span class="cifra dato">{{ s.promedioComida | number: '1.1-1' }}</span>
+                  <span class="rotulo">{{ t('reportes.comida') }}</span>
+                </li>
+                <li>
+                  <span class="cifra dato">{{ s.promedioAtencion | number: '1.1-1' }}</span>
+                  <span class="rotulo">{{ t('reportes.atencion') }}</span>
+                </li>
+                <li>
+                  <span class="cifra dato">{{ s.promedioLugar | number: '1.1-1' }}</span>
+                  <span class="rotulo">{{ t('reportes.lugar') }}</span>
+                </li>
+                <li>
+                  <span class="cifra dato">{{ s.totalCalificaciones }}</span>
+                  <span class="rotulo">{{ t('reportes.calificaciones') }}</span>
+                </li>
+              </ul>
+            }
+          } @else {
+            <p class="vacio">{{ t(cargando() ? 'comun.cargando' : 'reportes.sinReporte') }}</p>
+          }
+        </div>
+      }
     }
   </div>
 </section>

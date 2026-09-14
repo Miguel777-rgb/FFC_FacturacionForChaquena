@@ -32,59 +32,17 @@
       [attr.aria-pressed]="soloAlertas()"
       (click)="alternarAlertas()"
     >
+      <app-icono nombre="filtro" [tamano]="18" />
       {{ t(soloAlertas() ? 'inventario.viendoAlertas' : 'inventario.soloBajoMinimo') }}
     </button>
     <button type="button" class="secundario" (click)="abrirAlta()">
-      {{ t(altaAbierta() ? 'comun.dejarlo' : 'inventario.nuevoInsumo') }}
+      <app-icono nombre="alta" [tamano]="18" />
+      {{ t('inventario.nuevoInsumo') }}
     </button>
     <button type="button" class="secundario" (click)="abrirConteo()">
       {{ t(contando() ? 'inventario.dejarConteo' : 'inventario.conteoFisico') }}
     </button>
   </div>
-
-  @if (altaAbierta()) {
-    <div class="formulario bloque">
-      <h2>{{ t('inventario.nuevoInsumo') }}</h2>
-      <p class="vacio">{{ t('inventario.stockCero') }}</p>
-      <div class="campos">
-        <input
-          type="text"
-          [attr.placeholder]="t('carta.nombre')"
-          [value]="nombre()"
-          (input)="anotarNombre($any($event.target).value)"
-          [attr.aria-label]="t('inventario.nombreInsumo')"
-        />
-        <input
-          type="text"
-          [attr.placeholder]="t('inventario.unidad')"
-          [value]="unidad()"
-          (input)="anotarUnidad($any($event.target).value)"
-          [attr.aria-label]="t('inventario.unidadAria')"
-        />
-        <select
-          [value]="tipo()"
-          (change)="elegirTipo($any($event.target).value)"
-          [attr.aria-label]="t('inventario.tipoInsumo')"
-        >
-          @for (tipoInsumo of TIPOS_INSUMO; track tipoInsumo) {
-            <option [value]="tipoInsumo">{{ tEnum('insumo', tipoInsumo) }}</option>
-          }
-        </select>
-        <input
-          type="number"
-          step="0.001"
-          min="0"
-          [attr.placeholder]="t('inventario.stockMinimo')"
-          [value]="stockMinimo() ?? ''"
-          (input)="anotarStockMinimo($any($event.target).value)"
-          [attr.aria-label]="t('inventario.stockMinimo')"
-        />
-        <button type="button" (click)="altaInsumo()" [disabled]="guardando()">
-          {{ t('comun.guardar') }}
-        </button>
-      </div>
-    </div>
-  }
 
   <!-- El conteo fisico manda sobre el sistema: lo que se escribe aqui pasa a ser
        el stock, y la diferencia queda como ajuste con su autor. -->
@@ -160,7 +118,12 @@
       <tbody>
         @for (i of visibles(); track i.id) {
           <tr [class.bajo]="i.bajoMinimo">
-            <td>{{ i.nombre }}</td>
+            <td>
+              {{ i.nombre }}
+              @if (i.bajoMinimo) {
+                <span class="chip peligro">{{ t('inventario.bajoMinimo') }}</span>
+              }
+            </td>
             <td class="tenue" [attr.data-etiqueta]="t('inventario.tipo')">{{ tEnum('insumo', i.tipoInsumo) }}</td>
             <td class="num cifra" [attr.data-etiqueta]="t('inventario.stock')">
               {{ i.stockActual | number: '1.0-3' }} {{ i.unidadMedida }}
@@ -184,96 +147,23 @@
               </td>
             }
             <td class="acciones">
+              <button
+                type="button"
+                class="icono-accion"
+                (click)="abrirEdicion(i)"
+                [attr.title]="t('comun.editar')"
+                [attr.aria-label]="t('inventario.editarAria', { insumo: i.nombre ?? '' })"
+              >
+                <app-icono nombre="lapiz" [tamano]="18" />
+              </button>
               <button type="button" class="secundario chico" (click)="abrirMovimiento(i)">
-                {{ t(moviendo()?.id === i.id ? 'comun.dejarlo' : 'inventario.mover') }}
+                {{ t('inventario.mover') }}
               </button>
               <button type="button" class="secundario chico" (click)="verKardex(i)">
-                {{ t(kardexDe()?.id === i.id ? 'comun.cerrar' : 'inventario.kardex') }}
+                {{ t('inventario.kardex') }}
               </button>
             </td>
           </tr>
-
-          @if (moviendo()?.id === i.id) {
-            <tr class="expandida">
-              <td [attr.colspan]="contando() ? 6 : 5">
-                <div class="campos">
-                  <select
-                    [value]="motivo()"
-                    (change)="elegirMotivo($any($event.target).value)"
-                    [attr.aria-label]="t('inventario.motivoMovimiento')"
-                  >
-                    @for (m of MOTIVOS_MANUALES; track m) {
-                      <option [value]="m">{{ tEnum('movimiento', m) }}</option>
-                    }
-                  </select>
-                  <!-- Siempre en positivo: el signo lo pone el motivo. -->
-                  <input
-                    type="number"
-                    step="0.001"
-                    min="0"
-                    [attr.placeholder]="
-                      t('inventario.cantidadEn', { unidad: i.unidadMedida ?? '' })
-                    "
-                    [value]="cantidad() ?? ''"
-                    (input)="anotarCantidad($any($event.target).value)"
-                    [attr.aria-label]="t('comun.cantidad')"
-                  />
-                  <input
-                    type="text"
-                    [attr.placeholder]="t('inventario.motivoObservacion')"
-                    [value]="observacion()"
-                    (input)="anotarObservacion($any($event.target).value)"
-                    [attr.aria-label]="t('comun.observacion')"
-                  />
-                  <button
-                    type="button"
-                    (click)="registrarMovimiento()"
-                    [disabled]="!cantidad() || !observacion().trim() || guardando()"
-                  >
-                    {{ t('comun.registrar') }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-
-          @if (kardexDe()?.id === i.id) {
-            <tr class="expandida">
-              <td [attr.colspan]="contando() ? 6 : 5">
-                <table class="tabla interna apilable">
-                  <thead>
-                    <tr>
-                      <th>{{ t('comun.fecha') }}</th>
-                      <th>{{ t('inventario.movimiento') }}</th>
-                      <th class="num">{{ t('comun.cantidad') }}</th>
-                      <th class="num">{{ t('inventario.antesDespues') }}</th>
-                      <th>{{ t('inventario.quien') }}</th>
-                      <th>{{ t('comun.motivo') }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (m of kardex(); track m.id) {
-                      <tr>
-                        <td class="cifra tenue">{{ fecha(m.fecha) }}</td>
-                        <td [attr.data-etiqueta]="t('inventario.movimiento')">{{ tEnum('movimiento', m.tipoControl) }}</td>
-                        <td class="num cifra" [attr.data-etiqueta]="t('comun.cantidad')">{{ m.cantidad | number: '1.0-3' }}</td>
-                        <td class="num cifra tenue" [attr.data-etiqueta]="t('inventario.antesDespues')">
-                          {{ m.stockAnterior | number: '1.0-3' }} →
-                          {{ m.stockNuevo | number: '1.0-3' }}
-                        </td>
-                        <td class="tenue" [attr.data-etiqueta]="t('inventario.quien')">{{ m.registradoPor }}</td>
-                        <td class="tenue" [attr.data-etiqueta]="t('comun.motivo')">{{ m.motivoObservacion }}</td>
-                      </tr>
-                    } @empty {
-                      <tr>
-                        <td colspan="6" class="vacio">{{ t('inventario.sinMovimientos') }}</td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          }
         } @empty {
           <tr>
             <td colspan="6" class="vacio">
@@ -285,3 +175,178 @@
     </table>
   </div>
 </div>
+
+<!-- Kardex: la historia de un insumo, de lo mas reciente a lo mas antiguo. -->
+<app-dialogo modo="cajon" [titulo]="tituloKardex()" [(abierto)]="kardexAbierto">
+  @if (kardexDe(); as insumo) {
+    <p class="tenue stock-actual">
+      {{
+        t('inventario.stockActual', {
+          stock: (insumo.stockActual | number: '1.0-3') ?? '0',
+          unidad: insumo.unidadMedida ?? '',
+        })
+      }}
+    </p>
+
+    @if (kardex(); as movimientos) {
+      <ol class="kardex">
+        @for (m of movimientos; track m.id) {
+          <li>
+            <div class="fila">
+              <strong>{{ tEnum('movimiento', m.tipoControl) }}</strong>
+              <span class="cifra" [class.negativo]="diferencia(m) < 0">
+                {{ diferencia(m) > 0 ? '+' : '' }}{{ diferencia(m) | number: '1.0-3' }}
+                {{ m.unidadMedida || insumo.unidadMedida }}
+              </span>
+            </div>
+            <div class="fila tenue">
+              <span>{{ fecha(m.fecha) }} · {{ m.registradoPor }}</span>
+              <span class="cifra">
+                {{ m.stockAnterior | number: '1.0-3' }} → {{ m.stockNuevo | number: '1.0-3' }}
+              </span>
+            </div>
+            @if (m.motivoObservacion) {
+              <p class="tenue">{{ m.motivoObservacion }}</p>
+            }
+          </li>
+        } @empty {
+          <li class="vacio">{{ t('inventario.sinMovimientos') }}</li>
+        }
+      </ol>
+    } @else {
+      <p class="vacio">{{ t('comun.cargando') }}</p>
+    }
+  }
+
+  <div pie>
+    @if (kardexDe(); as insumo) {
+      <button
+        type="button"
+        class="secundario"
+        (click)="kardexAbierto.set(false); abrirMovimiento(insumo)"
+      >
+        {{ t('inventario.mover') }}
+      </button>
+    }
+  </div>
+</app-dialogo>
+
+<!-- Movimiento suelto: una compra, una merma, un ajuste. -->
+<app-dialogo [titulo]="tituloMovimiento()" [(abierto)]="movimientoAbierto">
+  @if (moviendo(); as insumo) {
+    <div class="formulario">
+      <p class="tenue">
+        {{
+          t('inventario.stockActual', {
+            stock: (insumo.stockActual | number: '1.0-3') ?? '0',
+            unidad: insumo.unidadMedida ?? '',
+          })
+        }}
+      </p>
+      <label class="campo">
+        <span>{{ t('inventario.motivoMovimiento') }}</span>
+        <select (change)="elegirMotivo($any($event.target).value)">
+          @for (m of MOTIVOS_MANUALES; track m) {
+            <option [value]="m" [selected]="motivo() === m">{{ tEnum('movimiento', m) }}</option>
+          }
+        </select>
+      </label>
+      <label class="campo">
+        <span>{{ t('inventario.cantidadEn', { unidad: insumo.unidadMedida ?? '' }) }}</span>
+        <!-- Siempre en positivo: el signo lo pone el motivo. -->
+        <input
+          type="number"
+          step="0.001"
+          min="0"
+          inputmode="decimal"
+          [value]="cantidad() ?? ''"
+          (input)="anotarCantidad($any($event.target).value)"
+        />
+        <small>{{ t('inventario.signoAyuda') }}</small>
+      </label>
+      <label class="campo">
+        <span>{{ t('comun.observacion') }}</span>
+        <input
+          type="text"
+          [attr.placeholder]="t('inventario.motivoObservacion')"
+          [value]="observacion()"
+          (input)="anotarObservacion($any($event.target).value)"
+        />
+      </label>
+    </div>
+  }
+  <div pie>
+    <button type="button" class="secundario" (click)="movimientoAbierto.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button
+      type="button"
+      (click)="registrarMovimiento()"
+      [disabled]="!cantidad() || !observacion().trim() || guardando()"
+    >
+      {{ t(guardando() ? 'comun.guardando' : 'comun.registrar') }}
+    </button>
+  </div>
+</app-dialogo>
+
+<!-- Alta y edicion de un insumo. -->
+<app-dialogo [titulo]="tituloFormulario()" [(abierto)]="formularioAbierto">
+  <div class="formulario">
+    @if (!editandoId()) {
+      <p class="tenue">{{ t('inventario.stockCero') }}</p>
+    }
+    <label class="campo">
+      <span>{{ t('inventario.nombreInsumo') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        [value]="nombre()"
+        (input)="anotarNombre($any($event.target).value)"
+      />
+    </label>
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('inventario.unidad') }}</span>
+        <input
+          type="text"
+          autocomplete="off"
+          [value]="unidad()"
+          (input)="anotarUnidad($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('inventario.tipoInsumo') }}</span>
+        <select (change)="elegirTipo($any($event.target).value)">
+          @for (tipoInsumo of TIPOS_INSUMO; track tipoInsumo) {
+            <option [value]="tipoInsumo" [selected]="tipo() === tipoInsumo">
+              {{ tEnum('insumo', tipoInsumo) }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+    <label class="campo">
+      <span>{{ t('inventario.stockMinimo') }}</span>
+      <input
+        type="number"
+        step="0.001"
+        min="0"
+        inputmode="decimal"
+        [value]="stockMinimo() ?? ''"
+        (input)="anotarStockMinimo($any($event.target).value)"
+      />
+    </label>
+  </div>
+  <div pie>
+    <button type="button" class="secundario" (click)="formularioAbierto.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button
+      type="button"
+      (click)="guardarInsumo()"
+      [disabled]="!nombre().trim() || !unidad().trim() || guardando()"
+    >
+      {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+    </button>
+  </div>
+</app-dialogo>

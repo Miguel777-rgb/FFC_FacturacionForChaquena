@@ -1,0 +1,47 @@
+td .chip {
+  margin-left: var(--e2);
+}
+
+.stock-actual {
+  margin: 0 0 var(--e3);
+}
+
+/* El kardex en el cajon: una ficha por movimiento, sin tabla. Seis columnas no
+   caben en un cajon ni en un celular. */
+.kardex {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li:not(.vacio) {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: var(--e2);
+    border-bottom: 1px solid var(--linea);
+  }
+
+  .fila {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--e1) var(--e3);
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--tinta);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--t-chico);
+  }
+
+  .negativo {
+    color: var(--critico);
+  }
+}

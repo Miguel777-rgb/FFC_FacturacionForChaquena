@@ -20,6 +20,8 @@ import {
   type MovimientoResponseDto,
   type ResumenInventarioDto,
 } from '../../api';
+import { Dialogo } from '../../disenio/dialogo';
+import { Icono } from '../../disenio/icono';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
 
@@ -44,13 +46,21 @@ const MOTIVOS_MANUALES = [
 /**
  * Inventario: los insumos, lo que falta, el kardex de cada uno y las dos formas
  * de corregir el stock —un movimiento suelto o un conteo fisico completo.
+ *
+ * La tabla queda siempre a la vista. El kardex se abre en un cajon lateral y el
+ * alta, la edicion y el movimiento en un dialogo: desplegados dentro de la
+ * tabla empujaban las filas y, en el celular, una tabla dentro de otra no se
+ * podia leer.
+ *
+ * El conteo fisico es la excepcion y sigue en la tabla, porque se cuenta fila
+ * por fila recorriendo el almacen.
  */
 @Component({
   selector: 'app-inventario-seccion',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Dialogo, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inventario.seccion.html',
-  styleUrl: '../../disenio/secciones.scss',
+  styleUrls: ['../../disenio/secciones.scss', './inventario.seccion.scss'],
 })
 export class InventarioSeccion implements OnInit {
   private readonly insumosApi = inject(InventarioInsumosApi);
@@ -75,12 +85,16 @@ export class InventarioSeccion implements OnInit {
   protected readonly filtro = signal('');
   protected readonly soloAlertas = signal(false);
 
-  /** Insumo cuyo kardex esta desplegado, y sus movimientos. */
+  // --- kardex ---------------------------------------------------------------
+
+  protected readonly kardexAbierto = signal(false);
   protected readonly kardexDe = signal<InsumoResponseDto | null>(null);
-  protected readonly kardex = signal<MovimientoResponseDto[]>([]);
+  /** `null` mientras llega: una lista vacia ya significa «sin movimientos». */
+  protected readonly kardex = signal<MovimientoResponseDto[] | null>(null);
 
   // --- movimiento suelto ----------------------------------------------------
 
+  protected readonly movimientoAbierto = signal(false);
   protected readonly moviendo = signal<InsumoResponseDto | null>(null);
   protected readonly cantidad = signal<number | null>(null);
   protected readonly motivo = signal<MovimientoRequestDtoTipoControlEnum>(
@@ -88,9 +102,11 @@ export class InventarioSeccion implements OnInit {
   );
   protected readonly observacion = signal('');
 
-  // --- alta de insumo -------------------------------------------------------
+  // --- alta y edicion de insumo ---------------------------------------------
 
-  protected readonly altaAbierta = signal(false);
+  protected readonly formularioAbierto = signal(false);
+  /** `null` es un insumo nuevo; un id, uno que se corrige. */
+  protected readonly editandoId = signal<string | null>(null);
   protected readonly nombre = signal('');
   protected readonly unidad = signal('KG');
   protected readonly tipo = signal<InsumoRequestDtoTipoInsumoEnum>(TIPOS_INSUMO.NO_COCIDO);
@@ -121,6 +137,18 @@ export class InventarioSeccion implements OnInit {
   /** Cuantas lineas del conteo tienen un numero escrito. */
   protected readonly contadas = computed(
     () => Object.values(this.conteo()).filter((v) => v !== null && Number.isFinite(v)).length,
+  );
+
+  protected readonly tituloKardex = computed(() =>
+    this.t('inventario.kardexDe', { insumo: this.kardexDe()?.nombre ?? '' }),
+  );
+
+  protected readonly tituloMovimiento = computed(() =>
+    this.t('inventario.moverTitulo', { insumo: this.moviendo()?.nombre ?? '' }),
+  );
+
+  protected readonly tituloFormulario = computed(() =>
+    this.t(this.editandoId() ? 'inventario.editarInsumo' : 'inventario.nuevoInsumo'),
   );
 
   ngOnInit(): void {
@@ -160,27 +188,32 @@ export class InventarioSeccion implements OnInit {
    * movio. Se pide solo al abrirlo porque son muchas filas por insumo.
    */
   protected verKardex(insumo: InsumoResponseDto): void {
-    if (this.kardexDe()?.id === insumo.id) {
-      this.kardexDe.set(null);
-      this.kardex.set([]);
-      return;
-    }
     if (!insumo.id) return;
 
     this.kardexDe.set(insumo);
-    this.kardex.set([]);
+    this.kardex.set(null);
+    this.kardexAbierto.set(true);
     this.movimientosApi
       .kardex({ insumoId: insumo.id, pageable: { page: 0, size: 50 } })
-      .subscribe({ next: (pagina) => this.kardex.set(pagina.contenido ?? []) });
+      .subscribe({
+        next: (pagina) => this.kardex.set(pagina.contenido ?? []),
+        error: () => this.kardex.set([]),
+      });
+  }
+
+  /** Lo que el movimiento cambio el stock, con su signo: la cantidad sola no dice si entro o salio. */
+  protected diferencia(m: MovimientoResponseDto): number {
+    return (m.stockNuevo ?? 0) - (m.stockAnterior ?? 0);
   }
 
   // --- movimiento suelto ----------------------------------------------------
 
   protected abrirMovimiento(insumo: InsumoResponseDto): void {
-    this.moviendo.set(this.moviendo()?.id === insumo.id ? null : insumo);
+    this.moviendo.set(insumo);
     this.cantidad.set(null);
     this.observacion.set('');
     this.motivo.set(TIPOS_MOVIMIENTO.ENTRADA_COMPRA);
+    this.movimientoAbierto.set(true);
   }
 
   protected anotarCantidad(v: string): void {
@@ -206,6 +239,7 @@ export class InventarioSeccion implements OnInit {
     const cantidad = this.cantidad();
     const observacion = this.observacion().trim();
     if (!insumo?.id || cantidad === null || cantidad <= 0 || observacion.length === 0) return;
+    if (this.guardando()) return;
 
     this.guardando.set(true);
     this.movimientosApi
@@ -220,7 +254,7 @@ export class InventarioSeccion implements OnInit {
       .subscribe({
         next: (m) => {
           this.guardando.set(false);
-          this.moviendo.set(null);
+          this.movimientoAbierto.set(false);
           this.avisos.exito(
             this.t('inventario.avisoMovimiento', {
               insumo: m.insumoNombre ?? '',
@@ -235,10 +269,27 @@ export class InventarioSeccion implements OnInit {
       });
   }
 
-  // --- alta de insumo -------------------------------------------------------
+  // --- alta y edicion de insumo ---------------------------------------------
 
   protected abrirAlta(): void {
-    this.altaAbierta.update((v) => !v);
+    this.editandoId.set(null);
+    this.nombre.set('');
+    this.unidad.set('KG');
+    this.tipo.set(TIPOS_INSUMO.NO_COCIDO);
+    this.stockMinimo.set(null);
+    this.formularioAbierto.set(true);
+  }
+
+  /** Se corrige el nombre, la unidad, el tipo o el minimo. El stock no: ese cambia con movimientos. */
+  protected abrirEdicion(insumo: InsumoResponseDto): void {
+    this.editandoId.set(insumo.id ?? null);
+    this.nombre.set(insumo.nombre ?? '');
+    this.unidad.set(insumo.unidadMedida ?? '');
+    // El enum de la respuesta y el de la peticion son tipos distintos con los mismos valores.
+    const tipo: string | undefined = insumo.tipoInsumo;
+    this.tipo.set(this.TIPOS_INSUMO.find((t) => t === tipo) ?? TIPOS_INSUMO.NO_COCIDO);
+    this.stockMinimo.set(insumo.stockMinimo ?? null);
+    this.formularioAbierto.set(true);
   }
 
   protected anotarNombre(v: string): void {
@@ -259,32 +310,37 @@ export class InventarioSeccion implements OnInit {
   }
 
   /** Un insumo nace con stock cero: lo que hay entra despues, con su movimiento. */
-  protected altaInsumo(): void {
+  protected guardarInsumo(): void {
     const nombre = this.nombre().trim();
     const unidadMedida = this.unidad().trim();
     if (nombre.length === 0 || unidadMedida.length === 0 || this.guardando()) return;
 
+    const id = this.editandoId();
+    const cuerpo = {
+      nombre,
+      unidadMedida,
+      tipoInsumo: this.tipo(),
+      stockMinimo: this.stockMinimo() ?? 0,
+    };
+
     this.guardando.set(true);
-    this.insumosApi
-      .crearInsumo({
-        insumoRequestDto: {
-          nombre,
-          unidadMedida,
-          tipoInsumo: this.tipo(),
-          stockMinimo: this.stockMinimo() ?? 0,
-        },
-      })
-      .subscribe({
-        next: (i) => {
-          this.guardando.set(false);
-          this.altaAbierta.set(false);
-          this.nombre.set('');
-          this.stockMinimo.set(null);
-          this.avisos.exito(this.t('inventario.avisoAlta', { insumo: i.nombre ?? '' }));
-          this.cargar();
-        },
-        error: () => this.guardando.set(false),
-      });
+    const peticion = id
+      ? this.insumosApi.actualizarInsumo({ id, insumoRequestDto: cuerpo })
+      : this.insumosApi.crearInsumo({ insumoRequestDto: cuerpo });
+
+    peticion.subscribe({
+      next: (i) => {
+        this.guardando.set(false);
+        this.formularioAbierto.set(false);
+        this.avisos.exito(
+          this.t(id ? 'inventario.avisoEditado' : 'inventario.avisoAlta', {
+            insumo: i.nombre ?? nombre,
+          }),
+        );
+        this.cargar();
+      },
+      error: () => this.guardando.set(false),
+    });
   }
 
   // --- conteo fisico --------------------------------------------------------

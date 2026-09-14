@@ -1,11 +1,22 @@
-/* Los indicadores son de escritorio y se leen de arriba abajo: primero lo que
-   paso, luego lo que esta pasando, luego la forma del dia. El resto del
-   lenguaje —tablas, KPIs, bloques— sale de `disenio/secciones.scss`, que es el
-   mismo que usan la trastienda y el personal. */
+/* La parte de cada mozo en la venta del rango: una barra corta y el numero. */
+.parte {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e2);
+  min-width: 8rem;
+}
 
-.indicadores {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e4);
-  padding: var(--e5);
+.barra-parte {
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  background: var(--hundido);
+  border-radius: 3px;
+
+  span {
+    display: block;
+    height: 100%;
+    background: var(--acento-relleno);
+    border-radius: 3px;
+  }
 }
