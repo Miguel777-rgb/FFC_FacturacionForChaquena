@@ -1,0 +1,289 @@
+<section class="superficie">
+  <header class="cabecera">
+    <h1>{{ t('panel.ordenes') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
+    </button>
+  </header>
+
+  <div class="seccion">
+    <div class="barra">
+      <div class="rangos" role="group" [attr.aria-label]="t('kpis.rango')">
+        @for (r of RANGOS; track r.id) {
+          <button
+            type="button"
+            class="secundario chico"
+            [attr.aria-pressed]="rango() === r.id"
+            (click)="cambiarRango(r.id)"
+          >
+            {{ t(r.nombre) }}
+          </button>
+        }
+      </div>
+      <select
+        (change)="filtrarEstado($any($event.target).value)"
+        [attr.aria-label]="t('ordenes.filtroEstado')"
+      >
+        <option value="" [selected]="estado() === ''">{{ t('ordenes.todosEstados') }}</option>
+        @for (e of ESTADOS; track e) {
+          <option [value]="e" [selected]="estado() === e">{{ tEnum('estado', e) }}</option>
+        }
+      </select>
+      <select
+        (change)="filtrarTipo($any($event.target).value)"
+        [attr.aria-label]="t('ordenes.filtroTipo')"
+      >
+        <option value="" [selected]="tipo() === ''">{{ t('ordenes.todosTipos') }}</option>
+        @for (tp of TIPOS; track tp) {
+          <option [value]="tp" [selected]="tipo() === tp">{{ tEnum('tipoOrden', tp) }}</option>
+        }
+      </select>
+      <input
+        type="search"
+        [attr.placeholder]="t('ordenes.buscar')"
+        [value]="busqueda()"
+        (input)="busqueda.set($any($event.target).value)"
+        [attr.aria-label]="t('ordenes.buscar')"
+      />
+    </div>
+
+    <div class="desplazable">
+      <table class="tabla apilable">
+        <thead>
+          <tr>
+            <th>{{ t('ordenes.orden') }}</th>
+            <th>{{ t('comun.estado') }}</th>
+            <th>{{ t('ordenes.cliente') }}</th>
+            <th class="num">{{ t('ordenes.items') }}</th>
+            <th class="num">{{ t('comun.total') }}</th>
+            <th class="num">{{ t('ordenes.hace') }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of visibles(); track o.id) {
+            <tr>
+              <td>
+                <span class="codigo cifra">#{{ codigo(o.id) }}</span>
+                {{ destino(o) }}
+              </td>
+              <td [attr.data-etiqueta]="t('comun.estado')">
+                <span class="chip" [attr.data-estado]="o.estado">{{ tEnum('estado', o.estado) }}</span>
+              </td>
+              <td class="tenue" [attr.data-etiqueta]="t('ordenes.cliente')">
+                {{ o.clienteNombre || t('ordenes.sinCliente') }}
+              </td>
+              <td class="num cifra" [attr.data-etiqueta]="t('ordenes.items')">
+                {{ o.cantidadItems ?? 0 }}
+              </td>
+              <td class="num cifra" [attr.data-etiqueta]="t('comun.total')">
+                S/ {{ o.montoTotal ?? 0 | number: '1.2-2' }}
+              </td>
+              <td class="num cifra tenue" [attr.data-etiqueta]="t('ordenes.hace')">
+                {{ duracion(o.minutosTranscurridos) }}
+              </td>
+              <td class="acciones">
+                <button
+                  type="button"
+                  class="secundario chico"
+                  (click)="abrir(o)"
+                  [attr.aria-label]="t('ordenes.verAria', { codigo: codigo(o.id) })"
+                >
+                  <app-icono nombre="ojo" [tamano]="16" />
+                  {{ t('ordenes.ver') }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="vacio">
+                {{ t(cargando() ? 'comun.cargando' : 'ordenes.ninguna') }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (resultado(); as r) {
+      @if ((r.totalPaginas ?? 0) > 1) {
+        <nav class="paginacion" [attr.aria-label]="t('comun.paginas')">
+          <button
+            type="button"
+            class="secundario chico"
+            (click)="irAPagina(pagina() - 1)"
+            [disabled]="r.primera"
+          >
+            <app-icono nombre="anterior" [tamano]="16" />
+            {{ t('comun.anterior') }}
+          </button>
+          <span class="tenue">
+            {{ t('comun.pagina', { actual: pagina() + 1, total: r.totalPaginas ?? 1 }) }}
+          </span>
+          <button
+            type="button"
+            class="secundario chico"
+            (click)="irAPagina(pagina() + 1)"
+            [disabled]="r.ultima"
+          >
+            {{ t('comun.siguiente') }}
+            <app-icono nombre="siguiente" [tamano]="16" />
+          </button>
+        </nav>
+      }
+    }
+  </div>
+</section>
+
+<app-dialogo modo="cajon" [titulo]="tituloCajon()" [(abierto)]="cajonAbierto">
+  @if (detalle(); as d) {
+    <div class="ficha">
+      <div class="etiquetas">
+        <span class="chip" [attr.data-estado]="d.estado">{{ tEnum('estado', d.estado) }}</span>
+        <span class="chip">{{ tEnum('tipoOrden', d.tipoOrden) }}</span>
+        <span class="chip">{{ tEnum('canalVenta', d.canalOrigen) }}</span>
+      </div>
+
+      <dl class="datos">
+        <div>
+          <dt>{{ t('ordenes.cliente') }}</dt>
+          <dd>{{ d.clienteNombre || t('ordenes.sinCliente') }}</dd>
+        </div>
+        @if (d.direccionDelivery) {
+          <div>
+            <dt>{{ t('ordenes.direccion') }}</dt>
+            <dd>{{ d.direccionDelivery }}</dd>
+          </div>
+        }
+        @if (d.tipoPago) {
+          <div>
+            <dt>{{ t('ordenes.pago') }}</dt>
+            <dd>{{ tEnum('metodo', d.tipoPago) }}</dd>
+          </div>
+        }
+        @if (d.promocionNombre) {
+          <div>
+            <dt>{{ t('ordenes.promocion') }}</dt>
+            <dd>{{ d.promocionNombre }}</dd>
+          </div>
+        }
+        @if (d.cuponCodigo) {
+          <div>
+            <dt>{{ t('ordenes.cupon') }}</dt>
+            <dd class="cifra">{{ d.cuponCodigo }}</dd>
+          </div>
+        }
+        @if (ticket()?.correlativo; as correlativo) {
+          <div>
+            <dt>{{ t('ordenes.ticket') }}</dt>
+            <dd class="cifra">{{ correlativo }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (d.motivoCancelacion) {
+        <p class="mensaje peligro">
+          {{ t('ordenes.motivoCancelacion', { motivo: d.motivoCancelacion }) }}
+        </p>
+      }
+
+      <h3>{{ t('ordenes.lineas') }}</h3>
+      <ul class="lineas">
+        @for (l of d.detalles; track l.id) {
+          <li>
+            <span class="cantidad cifra">{{ l.cantidad }}×</span>
+            <div class="plato">
+              <span class="nombre">{{ l.platilloNombre }}</span>
+              @for (c of l.complementos; track c.complementoId) {
+                <span class="tenue">+ {{ c.cantidad }} {{ c.nombre }}</span>
+              }
+              @if (l.excepcionesNota) {
+                <span class="chip aviso">{{ l.excepcionesNota }}</span>
+              }
+            </div>
+            <span class="cifra">S/ {{ l.montoSubtotal ?? 0 | number: '1.2-2' }}</span>
+          </li>
+        }
+      </ul>
+
+      <div class="totales">
+        <div>
+          <span>{{ t('comun.subtotal') }}</span>
+          <span class="cifra">S/ {{ d.montoSubtotal ?? 0 | number: '1.2-2' }}</span>
+        </div>
+        @if ((d.montoDescuento ?? 0) > 0) {
+          <div class="tenue">
+            <span>{{ t('ordenes.descuento') }}</span>
+            <span class="cifra">− S/ {{ d.montoDescuento | number: '1.2-2' }}</span>
+          </div>
+        }
+        <div class="total">
+          <span>{{ t('comun.total') }}</span>
+          <strong class="cifra">S/ {{ d.montoTotal ?? 0 | number: '1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <h3>{{ t('ordenes.tiempos') }}</h3>
+      <ol class="hitos">
+        @for (h of hitos(); track h.clave) {
+          <li [class.hecho]="!!h.valor">
+            <span>{{ t(h.clave) }}</span>
+            <span class="cifra">{{ h.valor ? fecha(h.valor) : '—' }}</span>
+          </li>
+        }
+      </ol>
+
+      @if (cancelando()) {
+        <div class="cancelacion">
+          <label class="campo">
+            <span>{{ t('ordenes.motivo') }}</span>
+            <textarea
+              rows="3"
+              [value]="motivo()"
+              (input)="motivo.set($any($event.target).value)"
+            ></textarea>
+          </label>
+          <label class="casilla">
+            <input
+              type="checkbox"
+              [checked]="reponer()"
+              (change)="reponer.set($any($event.target).checked)"
+            />
+            <span>{{ t('ordenes.reponer') }}</span>
+          </label>
+          <button
+            type="button"
+            class="peligro"
+            (click)="cancelar()"
+            [disabled]="!motivo().trim() || guardando()"
+          >
+            <app-icono nombre="alerta" [tamano]="18" />
+            {{ t('ordenes.confirmarCancelacion') }}
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="vacio">{{ t('ordenes.cargandoDetalle') }}</p>
+  }
+
+  <div pie>
+    @for (p of pasos(); track p) {
+      <button type="button" class="secundario" (click)="pasarA(p)" [disabled]="guardando()">
+        {{ t('ordenes.pasarA', { estado: tEnum('estado', p) }) }}
+      </button>
+    }
+    @if (sePuedeCancelar()) {
+      <button type="button" class="secundario" (click)="alternarCancelacion()">
+        {{ t(cancelando() ? 'comun.dejarlo' : 'ordenes.cancelar') }}
+      </button>
+    }
+  </div>
+</app-dialogo>

@@ -1,0 +1,107 @@
+.codigo {
+  margin-right: var(--e1);
+  font-size: var(--t-chico);
+  color: var(--tenue);
+}
+
+/* --- detalle en el cajon ----------------------------------------------------- */
+/* La ficha y los datos son de `secciones.scss`; aqui solo lo que es de una comanda. */
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e1);
+}
+
+.lineas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--e2);
+    padding-bottom: var(--e2);
+    border-bottom: 1px solid var(--linea);
+  }
+
+  .cantidad {
+    color: var(--acento);
+  }
+
+  .plato {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .nombre {
+    color: var(--tinta);
+  }
+}
+
+.totales {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--e3);
+  }
+
+  .total {
+    padding-top: var(--e2);
+    color: var(--tinta);
+    border-top: 1px solid var(--linea);
+  }
+
+  .total strong {
+    font-size: 1.2rem;
+  }
+}
+
+/* Los hitos que ya pasaron van en tinta; los que faltan, apagados. */
+.hitos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--e3);
+    color: var(--tenue);
+  }
+
+  li.hecho {
+    color: var(--tinta);
+  }
+}
+
+.cancelacion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e3);
+  background: var(--critico-suave);
+  border: 1px solid var(--critico);
+  border-radius: var(--radio);
+}
+
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  min-height: var(--control-chico);
+}
