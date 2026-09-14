@@ -119,7 +119,15 @@ public class ArranqueDiscord implements ApplicationListener<ApplicationReadyEven
                             + "globalmente y pueden tardar en aparecer.", canal, guildId);
                 } else {
                     guild.updateCommands().addCommands(comandos).queue(
-                            ok -> log.info("Comandos del bot {} registrados en '{}'.", canal, guild.getName()),
+                            ok -> {
+                                log.info("Comandos del bot {} registrados en '{}'.", canal, guild.getName());
+                                // Un arranque anterior sin el bot en el servidor los dejo
+                                // globales; si siguieran ahi, cada comando saldria dos veces.
+                                jda.updateCommands().queue(
+                                        vacio -> log.debug("Comandos globales del bot {} vaciados.", canal),
+                                        error -> log.warn("No se pudieron vaciar los comandos globales del bot {}: {}",
+                                                canal, error.getMessage()));
+                            },
                             error -> log.error("No se pudieron registrar los comandos del bot {}: {}",
                                     canal, error.getMessage()));
                     return;
