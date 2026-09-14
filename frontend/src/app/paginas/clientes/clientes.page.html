@@ -1,0 +1,293 @@
+<section class="superficie">
+  <header class="cabecera">
+    <h1>{{ t('panel.clientes') }}</h1>
+    <button
+      type="button"
+      class="secundario"
+      (click)="cargar()"
+      [disabled]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      <app-icono nombre="actualizar" [tamano]="18" />
+      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
+    </button>
+  </header>
+
+  <div class="seccion">
+    <div class="barra">
+      <input
+        type="search"
+        [attr.placeholder]="t('clientes.buscar')"
+        [value]="busqueda()"
+        (input)="buscar($any($event.target).value)"
+        [attr.aria-label]="t('clientes.buscar')"
+      />
+    </div>
+
+    @if (encontrados(); as lista) {
+      <p class="tenue cuantos" role="status">{{ tp('clientes.coinciden', lista.length) }}</p>
+    }
+
+    <div class="desplazable">
+      <table class="tabla apilable">
+        <thead>
+          <tr>
+            <th>{{ t('clientes.cliente') }}</th>
+            <th>{{ t('comun.documento') }}</th>
+            <th>{{ t('comun.celular') }}</th>
+            <th>{{ t('clientes.tipo') }}</th>
+            <th class="num">{{ t('clientes.puntos') }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of filas(); track c.id) {
+            <tr>
+              <td>
+                {{ nombreDe(c) }}
+                @if (c.bloqueadoPorFraude) {
+                  <span class="chip peligro">{{ t('clientes.bloqueado') }}</span>
+                }
+              </td>
+              <td class="cifra tenue" [attr.data-etiqueta]="t('comun.documento')">
+                {{ c.dni || '—' }}
+              </td>
+              <td class="cifra tenue" [attr.data-etiqueta]="t('comun.celular')">
+                {{ c.celular || '—' }}
+              </td>
+              <td class="tenue" [attr.data-etiqueta]="t('clientes.tipo')">
+                {{ c.tipoCliente || '—' }}
+              </td>
+              <td class="num cifra" [attr.data-etiqueta]="t('clientes.puntos')">
+                {{ c.puntosFidelidad ?? 0 }}
+              </td>
+              <td class="acciones">
+                <button
+                  type="button"
+                  class="secundario chico"
+                  (click)="abrir(c)"
+                  [attr.aria-label]="t('clientes.verAria', { nombre: nombreDe(c) })"
+                >
+                  <app-icono nombre="ojo" [tamano]="16" />
+                  {{ t('clientes.ver') }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="vacio">
+                {{
+                  t(
+                    cargando()
+                      ? 'comun.cargando'
+                      : encontrados() !== null
+                        ? 'clientes.ningunoCoincide'
+                        : 'clientes.ninguno'
+                  )
+                }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (encontrados() === null) {
+      @if (resultado(); as r) {
+        @if ((r.totalPaginas ?? 0) > 1) {
+          <nav class="paginacion" [attr.aria-label]="t('comun.paginas')">
+            <button
+              type="button"
+              class="secundario chico"
+              (click)="irAPagina(pagina() - 1)"
+              [disabled]="r.primera"
+            >
+              <app-icono nombre="anterior" [tamano]="16" />
+              {{ t('comun.anterior') }}
+            </button>
+            <span class="tenue">
+              {{ t('comun.pagina', { actual: pagina() + 1, total: r.totalPaginas ?? 1 }) }}
+            </span>
+            <button
+              type="button"
+              class="secundario chico"
+              (click)="irAPagina(pagina() + 1)"
+              [disabled]="r.ultima"
+            >
+              {{ t('comun.siguiente') }}
+              <app-icono nombre="siguiente" [tamano]="16" />
+            </button>
+          </nav>
+        }
+      }
+    }
+  </div>
+</section>
+
+<app-dialogo modo="cajon" [titulo]="tituloCajon()" [(abierto)]="cajonAbierto">
+  @if (cliente(); as c) {
+    <div class="ficha">
+      @if (c.bloqueadoPorFraude) {
+        <p class="mensaje peligro">{{ t('clientes.bloqueadoTexto') }}</p>
+      }
+
+      <dl class="datos">
+        <div>
+          <dt>{{ t('comun.documento') }}</dt>
+          <dd class="cifra">{{ c.dni || '—' }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('comun.celular') }}</dt>
+          <dd class="cifra">{{ c.celular || t('comun.sinCelular') }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('comun.correo') }}</dt>
+          <dd>{{ c.correo || t('comun.sinCorreo') }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('clientes.tipo') }}</dt>
+          <dd>{{ c.tipoCliente || '—' }}</dd>
+        </div>
+        @if (c.direccionHabitual) {
+          <div>
+            <dt>{{ t('clientes.direccion') }}</dt>
+            <dd>{{ c.direccionHabitual }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (ficha(); as f) {
+        <h3>{{ t('clientes.fidelizacion') }}</h3>
+        <div class="puntos">
+          <span class="cifra">{{ f.progreso?.puntosFidelidad ?? c.puntosFidelidad ?? 0 }}</span>
+          <span class="tenue">{{ t('clientes.puntos') }}</span>
+        </div>
+        @if (avance() !== null) {
+          <div
+            class="progreso"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuenow]="avance()"
+            [attr.aria-label]="t('clientes.progresoAria')"
+          >
+            <span [style.width.%]="avance()"></span>
+          </div>
+          <p class="tenue">{{ tp('clientes.faltan', f.progreso?.calificacionesFaltantes ?? 0) }}</p>
+        }
+
+        <h3>{{ t('clientes.cupones') }}</h3>
+        <ul class="listado">
+          @for (cu of f.cupones; track cu.id) {
+            <li>
+              <span class="cifra">{{ cu.codigo }}</span>
+              <span class="chip" [attr.data-estado]="cu.estado">{{ tEnum('cupon', cu.estado) }}</span>
+              <span class="tenue">
+                {{ descuentoDe(cu) }} ·
+                {{ t('clientes.vence', { fecha: fecha(cu.fechaVencimiento, 'dia') }) }}
+              </span>
+            </li>
+          } @empty {
+            <li class="vacio">{{ t('clientes.sinCupones') }}</li>
+          }
+        </ul>
+
+        @if (f.preferencias; as p) {
+          @if (p.platillosFrecuentes?.length || p.notasHabituales?.length) {
+            <h3>{{ t('clientes.preferencias') }}</h3>
+            @if (p.platillosFrecuentes?.length) {
+              <p class="etiquetas">
+                @for (plato of p.platillosFrecuentes; track plato) {
+                  <span class="chip">{{ plato }}</span>
+                }
+              </p>
+            }
+            @for (nota of p.notasHabituales; track nota) {
+              <p class="tenue">{{ nota }}</p>
+            }
+          }
+        }
+
+        @if (f.empresas.length > 0) {
+          <h3>{{ t('clientes.empresas') }}</h3>
+          <ul class="listado">
+            @for (e of f.empresas; track e.id) {
+              <li>
+                <span>{{ e.razonSocial }}</span>
+                <span class="cifra tenue">{{ e.ruc }}</span>
+              </li>
+            }
+          </ul>
+        }
+
+        <h3>{{ t('clientes.ultimasOrdenes') }}</h3>
+        <ul class="listado">
+          @for (o of f.ordenes; track o.id) {
+            <li>
+              <span class="cifra">#{{ codigo(o.id) }}</span>
+              <span class="chip" [attr.data-estado]="o.estado">{{ tEnum('estado', o.estado) }}</span>
+              <span class="tenue">{{ fecha(o.tiempoInicioGlobal) }}</span>
+              <span class="cifra empuje">S/ {{ o.montoTotal ?? 0 | number: '1.2-2' }}</span>
+              <button
+                type="button"
+                class="icono-accion"
+                (click)="verOrden(o)"
+                [attr.title]="t('clientes.verOrden')"
+                [attr.aria-label]="t('clientes.verOrdenAria', { codigo: codigo(o.id) })"
+              >
+                <app-icono nombre="siguiente" [tamano]="18" />
+              </button>
+            </li>
+          } @empty {
+            <li class="vacio">{{ t('clientes.sinOrdenes') }}</li>
+          }
+        </ul>
+      } @else {
+        <p class="vacio">{{ t('clientes.cargandoFicha') }}</p>
+      }
+
+      @if (bloqueando()) {
+        <div class="bloqueo">
+          <label class="campo">
+            <span>{{ t('clientes.motivoBloqueo') }}</span>
+            <textarea
+              rows="3"
+              [value]="motivoBloqueo()"
+              (input)="motivoBloqueo.set($any($event.target).value)"
+            ></textarea>
+          </label>
+          <button
+            type="button"
+            class="peligro"
+            (click)="cambiarBloqueo(true)"
+            [disabled]="!motivoBloqueo().trim() || guardando()"
+          >
+            <app-icono nombre="alerta" [tamano]="18" />
+            {{ t('clientes.confirmarBloqueo') }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <div pie>
+    @if (esAdmin()) {
+      @if (cliente(); as c) {
+        @if (c.bloqueadoPorFraude) {
+          <button
+            type="button"
+            class="secundario"
+            (click)="cambiarBloqueo(false)"
+            [disabled]="guardando()"
+          >
+            {{ t('clientes.quitarBloqueo') }}
+          </button>
+        } @else {
+          <button type="button" class="secundario" (click)="alternarBloqueo()">
+            {{ t(bloqueando() ? 'comun.dejarlo' : 'clientes.bloquear') }}
+          </button>
+        }
+      }
+    }
+  </div>
+</app-dialogo>

@@ -1,0 +1,55 @@
+td .chip {
+  margin-left: var(--e2);
+}
+
+.cuantos {
+  margin: 0;
+  font-size: var(--t-chico);
+}
+
+/* --- ficha ------------------------------------------------------------------- */
+.puntos {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e2);
+
+  .cifra {
+    font-size: 1.75rem;
+    line-height: 1.1;
+    color: var(--tinta);
+  }
+}
+
+.progreso {
+  height: 6px;
+  overflow: hidden;
+  background: var(--hundido);
+  border-radius: 3px;
+
+  span {
+    display: block;
+    height: 100%;
+    background: var(--acento-relleno);
+    border-radius: 3px;
+  }
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e1);
+}
+
+.listado .empuje {
+  margin-left: auto;
+}
+
+.bloqueo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e3);
+  background: var(--critico-suave);
+  border: 1px solid var(--critico);
+  border-radius: var(--radio);
+}
