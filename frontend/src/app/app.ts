@@ -5,13 +5,13 @@ import { SesionService } from './nucleo/sesion/sesion.service';
 import { AvisosService } from './nucleo/http/avisos.service';
 import { TemaService } from './nucleo/tema/tema.service';
 import { PanelLateral } from './disenio/panel-lateral';
+import { BarraSuperior } from './disenio/barra-superior';
 import { PilaAvisos } from './disenio/pila-avisos';
 import { BarraIdiomas } from './disenio/barra-idiomas';
-import { Confirmacion } from './disenio/confirmacion';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, PanelLateral, PilaAvisos, BarraIdiomas, Confirmacion],
+  imports: [RouterOutlet, PanelLateral, BarraSuperior, PilaAvisos, BarraIdiomas],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
   styleUrl: './app.scss',

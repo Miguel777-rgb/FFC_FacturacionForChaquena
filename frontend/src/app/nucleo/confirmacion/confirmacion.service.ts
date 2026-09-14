@@ -1,4 +1,12 @@
-import { Injectable, signal } from '@angular/core';
+import {
+  ApplicationRef,
+  DOCUMENT,
+  EnvironmentInjector,
+  Injectable,
+  createComponent,
+  inject,
+  signal,
+} from '@angular/core';
 
 /** Lo que se le pregunta a la persona antes de un gesto que no tiene vuelta facil. */
 export interface PeticionConfirmacion {
@@ -20,9 +28,10 @@ interface PeticionAbierta extends PeticionConfirmacion {
  * el gesto que lo abre es gris, y el boton rojo vive aqui, dentro de un dialogo
  * que dice que va a pasar.
  *
- * Una sola peticion a la vez y un solo dialogo en toda la aplicacion
- * (`app-confirmacion`, montado en `app.html`). Quien llama solo espera la
- * promesa:
+ * Una sola peticion a la vez y un solo dialogo en toda la aplicacion. El
+ * dialogo (`app-confirmacion`) no viaja en el bundle inicial: se descarga y se
+ * monta en `<body>` la primera vez que alguien lo pide, porque la mayoria de los
+ * turnos no da de baja a nadie. Quien llama solo espera la promesa:
  *
  * ```ts
  * if (!(await this.confirmacion.pedir({ titulo, mensaje, confirmar }))) return;
@@ -30,7 +39,12 @@ interface PeticionAbierta extends PeticionConfirmacion {
  */
 @Injectable({ providedIn: 'root' })
 export class ConfirmacionService {
+  private readonly appRef = inject(ApplicationRef);
+  private readonly injector = inject(EnvironmentInjector);
+  private readonly documento = inject(DOCUMENT);
+
   private readonly _abierta = signal<PeticionAbierta | null>(null);
+  private montado: Promise<void> | null = null;
 
   readonly abierta = this._abierta.asReadonly();
 
@@ -39,14 +53,32 @@ export class ConfirmacionService {
     // colgada esperando un dialogo que ya no esta en pantalla.
     this._abierta()?.resolver(false);
 
-    return new Promise<boolean>((resolver) => {
+    const respuesta = new Promise<boolean>((resolver) => {
       this._abierta.set({ ...peticion, resolver });
     });
+    void this.montar();
+    return respuesta;
   }
 
   responder(confirmado: boolean): void {
     const peticion = this._abierta();
     this._abierta.set(null);
     peticion?.resolver(confirmado);
+  }
+
+  private montar(): Promise<void> {
+    this.montado ??= import('../../disenio/confirmacion')
+      .then(({ Confirmacion }) => {
+        const ref = createComponent(Confirmacion, { environmentInjector: this.injector });
+        this.appRef.attachView(ref.hostView);
+        this.documento.body.appendChild(ref.location.nativeElement);
+      })
+      .catch(() => {
+        // Sin red para descargar el dialogo no se puede preguntar, y sin
+        // pregunta no se hace nada: se da por rechazada.
+        this.montado = null;
+        this.responder(false);
+      });
+    return this.montado;
   }
 }

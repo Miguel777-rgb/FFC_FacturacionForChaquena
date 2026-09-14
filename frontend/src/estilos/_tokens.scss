@@ -142,9 +142,6 @@ $noche-tinta: #e8e9eb;
   --control-chico: 36px;
   --control-grande: 52px;
 
-  /* Lo que ocupa la barra de idiomas en la esquina inferior derecha. */
-  --hueco-barra: calc(var(--e4) + var(--toque) + var(--e1) * 2 + var(--e2));
-
   /* Una herramienta de trabajo no flota: la sombra corta es para tarjetas, la
      elevada solo para lo que de verdad esta encima (dialogos). */
   --sombra: 0 1px 3px rgb(17 24 39 / 0.08);

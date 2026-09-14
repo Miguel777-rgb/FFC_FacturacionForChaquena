@@ -34,10 +34,7 @@ import { Icono } from './icono';
     .pila {
       position: fixed;
       right: var(--e4);
-      /* Por encima de la barra de idiomas, que ocupa esta misma esquina: un
-         aviso tapando las banderas dejaria sin idioma justo a quien no entiende
-         el aviso. */
-      bottom: var(--hueco-barra);
+      bottom: var(--e4);
       z-index: 100;
       display: flex;
       flex-direction: column;

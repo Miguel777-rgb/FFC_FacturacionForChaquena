@@ -6,7 +6,7 @@
 }
 
 /* El panel es fijo y el contenido es lo que se desplaza. Sin esto, bajar en el
-   kardex de la trastienda se llevaria la navegacion fuera de la pantalla. */
+   kardex se llevaria la navegacion fuera de la pantalla. */
 .marco > app-panel-lateral {
   position: sticky;
   top: 0;
@@ -14,11 +14,34 @@
   z-index: 10;
 }
 
+.contenido {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
 main {
   flex: 1;
   min-width: 0;
-  /* La barra de idiomas flota en la esquina de abajo a la derecha. Sin este
-     hueco, el «Enviar a cocina» de una comanda larga acabaria justo debajo de
-     las banderas. */
-  padding-bottom: var(--hueco-barra);
+}
+
+/* La barra superior es solo del celular. */
+app-barra-superior {
+  display: none;
+}
+
+/* En el celular una regleta de iconos se comia un sexto del ancho: el panel se
+   esconde y la navegacion pasa a un cajon que se abre desde arriba. */
+@media (max-width: 47.99rem) {
+  .marco > app-panel-lateral {
+    display: none;
+  }
+
+  app-barra-superior {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
 }
