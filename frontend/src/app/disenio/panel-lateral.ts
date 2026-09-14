@@ -35,12 +35,34 @@ interface Destino {
  * Los destinos, en dos grupos: la operacion, en el orden en que pasa una
  * comanda, y la gestion del local.
  *
- * Mismo reparto de roles que las guardas de `app.routes.ts`. Ventas y reportes
- * admite tambien a caja porque el endpoint del tablero lo admite: quien cuadra
- * el dinero tiene derecho a ver la venta del dia sin pedirsela a nadie.
+ * Mismo reparto de roles que las guardas de `app.routes.ts`. El tablero y
+ * Ventas y reportes admiten tambien a caja porque sus endpoints lo admiten:
+ * quien cuadra el dinero tiene derecho a ver la venta del dia sin pedirsela a
+ * nadie.
  */
 const DESTINOS: Destino[] = [
+  {
+    ruta: '/tablero',
+    etiqueta: 'panel.tablero',
+    icono: 'tablero',
+    grupo: 'operacion',
+    roles: ['ADMIN', 'CAJA'],
+  },
   { ruta: '/pos', etiqueta: 'panel.pos', icono: 'pos', grupo: 'operacion', roles: ['MOZO', 'ADMIN'] },
+  {
+    ruta: '/ordenes',
+    etiqueta: 'panel.ordenes',
+    icono: 'ordenes',
+    grupo: 'operacion',
+    roles: ['ADMIN', 'MOZO', 'CAJA'],
+  },
+  {
+    ruta: '/mesas',
+    etiqueta: 'panel.mesas',
+    icono: 'mesas',
+    grupo: 'operacion',
+    roles: ['ADMIN', 'MOZO', 'CAJA'],
+  },
   { ruta: '/kds', etiqueta: 'panel.kds', icono: 'cocina', grupo: 'operacion', roles: ['COCINA', 'ADMIN'] },
   { ruta: '/caja', etiqueta: 'panel.caja', icono: 'caja', grupo: 'operacion', roles: ['CAJA', 'ADMIN'] },
   {
@@ -66,6 +88,13 @@ const DESTINOS: Destino[] = [
     roles: ['ADMIN', 'CAJA'],
   },
   { ruta: '/personal', etiqueta: 'panel.personal', icono: 'personal', grupo: 'gestion', roles: ['ADMIN'] },
+  {
+    ruta: '/clientes',
+    etiqueta: 'panel.clientes',
+    icono: 'clientes',
+    grupo: 'gestion',
+    roles: ['ADMIN', 'CAJA'],
+  },
   {
     ruta: '/configuracion',
     etiqueta: 'panel.configuracion',
@@ -174,10 +203,17 @@ let siguientePanel = 0;
       </nav>
 
       <footer>
-        <div class="quien">
+        <!-- Quien soy lleva a Mi perfil: es donde se mira el propio nombre. -->
+        <a
+          class="quien"
+          routerLink="/perfil"
+          routerLinkActive="activo"
+          [attr.title]="t('panel.perfil')"
+          (click)="navego.emit()"
+        >
           <span class="nombre">{{ sesion.nombre() }}</span>
           <span class="roles">{{ sesion.roles().join(' · ') || t('panel.sinRoles') }}</span>
-        </div>
+        </a>
 
         <div class="controles">
           <app-barra-idiomas variante="integrada" [vertical]="regleta()" />
@@ -370,10 +406,19 @@ let siguientePanel = 0;
       border-top: 1px solid var(--linea);
     }
 
-    .quien {
-      display: flex;
+    /* Lleva a Mi perfil, pero no es un destino mas: sin icono ni filete. */
+    a.quien {
       flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      gap: 0;
       min-width: 0;
+      padding: var(--e1) var(--e2);
+      white-space: normal;
+    }
+
+    a.quien.activo {
+      box-shadow: none;
     }
 
     .nombre {

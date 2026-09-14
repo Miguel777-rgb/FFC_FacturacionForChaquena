@@ -53,11 +53,14 @@ describe('PanelLateral', () => {
     });
   });
 
-  it('le ensena al administrador los cuatro puestos y las cinco pantallas de gestion', () => {
+  it('le ensena al administrador la operacion entera y las seis pantallas de gestion', () => {
     TestBed.inject(SesionService).abrir(tokenDe('ADMINISTRADOR', ['ADMIN']));
 
     expect(destinosVisibles()).toEqual([
+      'Tablero',
       'Tomar comanda',
+      'Órdenes',
+      'Mesas',
       'Cocina',
       'Caja',
       'Despacho',
@@ -65,6 +68,7 @@ describe('PanelLateral', () => {
       'Inventario',
       'Ventas y reportes',
       'Personal',
+      'Clientes',
       'Configuración',
     ]);
   });
@@ -78,12 +82,25 @@ describe('PanelLateral', () => {
     expect(texto(fixture, '.rotulo-grupo')).toEqual(['Gestión']);
   });
 
-  it('la caja ve su puesto y las ventas, y nada mas', () => {
-    // Ventas y reportes entra porque el endpoint del tablero admite CAJA; el
+  it('la caja ve el dia, su puesto, las ventas y los clientes, y nada mas', () => {
+    // El tablero y las ventas entran porque sus endpoints admiten CAJA; el
     // personal no, porque repartir permisos es solo del administrador.
     TestBed.inject(SesionService).abrir(tokenDe('CAJERO', ['CAJA']));
 
-    expect(destinosVisibles()).toEqual(['Caja', 'Ventas y reportes']);
+    expect(destinosVisibles()).toEqual([
+      'Tablero',
+      'Órdenes',
+      'Mesas',
+      'Caja',
+      'Ventas y reportes',
+      'Clientes',
+    ]);
+  });
+
+  it('el mozo ve la comanda, las ordenes, el salon y el despacho', () => {
+    TestBed.inject(SesionService).abrir(tokenDe('MOZO', ['MOZO']));
+
+    expect(destinosVisibles()).toEqual(['Tomar comanda', 'Órdenes', 'Mesas', 'Despacho']);
   });
 
   it('al almacenero le ofrece el menu y el inventario, no la configuracion', () => {
@@ -97,7 +114,7 @@ describe('PanelLateral', () => {
   it('cambiar de idioma repinta el panel sin recargar', async () => {
     // Es la razon de llamar a `t(...)` desde la plantilla en vez de usar un
     // pipe: el consumidor reactivo ve la senal del idioma y vuelve a pintar.
-    TestBed.inject(SesionService).abrir(tokenDe('ADMINISTRADOR', ['ADMIN']));
+    TestBed.inject(SesionService).abrir(tokenDe('MOZO', ['MOZO']));
     const i18n = TestBed.inject(I18nService);
 
     const fixture = TestBed.createComponent(PanelLateral);
@@ -121,11 +138,12 @@ describe('PanelLateral', () => {
 
     const fixture = TestBed.createComponent(PanelLateral);
     fixture.detectChanges();
-    const rutas = Array.from(fixture.nativeElement.querySelectorAll('nav a')).map((a) =>
-      (a as HTMLAnchorElement).getAttribute('href'),
+    const rutas = Array.from(fixture.nativeElement.querySelectorAll('nav a, a.quien')).map(
+      (a) => (a as HTMLAnchorElement).getAttribute('href'),
     );
     const conPantalla = routes.filter((r) => r.loadComponent).map((r) => `/${r.path}`);
 
+    expect(rutas).toContain('/perfil');
     for (const ruta of rutas) {
       expect(conPantalla).toContain(ruta);
     }

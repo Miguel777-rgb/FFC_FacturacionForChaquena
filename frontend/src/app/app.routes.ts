@@ -22,12 +22,35 @@ export const routes: Routes = [
     loadComponent: () => import('./paginas/login/login.page').then((m) => m.LoginPage),
   },
 
-  // --- operacion: los cuatro puestos por los que pasa una comanda ---------------
+  // --- operacion: el dia del local y los puestos por los que pasa una comanda ----
+  {
+    path: 'tablero',
+    title: 'panel.tablero',
+    canActivate: [sesionAbierta, exigeRol('ADMIN', 'CAJA')],
+    loadComponent: () => import('./paginas/tablero/tablero.page').then((m) => m.TableroPage),
+  },
+
   {
     path: 'pos',
     title: 'panel.pos',
     canActivate: [sesionAbierta, exigeRol('MOZO', 'ADMIN')],
     loadComponent: () => import('./paginas/pos/pos.page').then((m) => m.PosPage),
+  },
+
+  // Consultar es de cualquier sesion, pero cambiar de estado y cancelar piden
+  // estos tres roles: sin ellos la pantalla solo serviria para mirar.
+  {
+    path: 'ordenes',
+    title: 'panel.ordenes',
+    canActivate: [sesionAbierta, exigeRol('ADMIN', 'MOZO', 'CAJA')],
+    loadComponent: () => import('./paginas/ordenes/ordenes.page').then((m) => m.OrdenesPage),
+  },
+
+  {
+    path: 'mesas',
+    title: 'panel.mesas',
+    canActivate: [sesionAbierta, exigeRol('ADMIN', 'MOZO', 'CAJA')],
+    loadComponent: () => import('./paginas/mesas/mesas.page').then((m) => m.MesasPage),
   },
 
   {
@@ -52,9 +75,6 @@ export const routes: Routes = [
   },
 
   // --- gestion: cada funcion administrativa es su propio destino ----------------
-  // La trastienda juntaba cinco cosas que no se parecian. Se reparte: la carta y
-  // el stock son trabajo de almacen; los parametros, los bots y los eventos, del
-  // administrador.
   {
     path: 'menu',
     title: 'panel.menu',
@@ -84,12 +104,29 @@ export const routes: Routes = [
     loadComponent: () => import('./paginas/personal/personal.page').then((m) => m.PersonalPage),
   },
 
+  // El servidor deja leer clientes a cualquier sesion; la ficha es de quien
+  // cobra y de quien administra, que son los que atienden a un cliente con nombre.
+  {
+    path: 'clientes',
+    title: 'panel.clientes',
+    canActivate: [sesionAbierta, exigeRol('ADMIN', 'CAJA')],
+    loadComponent: () => import('./paginas/clientes/clientes.page').then((m) => m.ClientesPage),
+  },
+
   {
     path: 'configuracion',
     title: 'panel.configuracion',
     canActivate: [sesionAbierta, exigeRol('ADMIN')],
     loadComponent: () =>
       import('./paginas/configuracion/configuracion.page').then((m) => m.ConfiguracionPage),
+  },
+
+  // --- usuario ------------------------------------------------------------------
+  {
+    path: 'perfil',
+    title: 'panel.perfil',
+    canActivate: [sesionAbierta],
+    loadComponent: () => import('./paginas/perfil/perfil.page').then((m) => m.PerfilPage),
   },
 
   // Las direcciones viejas siguen llevando a algun sitio: alguien las tiene en
