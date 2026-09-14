@@ -19,6 +19,8 @@ api/despacho-transportistas.api.ts
 api/feedback-y-fidelizacion.api.ts
 api/inventario-insumos.api.ts
 api/inventario-movimientos.api.ts
+api/local.api.ts
+api/niveles-de-lealtad.api.ts
 api/outbox.api.ts
 api/reportes.api.ts
 api/roles.api.ts
@@ -56,6 +58,7 @@ model/conteo-fisico-response-dto.ts
 model/crear-cargo-request-dto.ts
 model/crear-orden-request-dto.ts
 model/cupon-response-dto.ts
+model/datos-local-dto.ts
 model/delivery-info-dto.ts
 model/descuadre.ts
 model/disponibilidad-request-dto.ts
@@ -70,6 +73,7 @@ model/feedback-request-dto.ts
 model/feedback-response-dto.ts
 model/fidelizacion-dto.ts
 model/flags-request-dto.ts
+model/horario-local-dto.ts
 model/insumo-request-dto.ts
 model/insumo-response-dto.ts
 model/item-conteo.ts
@@ -86,6 +90,7 @@ model/models.ts
 model/movimiento-request-dto.ts
 model/movimiento-response-dto.ts
 model/movimientos-por-tipo.ts
+model/nivel-lealtad-dto.ts
 model/operacion.ts
 model/orden-detalle-dto.ts
 model/orden-response-dto.ts

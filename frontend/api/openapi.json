@@ -827,6 +827,47 @@
         },
         "type": "object"
       },
+      "DatosLocalDto": {
+        "properties": {
+          "correo": {
+            "format": "email",
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "horarios": {
+            "items": {
+              "$ref": "#/components/schemas/HorarioLocalDto"
+            },
+            "type": "array"
+          },
+          "nombreComercial": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "porcentajeIgv": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          "ruc": {
+            "pattern": "\\d{11}",
+            "type": "string"
+          },
+          "telefono": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "DeliveryInfoDto": {
         "properties": {
           "direccionDelivery": {
@@ -1205,7 +1246,17 @@
           "mensaje": {
             "type": "string"
           },
+          "nivelActual": {
+            "$ref": "#/components/schemas/NivelLealtadDto"
+          },
+          "nivelSiguiente": {
+            "$ref": "#/components/schemas/NivelLealtadDto"
+          },
           "puntosFidelidad": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "puntosParaSiguiente": {
             "format": "int32",
             "type": "integer"
           }
@@ -1224,6 +1275,35 @@
             "type": "boolean"
           }
         },
+        "type": "object"
+      },
+      "HorarioLocalDto": {
+        "properties": {
+          "abre": {
+            "type": "string"
+          },
+          "cerrado": {
+            "type": "boolean"
+          },
+          "cierra": {
+            "type": "string"
+          },
+          "dia": {
+            "enum": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "dia"
+        ],
         "type": "object"
       },
       "InsumoRequestDto": {
@@ -1646,6 +1726,38 @@
         },
         "type": "object"
       },
+      "NivelLealtadDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "readOnly": true,
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 60,
+            "minLength": 0,
+            "type": "string"
+          },
+          "porcentajeDescuento": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          "puntosMinimos": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "nombre",
+          "porcentajeDescuento",
+          "puntosMinimos"
+        ],
+        "type": "object"
+      },
       "Operacion": {
         "properties": {
           "comandasCanceladas": {
@@ -1771,7 +1883,13 @@
           "mesaNumero": {
             "type": "string"
           },
+          "montoBaseImponible": {
+            "type": "number"
+          },
           "montoDescuento": {
+            "type": "number"
+          },
+          "montoIgv": {
             "type": "number"
           },
           "montoSubtotal": {
@@ -1786,6 +1904,12 @@
           "mozoId": {
             "format": "uuid",
             "type": "string"
+          },
+          "nivelLealtadNombre": {
+            "type": "string"
+          },
+          "porcentajeIgv": {
+            "type": "number"
           },
           "promocionNombre": {
             "type": "string"
@@ -5403,6 +5527,56 @@
         ]
       }
     },
+    "/api/v1/local": {
+      "get": {
+        "operationId": "obtenerDatosLocal",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatosLocalDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Datos del local, su horario y el IGV",
+        "tags": [
+          "Local"
+        ]
+      },
+      "put": {
+        "operationId": "actualizarDatosLocal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatosLocalDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatosLocalDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar los datos del local, su horario y el IGV",
+        "tags": [
+          "Local"
+        ]
+      }
+    },
     "/api/v1/mesas": {
       "get": {
         "operationId": "mapa",
@@ -5645,6 +5819,124 @@
         "summary": "Reservar la mesa a nombre de alguien",
         "tags": [
           "Salon - Mesas"
+        ]
+      }
+    },
+    "/api/v1/niveles-lealtad": {
+      "get": {
+        "operationId": "listarNivelesLealtad",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NivelLealtadDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Niveles de lealtad, de menos a mas puntos",
+        "tags": [
+          "Niveles de lealtad"
+        ]
+      },
+      "post": {
+        "operationId": "crearNivelLealtad",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NivelLealtadDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NivelLealtadDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear un nivel de lealtad",
+        "tags": [
+          "Niveles de lealtad"
+        ]
+      }
+    },
+    "/api/v1/niveles-lealtad/{id}": {
+      "delete": {
+        "operationId": "eliminarNivelLealtad",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Eliminar un nivel de lealtad",
+        "tags": [
+          "Niveles de lealtad"
+        ]
+      },
+      "put": {
+        "operationId": "actualizarNivelLealtad",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NivelLealtadDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NivelLealtadDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Actualizar un nivel de lealtad",
+        "tags": [
+          "Niveles de lealtad"
         ]
       }
     },
@@ -7942,36 +8234,16 @@
   ],
   "tags": [
     {
-      "description": "Busqueda rapida, registro y preferencias del cliente",
-      "name": "Clientes"
-    },
-    {
       "description": "Personal del local; el alta requiere cargo administrativo",
       "name": "Trabajadores"
-    },
-    {
-      "description": "Asignacion, salida a ruta y entrega con OTP",
-      "name": "Despacho - Reparto"
     },
     {
       "description": "Categorias de la carta",
       "name": "Catalogo - Categorias"
     },
     {
-      "description": "Calificaciones, cupones y parametros del local",
-      "name": "Feedback y fidelizacion"
-    },
-    {
-      "description": "Eventos hacia facturacion: monitoreo y reintento manual",
-      "name": "Outbox"
-    },
-    {
       "description": "Carta, precios y recetas (BOM)",
       "name": "Catalogo - Platillos"
-    },
-    {
-      "description": "Empresas por RUC para comprobantes con factura",
-      "name": "Clientes - Empresas"
     },
     {
       "description": "Cierre de caja y bandeja de alertas",
@@ -7982,44 +8254,20 @@
       "name": "Comandas"
     },
     {
-      "description": "Catalogo fijo de roles que reconoce la autorizacion del backend",
-      "name": "Roles"
-    },
-    {
-      "description": "Login, Google OAuth y alta del primer administrador",
-      "name": "Autenticacion"
+      "description": "Datos del local, horario e IGV",
+      "name": "Local"
     },
     {
       "description": "Mapa de mesas con estados y reservas",
       "name": "Salon - Mesas"
     },
     {
-      "description": "Conductores y vehiculos habilitados",
-      "name": "Despacho - Transportistas"
-    },
-    {
-      "description": "Estado del proveedor de mensajeria y cuentas vinculadas",
-      "name": "Bots"
-    },
-    {
       "description": "Cargos del personal y los roles que llevan asociados",
       "name": "Cargos"
     },
     {
-      "description": "Bebidas, helados, salsas y extras",
-      "name": "Catalogo - Complementos"
-    },
-    {
-      "description": "Datos maestros de insumos y alertas de stock",
-      "name": "Inventario - Insumos"
-    },
-    {
       "description": "Pantalla de cocina: cola, cronometros y faltantes",
       "name": "Cocina (KDS)"
-    },
-    {
-      "description": "Kardex, mermas, cocinado y conteo fisico",
-      "name": "Inventario - Movimientos"
     },
     {
       "description": "Cobros de la comanda y alerta de fraude",
@@ -8032,6 +8280,58 @@
     {
       "description": "Tablero, ventas, series y ranking de personal",
       "name": "Reportes"
+    },
+    {
+      "description": "Busqueda rapida, registro y preferencias del cliente",
+      "name": "Clientes"
+    },
+    {
+      "description": "Asignacion, salida a ruta y entrega con OTP",
+      "name": "Despacho - Reparto"
+    },
+    {
+      "description": "Calificaciones, cupones y parametros del local",
+      "name": "Feedback y fidelizacion"
+    },
+    {
+      "description": "Eventos hacia facturacion: monitoreo y reintento manual",
+      "name": "Outbox"
+    },
+    {
+      "description": "Empresas por RUC para comprobantes con factura",
+      "name": "Clientes - Empresas"
+    },
+    {
+      "description": "Catalogo fijo de roles que reconoce la autorizacion del backend",
+      "name": "Roles"
+    },
+    {
+      "description": "Login, Google OAuth y alta del primer administrador",
+      "name": "Autenticacion"
+    },
+    {
+      "description": "Conductores y vehiculos habilitados",
+      "name": "Despacho - Transportistas"
+    },
+    {
+      "description": "Estado del proveedor de mensajeria y cuentas vinculadas",
+      "name": "Bots"
+    },
+    {
+      "description": "Bebidas, helados, salsas y extras",
+      "name": "Catalogo - Complementos"
+    },
+    {
+      "description": "Escalones del programa de lealtad por puntos",
+      "name": "Niveles de lealtad"
+    },
+    {
+      "description": "Datos maestros de insumos y alertas de stock",
+      "name": "Inventario - Insumos"
+    },
+    {
+      "description": "Kardex, mermas, cocinado y conteo fisico",
+      "name": "Inventario - Movimientos"
     }
   ]
 }

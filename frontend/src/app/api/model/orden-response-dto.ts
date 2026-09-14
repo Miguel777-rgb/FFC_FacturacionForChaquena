@@ -25,11 +25,15 @@ export interface OrdenResponseDto {
   id?: string;
   mesaId?: string;
   mesaNumero?: string;
+  montoBaseImponible?: number;
   montoDescuento?: number;
+  montoIgv?: number;
   montoSubtotal?: number;
   montoTotal?: number;
   motivoCancelacion?: string;
   mozoId?: string;
+  nivelLealtadNombre?: string;
+  porcentajeIgv?: number;
   promocionNombre?: string;
   scoringRiesgoOrden?: number;
   tiempoCierreDespacho?: string;

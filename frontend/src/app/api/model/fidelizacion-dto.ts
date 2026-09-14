@@ -7,6 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { NivelLealtadDto } from './nivel-lealtad-dto';
 
 export interface FidelizacionDto {
   calificacionesFaltantes?: number;
@@ -15,5 +16,8 @@ export interface FidelizacionDto {
   clienteId?: string;
   cuponesVigentes?: number;
   mensaje?: string;
+  nivelActual?: NivelLealtadDto;
+  nivelSiguiente?: NivelLealtadDto;
   puntosFidelidad?: number;
+  puntosParaSiguiente?: number;
 }
