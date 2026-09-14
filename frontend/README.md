@@ -12,8 +12,8 @@ vistas de conjunto: `/ordenes` (todas las comandas, con su detalle) y `/mesas`
 (el salón por zonas). **Gestión**: `/menu` (platillos, complementos y
 promociones), `/inventario` (insumos, kardex y conteo), `/reportes` (ventas,
 mozos y satisfacción), `/personal` (quién trabaja y qué abre su cargo),
-`/clientes` (fichas, puntos y cupones) y `/configuracion` (parámetros, bots y
-eventos). Cada usuario tiene además `/perfil`. El recorrido de una comanda es el mismo que documenta
+`/clientes` (fichas, puntos, nivel y cupones) y `/configuracion` (datos del
+local e IGV, parámetros, niveles de lealtad, bots y eventos). Cada usuario tiene además `/perfil`. El recorrido de una comanda es el mismo que documenta
 [`backend/FLUJO_PRINCIPAL.md`](../backend/FLUJO_PRINCIPAL.md).
 
 La interfaz habla **español, inglés y portugués**, y se cambia sin recargar:
@@ -48,7 +48,7 @@ Todos se corren desde `frontend/`. El proyecto usa **pnpm**, no npm.
 | `pnpm start` | `ng serve` en `http://localhost:4200` | Usa la configuración *development*, que reemplaza `environment.ts` por `environment.development.ts` y apunta a `localhost:8080` | [angular.json](angular.json) · [environment.development.ts:7](src/environments/environment.development.ts#L7) |
 | `pnpm build` | Compila a `dist/frontend-logistica/browser` | Configuración *production* por defecto: `outputHashing: all` y presupuestos de 500 kB (aviso) / 1 MB (error) para el bundle inicial | [angular.json](angular.json) |
 | `pnpm watch` | `ng build --watch` en desarrollo | Sin optimizar y con *source maps*; útil cuando se sirve desde otro servidor | [package.json](package.json) |
-| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 1 archivo, 12 pruebas, ~1 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
+| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 18 archivos, 73 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
 | `pnpm api:fetch` | Descarga `/v3/api-docs` del backend a `api/openapi.json` | Ordena las claves y borra el bloque `servers` para que dos descargas seguidas den diff vacío; aborta si el contrato no es OpenAPI 3.0 | [api/fetch-spec.mjs](api/fetch-spec.mjs) |
 | `pnpm api:generate` | Genera el cliente en `src/app/api` | `typescript-angular`, `stringEnums`, `useSingleRequestParameter`, `providedInRoot` | [api/generator-config.json](api/generator-config.json) |
 | `pnpm api:sync` | `api:fetch` + `api:generate` | **Es el único modo legítimo de cambiar `src/app/api`.** El backend tiene que estar arriba | [package.json](package.json) |
@@ -167,7 +167,7 @@ a Google Fonts. Ningún rótulo va en mayúsculas espaciadas ni en monoespaciada
 | [mesas.page.ts](src/app/paginas/mesas/mesas.page.ts) | ADMIN, MOZO, CAJA | El salón por zonas: estado, capacidad, lo que lleva cada mesa y sus reservas | La ocupación la decide la comanda: aquí no se ocupa una mesa a mano, solo se reserva, se anula una reserva o se inhabilita. Dar de alta una mesa es de ADMIN | `SalonMesas`, `Comandas` |
 | [menu.page.ts](src/app/paginas/menu/menu.page.ts) | ALMACEN, ADMIN | Platillos con su receta, complementos y promociones, en pestañas | Ver abajo | `CatalogoCategorias`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `InventarioInsumos` |
 | [inventario.page.ts](src/app/paginas/inventario/inventario.page.ts) | ALMACEN, ADMIN | Insumos, kardex, movimientos y conteo físico | Ver abajo | `InventarioInsumos`, `InventarioMovimientos` |
-| [configuracion.page.ts](src/app/paginas/configuracion/configuracion.page.ts) | ADMIN | Parámetros del local, bots y eventos, en tres pestañas | Ver abajo | — (cada sección pide lo suyo) |
+| [configuracion.page.ts](src/app/paginas/configuracion/configuracion.page.ts) | ADMIN | Datos del local e IGV, parámetros, niveles de lealtad, bots y eventos, en cinco pestañas | Ver abajo | — (cada sección pide lo suyo) |
 | [personal.page.ts](src/app/paginas/personal/personal.page.ts) | ADMIN | Trabajadores, cargos y qué abre cada cargo | Los roles se **leen**, no se crean: un rol es la palabra dentro de un `@PreAuthorize`, así que inventar «SUPERVISOR» no abriría ninguna puerta. Quitar un rol **no expulsa a quien ya inició sesión**: los roles viajan en el token . La ficha de cada persona trae lo que vendió como mozo en los últimos 30 días | `Trabajadores`, `Cargos`, `Roles`, `Reportes` |
 | [reportes.page.ts](src/app/paginas/reportes/reportes.page.ts) | ADMIN, CAJA | Ventas del rango, ventas por mozo y, solo para ADMIN, satisfacción | Manda las fechas en ISO **con desfase local**, no en `Z`: con UTC, la cena del sábado en Lima aparece repartida entre sábado y domingo. A la caja no se le pide la satisfacción, que le daría 403. Lo que pasa ahora mismo vive en el tablero | `Reportes`, `FeedbackYFidelizacion` |
 | [clientes.page.ts](src/app/paginas/clientes/clientes.page.ts) | ADMIN, CAJA | Buscar clientes y abrir su ficha: puntos, avance hacia el cupón, cupones, lo que suele pedir, empresas y últimas órdenes | Bloquear por fraude es de ADMIN y pide motivo. No hay nivel de lealtad porque el servidor no lo guarda, y no se inventa | `Clientes`, `FeedbackYFidelizacion` |
@@ -212,6 +212,11 @@ existiendo como redirecciones a `/inventario` y `/reportes`.
   declara `editable`. Cuidado: `PUT /ordenes/{id}/detalles/{detalleId}` reemplaza
   la línea y la que vuelve tiene **id nuevo**; por eso se repinta con la respuesta
   entera y no con el detalle viejo ([:724](src/app/paginas/pos/pos.page.ts#L724)).
+- **El nivel de lealtad se muestra, no se estima.** Al identificar al cliente
+  aparece su nivel y lo que rebaja, para decirlo en voz alta; el descuento lo
+  aplica el servidor al crear la comanda, solo en el POS y sin sumarse al cupón:
+  gana el que más rebaja. Si gana el nivel, la comanda vuelve sin `cuponCodigo`
+  y por eso el cupón no se canjea.
 - Un platillo agotado se pinta en gris y el botón no responde: pedirlo terminaría
   en un 422 de stock insuficiente ([:374](src/app/paginas/pos/pos.page.ts#L374)).
 
@@ -244,6 +249,10 @@ existiendo como redirecciones a `/inventario` y `/reportes`.
   comida a medias; después, el comensal ya se fue
   ([:188](src/app/paginas/caja/caja.page.ts#L188)). El cupón que emite aparece
   **una sola vez**, en esa respuesta.
+- **El IGV se desglosa, no se suma.** Los precios de la carta ya lo incluyen:
+  la cuenta muestra la base imponible y el IGV con la tasa que la comanda
+  congeló al crearse, y debajo del descuento, de dónde sale (promoción, nivel o
+  cupón).
 - La alerta de billete falso lleva a un estado terminal, y por eso exige motivo
   escrito ([:466](src/app/paginas/caja/caja.page.ts#L466)).
 - La comanda seleccionada se guarda **entera**, no como id: en cuanto se paga
@@ -278,7 +287,9 @@ El inventario envuelve una sola.
 | [platillos](src/app/paginas/menu/carta.seccion.ts) | ALMACEN, ADMIN | Categorías, platillos y recetas | `PUT /platillos/{id}/receta` **reemplaza**, no parchea ([:283](src/app/paginas/menu/carta.seccion.ts#L283)). Un platillo sin receta se vende pero no descuenta nada, y el inventario se separa de la realidad sin que nadie lo note ([:25](src/app/paginas/menu/carta.seccion.ts#L25)) |
 | [complementos](src/app/paginas/menu/complementos.seccion.ts) | ALMACEN, ADMIN | Lo que se suma a un plato, con su precio | Apagarlo es el gesto diario y va en la fila. El `PUT` reemplaza, así que al editar viaja también si está activo: si no, cambiar el precio de un complemento apagado lo volvería a ofrecer |
 | [promociones](src/app/paginas/menu/promociones.seccion.ts) | ADMIN; ALMACEN solo consulta | Rebajas con fecha de inicio y de fin | El estado que se lee es **lo que pasa hoy** —vigente, programada, pausada o vencida—, no el interruptor del servidor |
-| [local](src/app/paginas/configuracion/local.seccion.ts) | ADMIN | Cuatro parámetros y registro de empresas | No son preferencias de pantalla: el umbral decide cuándo la caja emite cupón y el objetivo de cocina es la vara del KDS. Cambiar uno cambia lo que hacen tres superficies. El `PUT` reemplaza, así que los cuatro campos viajan siempre. La satisfacción pasó a Ventas y reportes |
+| [datos del local](src/app/paginas/configuracion/datos-local.seccion.ts) | ADMIN | Nombre comercial, RUC, contacto, IGV y horario de los siete días | Un día **sin horas no es un día cerrado**: queda sin definir, y cerrado es una casilla aparte. Un día abierto con una sola hora se marca en la tabla antes de enviar. El IGV que se guarda aquí es el que congela cada comanda nueva; cambiarlo no reescribe las ventas pasadas. Leer los datos es de cualquier sesión, porque la caja los necesita para el ticket |
+| [niveles de lealtad](src/app/paginas/configuracion/niveles.seccion.ts) | ADMIN | Escalones por puntos y el descuento de cada uno | La tabla muestra el tramo completo («5 a 14 puntos») calculado de los mínimos: no hay un «hasta» guardado que pueda contradecirlos. Dos niveles no pueden empezar en el mismo punto, y se avisa antes de enviar para no gastar un 409 |
+| [parámetros](src/app/paginas/configuracion/local.seccion.ts) | ADMIN | Cuatro parámetros y registro de empresas | No son preferencias de pantalla: el umbral decide cuándo la caja emite cupón y el objetivo de cocina es la vara del KDS. Cambiar uno cambia lo que hacen tres superficies. El `PUT` reemplaza, así que los cuatro campos viajan siempre. La satisfacción pasó a Ventas y reportes |
 | [bots](src/app/paginas/configuracion/bots.seccion.ts) | ADMIN | Salud de los dos bots de Discord y vinculaciones | Separa **tres capas que fallan por separado** y en el orden en que hay que descartarlas: proveedor configurado, conexión de cada bot, y quién está vinculado. Un bot perfectamente conectado tampoco atiende si nadie corrió `/vincular` ([:22](src/app/paginas/configuracion/bots.seccion.ts#L22)) |
 | [eventos](src/app/paginas/configuracion/outbox.seccion.ts) | ADMIN | Bandeja del outbox | Un evento aquí **no es un error**: es una venta que existe y una factura que aún no. Con el worker apagado todo se queda en `PENDIENTE`, y la pantalla lo dice en vez de fingir una avería ([:30](src/app/paginas/configuracion/outbox.seccion.ts#L30)) |
 
@@ -494,7 +505,7 @@ El puerto es el **81** y no el 80, para dejar ese libre al futuro
 
 | Chunk | Raw | Transferido |
 |---|---|---|
-| **Inicial** (main + runtime + estilos + español) | 375,25 kB | 105,27 kB |
+| **Inicial** (main + runtime + estilos + español) | 378,91 kB | 106,27 kB |
 | cliente generado (compartido por las pantallas) | 136,08 kB | 7,33 kB |
 | `menu-page` | 57,95 kB | 8,50 kB |
 | `configuracion-page` | 47,93 kB | 7,01 kB |
@@ -538,17 +549,19 @@ runtime añadido pesaba más que lo que sacaba del inicial.
 ## Pruebas
 
 ```bash
-pnpm test        # Vitest 4 + jsdom · 16 archivos, 69 pruebas, ~5 s
+pnpm test        # Vitest 4 + jsdom · 18 archivos, 73 pruebas, ~5 s
 ```
 
-Las dieciséis suites cubren lo que falla en silencio, que es lo que no se ve al
+Las dieciocho suites cubren lo que falla en silencio, que es lo que no se ve al
 mirar la pantalla:
 
 | Suite | Qué guarda |
 |---|---|
 | [sesion.service.spec.ts](src/app/nucleo/sesion/sesion.service.spec.ts) | Que el rol salga del claim correcto: uno mal extraído abre o cierra pantallas enteras. Arma JWT con firma falsa a propósito, porque el frontend nunca la verifica |
 | [panel-lateral.spec.ts](src/app/disenio/panel-lateral.spec.ts) | Que cada rol vea sus destinos y ninguno más, agrupados y sin grupos vacíos; que todo enlace tenga una pantalla detrás; que **cambiar de idioma repinte el panel**, y que en el cajón del celular avise al pulsar un destino |
-| [configuracion.page.spec.ts](src/app/paginas/configuracion/configuracion.page.spec.ts) | Que la configuración ofrezca sus tres secciones y monte solo la abierta: una pestaña que desaparece no da error, simplemente no está |
+| [configuracion.page.spec.ts](src/app/paginas/configuracion/configuracion.page.spec.ts) | Que la configuración ofrezca sus cinco secciones y monte solo la abierta: una pestaña que desaparece no da error, simplemente no está |
+| [datos-local.seccion.spec.ts](src/app/paginas/configuracion/datos-local.seccion.spec.ts) | Que el horario pinte los siete días en su idioma y sin segundos, y que un día abierto con una sola hora se marque y no se envíe |
+| [niveles.seccion.spec.ts](src/app/paginas/configuracion/niveles.seccion.spec.ts) | Que cada nivel diga su tramo de puntos, con el más alto sin techo, y que sin niveles se avise que nadie recibe descuento |
 | [app.routes.spec.ts](src/app/app.routes.spec.ts) | Que cada rol aterrice en una pantalla y no en una redirección, y que `/trastienda` y `/kpis` lleven a su sitio nuevo |
 | [i18n.service.spec.ts](src/app/nucleo/i18n/i18n.service.spec.ts) | Que los tres diccionarios estén completos y con los mismos huecos, y que el idioma se recuerde al recargar |
 | [tema.service.spec.ts](src/app/nucleo/tema/tema.service.spec.ts) | Que el tema elegido se escriba en `data-tema`, se recuerde y se aplique al recargar: si falla, la interfaz sigue en claro sin ningún error |
