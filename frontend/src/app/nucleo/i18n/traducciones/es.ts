@@ -77,6 +77,8 @@ export const ES = {
   'comun.pagina': 'Página {actual} de {total}',
   'comun.paginas': 'Páginas',
   'comun.identificador': 'Identificador',
+  'comun.baseImponible': 'Base imponible',
+  'comun.igvIncluido': 'IGV incluido ({pct} %)',
 
   // --- tema y confirmaciones de peligro ------------------------------------
   'tema.alternar': 'Tema: {actual}. Pulsa para pasar a {siguiente}.',
@@ -114,9 +116,11 @@ export const ES = {
   'panel.abrirMenu': 'Abrir el menú',
   'panel.cerrarMenu': 'Cerrar el menú',
   'configuracion.secciones': 'Secciones de la configuración',
-  'configuracion.local': 'Local',
+  'configuracion.local': 'Parámetros',
   'configuracion.bots': 'Bots',
   'configuracion.outbox': 'Eventos',
+  'configuracion.datosLocal': 'Datos del local',
+  'configuracion.niveles': 'Niveles de lealtad',
   'panel.sinRoles': 'sin roles',
   'panel.cargarLogo': 'Cargar el logo',
   'panel.cambiarLogo': 'Cambiar el logo',
@@ -239,6 +243,7 @@ export const ES = {
   'pos.avisoEntregada': 'Comanda de la mesa {mesa} entregada.',
   'pos.avisoCancelada': 'Comanda cancelada y stock repuesto.',
   'pos.avisoQuitado': '{platillo} quitado de la comanda.',
+  'pos.descuentoNivel': '{pct} % de descuento, salvo que el cupón rebaje más.',
 
   // --- cocina ----------------------------------------------------------------
   'kds.enCola': 'En cola',
@@ -326,6 +331,8 @@ export const ES = {
   'caja.avisoAcreditado': 'Pago de S/ {monto} acreditado.',
   'caja.avisoCerrada': 'Comanda de la mesa {mesa} cerrada. Mesa libre.',
   'caja.avisoFraude': 'Alerta enviada a administración. La comanda queda fuera de la venta.',
+  'caja.nivel': 'Nivel {nivel}',
+  'caja.cupon': 'Cupón {codigo}',
 
   // --- despacho --------------------------------------------------------------
   'despacho.esperandoConductor': 'Esperando conductor',
@@ -691,6 +698,7 @@ export const ES = {
   'ordenes.pasarA': 'Pasar a {estado}',
   'ordenes.avisoEstado': 'La orden {codigo} pasó a {estado}.',
   'ordenes.avisoCancelada': 'Orden {codigo} cancelada.',
+  'ordenes.nivel': 'Nivel de lealtad',
 
   // --- mesas ----------------------------------------------------------------
   'mesas.todas': 'Todas',
@@ -762,6 +770,10 @@ export const ES = {
   'clientes.quitarBloqueo': 'Quitar el bloqueo',
   'clientes.avisoBloqueado': '{nombre} quedó bloqueado.',
   'clientes.avisoDesbloqueado': '{nombre} ya no está bloqueado.',
+  'clientes.descuentoNivel': 'Su nivel le da {pct} % de descuento en el POS.',
+  'clientes.progresoNivelAria': 'Avance hacia el nivel {nivel}',
+  'clientes.faltanPuntos.uno': 'Le falta {n} punto para el nivel {nivel}.',
+  'clientes.faltanPuntos.otros': 'Le faltan {n} puntos para el nivel {nivel}.',
 
   // --- mi perfil ------------------------------------------------------------
   'perfil.datos': 'Tus datos',
@@ -853,6 +865,59 @@ export const ES = {
   'reportes.resumen': 'Resumen',
   'reportes.porMozo': 'Por mozo',
   'reportes.parte': 'Parte de la venta',
+  // --- datos del local ------------------------------------------------------
+  'datosLocal.identidad': 'Identidad del local',
+  'datosLocal.identidadAyuda': 'Es lo que irá en el encabezado de tickets y comprobantes.',
+  'datosLocal.nombreComercial': 'Nombre comercial',
+  'datosLocal.ruc': 'RUC',
+  'datosLocal.rucOnce': 'El RUC tiene 11 dígitos.',
+  'datosLocal.direccion': 'Dirección',
+  'datosLocal.telefono': 'Teléfono',
+  'datosLocal.igv': 'IGV',
+  'datosLocal.porcentajeIgv': 'Porcentaje de IGV',
+  'datosLocal.igvAyuda': 'Los precios de la carta ya lo incluyen: la caja y las órdenes lo desglosan. Cada comanda guarda la tasa con la que se vendió, así que cambiarla no toca las ventas pasadas.',
+  'datosLocal.horario': 'Horario de atención',
+  'datosLocal.horarioAyuda': 'Un día sin horas queda sin definir; márcalo como cerrado si no se abre. Si cierra después de medianoche, la hora de cierre va antes que la de apertura.',
+  'datosLocal.dia': 'Día',
+  'datosLocal.cerrado': 'Cerrado',
+  'datosLocal.abre': 'Abre',
+  'datosLocal.cierra': 'Cierra',
+  'datosLocal.cerradoAria': '{dia}: cerrado',
+  'datosLocal.abreAria': '{dia}: hora de apertura',
+  'datosLocal.cierraAria': '{dia}: hora de cierre',
+  'datosLocal.guardar': 'Guardar los datos del local',
+  'datosLocal.avisoGuardado': 'Datos del local guardados.',
+  'datosLocal.avisoRuc': 'Revisa el RUC: tiene 11 dígitos.',
+  'datosLocal.avisoHorario': 'Hay días con hora de apertura o de cierre, pero no las dos.',
+  'datosLocal.avisoIgv': 'El IGV va de 0 a 100.',
+  'datosLocal.sinDatos': 'No se pudieron leer los datos del local.',
+
+  // --- niveles de lealtad ---------------------------------------------------
+  'niveles.titulo': 'Niveles de lealtad',
+  'niveles.nuevo': 'Nuevo nivel',
+  'niveles.editar': 'Editar nivel',
+  'niveles.ayuda': 'Cada calificación suma un punto al cliente. Su nivel se calcula con esos puntos, y el descuento del nivel se aplica en el POS: no se suma a un cupón, se aplica el que rebaje más.',
+  'niveles.nivel': 'Nivel',
+  'niveles.puntos': 'Puntos',
+  'niveles.descuento': 'Descuento',
+  'niveles.rango': '{desde} a {hasta} puntos',
+  'niveles.desdeEnAdelante': '{desde} puntos o más',
+  'niveles.ninguno': 'Todavía no hay niveles. Sin niveles, nadie recibe descuento por lealtad.',
+  'niveles.nombre': 'Nombre',
+  'niveles.puntosMinimos': 'Desde cuántos puntos',
+  'niveles.porcentaje': 'Descuento (%)',
+  'niveles.porcentajeAyuda': 'Cero es un nivel de reconocimiento, sin rebaja.',
+  'niveles.editarAria': 'Editar el nivel {nombre}',
+  'niveles.eliminarAria': 'Eliminar el nivel {nombre}',
+  'niveles.eliminar': 'Eliminar nivel',
+  'niveles.eliminarTitulo': '¿Eliminar el nivel {nombre}?',
+  'niveles.eliminarMensaje': 'Los clientes de este nivel pasan al que les toque por sus puntos. Las órdenes ya cobradas conservan su descuento.',
+  'niveles.avisoAlta': 'Nivel {nombre} creado.',
+  'niveles.avisoGuardado': 'Nivel {nombre} guardado.',
+  'niveles.avisoEliminado': 'Nivel {nombre} eliminado.',
+  'niveles.avisoDatos': 'Revisa el nivel: necesita nombre, puntos desde 0 y un descuento de 0 a 100.',
+  'niveles.avisoPuntosRepetidos': 'Ya hay un nivel que empieza en {puntos} puntos.',
+
 
 
   // --- errores del servidor (los del interceptor) ----------------------------
@@ -937,6 +1002,14 @@ export const ES = {
   'tipoComplemento.JUGO': 'Jugo',
   'tipoComplemento.SALSAS': 'Salsas',
   'tipoComplemento.OTROS': 'Otros',
+
+  'dia.MONDAY': 'Lunes',
+  'dia.TUESDAY': 'Martes',
+  'dia.WEDNESDAY': 'Miércoles',
+  'dia.THURSDAY': 'Jueves',
+  'dia.FRIDAY': 'Viernes',
+  'dia.SATURDAY': 'Sábado',
+  'dia.SUNDAY': 'Domingo',
 } as const satisfies Record<string, string>;
 
 /** Toda clave que existe. Los otros diccionarios tienen que cubrirlas todas. */
@@ -970,4 +1043,5 @@ export type GrupoEnum =
   | 'canalVenta'
   | 'canalBot'
   | 'cupon'
-  | 'tipoComplemento';
+  | 'tipoComplemento'
+  | 'dia';

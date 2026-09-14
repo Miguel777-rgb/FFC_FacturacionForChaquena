@@ -19,8 +19,14 @@
   </nav>
 
   @switch (activa()) {
+    @case ('datos') {
+      <app-datos-local-seccion />
+    }
     @case ('local') {
       <app-local-seccion />
+    }
+    @case ('niveles') {
+      <app-niveles-seccion />
     }
     @case ('bots') {
       <app-bots-seccion />

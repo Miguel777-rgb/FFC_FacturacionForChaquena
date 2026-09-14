@@ -1,0 +1,117 @@
+<div class="seccion">
+  <div class="bloque">
+    <div class="barra">
+      <h2>{{ t('niveles.titulo') }}</h2>
+      <button type="button" class="secundario" (click)="abrirNuevo()">
+        <app-icono nombre="alta" [tamano]="18" />
+        {{ t('niveles.nuevo') }}
+      </button>
+    </div>
+    <p class="tenue">{{ t('niveles.ayuda') }}</p>
+
+    <div class="desplazable">
+      <table class="tabla apilable">
+        <thead>
+          <tr>
+            <th>{{ t('niveles.nivel') }}</th>
+            <th>{{ t('niveles.puntos') }}</th>
+            <th class="num">{{ t('niveles.descuento') }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.nivel.id) {
+            <tr>
+              <td>{{ f.nivel.nombre }}</td>
+              <td class="tenue" [attr.data-etiqueta]="t('niveles.puntos')">
+                {{
+                  f.hasta === null
+                    ? t('niveles.desdeEnAdelante', { desde: f.nivel.puntosMinimos })
+                    : t('niveles.rango', { desde: f.nivel.puntosMinimos, hasta: f.hasta })
+                }}
+              </td>
+              <td class="num cifra" [attr.data-etiqueta]="t('niveles.descuento')">
+                {{ f.nivel.porcentajeDescuento | number: '1.0-2' }} %
+              </td>
+              <td class="acciones">
+                <button
+                  type="button"
+                  class="icono-accion"
+                  (click)="abrirEdicion(f.nivel)"
+                  [attr.title]="t('comun.editar')"
+                  [attr.aria-label]="t('niveles.editarAria', { nombre: f.nivel.nombre })"
+                >
+                  <app-icono nombre="lapiz" [tamano]="18" />
+                </button>
+                <button
+                  type="button"
+                  class="icono-accion destructiva"
+                  (click)="eliminar(f.nivel)"
+                  [disabled]="guardando()"
+                  [attr.title]="t('niveles.eliminar')"
+                  [attr.aria-label]="t('niveles.eliminarAria', { nombre: f.nivel.nombre })"
+                >
+                  <app-icono nombre="papelera" [tamano]="18" />
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="vacio">
+                {{ t(cargando() ? 'comun.cargando' : 'niveles.ninguno') }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-dialogo [titulo]="tituloFormulario()" [(abierto)]="formularioAbierto">
+  <div class="formulario">
+    <label class="campo">
+      <span>{{ t('niveles.nombre') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        [value]="nombre()"
+        (input)="nombre.set($any($event.target).value)"
+      />
+    </label>
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('niveles.puntosMinimos') }}</span>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          inputmode="numeric"
+          [value]="puntos() ?? ''"
+          (input)="anotarPuntos($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('niveles.porcentaje') }}</span>
+        <input
+          type="number"
+          min="0"
+          max="100"
+          step="0.5"
+          inputmode="decimal"
+          [value]="descuento() ?? ''"
+          (input)="anotarDescuento($any($event.target).value)"
+        />
+        <small>{{ t('niveles.porcentajeAyuda') }}</small>
+      </label>
+    </div>
+  </div>
+  <div pie>
+    <button type="button" class="secundario" (click)="formularioAbierto.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button type="button" (click)="guardar()" [disabled]="!nombre().trim() || guardando()">
+      {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+    </button>
+  </div>
+</app-dialogo>

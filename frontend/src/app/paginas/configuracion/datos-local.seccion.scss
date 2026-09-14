@@ -1,0 +1,18 @@
+.campo small.error {
+  color: var(--critico);
+}
+
+.igv input {
+  max-width: 8rem;
+}
+
+.horario {
+  input[type='time'] {
+    min-width: 7.5rem;
+  }
+
+  /* La fila que el servidor rechazaria se ve antes de guardar. */
+  tr.incompleto > td {
+    background: var(--aviso-suave);
+  }
+}

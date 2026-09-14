@@ -7,9 +7,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ConfiguracionPage } from './configuracion.page';
 
 /**
- * Las tres secciones del administrador que vivian en la trastienda. Una
- * pestana que desaparece no da error, ni peticion, ni consola: simplemente no
- * esta. Por eso se prueba aqui.
+ * Las secciones del administrador. Una pestana que desaparece no da error, ni
+ * peticion, ni consola: simplemente no esta. Por eso se prueba aqui.
  */
 describe('ConfiguracionPage', () => {
   beforeEach(() => {
@@ -28,31 +27,31 @@ describe('ConfiguracionPage', () => {
     return fixture;
   }
 
-  it('ofrece los parametros del local, los bots y los eventos', () => {
+  it('ofrece los datos del local, los parametros, los niveles, los bots y los eventos', () => {
     const fixture = crear();
 
     const pestanas = Array.from(fixture.nativeElement.querySelectorAll('.pestanas button')).map(
       (b) => (b as HTMLElement).textContent!.trim(),
     );
-    expect(pestanas).toEqual(['Local', 'Bots', 'Eventos']);
+    expect(pestanas).toEqual(['Datos del local', 'Parámetros', 'Niveles de lealtad', 'Bots', 'Eventos']);
   });
 
-  it('abre por el local y monta solo esa seccion', () => {
+  it('abre por los datos del local y monta solo esa seccion', () => {
     const fixture = crear();
     const pagina: HTMLElement = fixture.nativeElement;
 
-    expect(pagina.querySelector('app-local-seccion')).not.toBeNull();
-    expect(pagina.querySelector('app-outbox-seccion')).toBeNull();
+    expect(pagina.querySelector('app-datos-local-seccion')).not.toBeNull();
+    expect(pagina.querySelector('app-local-seccion')).toBeNull();
   });
 
   it('cambiar de pestana desmonta la anterior', () => {
     const fixture = crear();
     const pagina: HTMLElement = fixture.nativeElement;
 
-    (pagina.querySelectorAll('.pestanas button')[2] as HTMLButtonElement).click();
+    (pagina.querySelectorAll('.pestanas button')[4] as HTMLButtonElement).click();
     fixture.detectChanges();
 
     expect(pagina.querySelector('app-outbox-seccion')).not.toBeNull();
-    expect(pagina.querySelector('app-local-seccion')).toBeNull();
+    expect(pagina.querySelector('app-datos-local-seccion')).toBeNull();
   });
 });

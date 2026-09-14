@@ -1,0 +1,151 @@
+<div class="seccion">
+  @if (formulario(); as f) {
+    <!-- Lo que ira en el encabezado del ticket y, el dia que exista, del comprobante. -->
+    <div class="formulario bloque">
+      <h2>{{ t('datosLocal.identidad') }}</h2>
+      <p class="tenue">{{ t('datosLocal.identidadAyuda') }}</p>
+
+      <div class="campos">
+        <label class="campo">
+          <span>{{ t('datosLocal.nombreComercial') }}</span>
+          <input
+            type="text"
+            autocomplete="organization"
+            [value]="f.nombreComercial"
+            (input)="anotar('nombreComercial', $any($event.target).value)"
+          />
+        </label>
+        <label class="campo">
+          <span>{{ t('datosLocal.ruc') }}</span>
+          <input
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            [value]="f.ruc"
+            (input)="anotar('ruc', $any($event.target).value)"
+            [attr.aria-invalid]="rucInvalido()"
+          />
+          @if (rucInvalido()) {
+            <small class="error">{{ t('datosLocal.rucOnce') }}</small>
+          }
+        </label>
+      </div>
+
+      <label class="campo">
+        <span>{{ t('datosLocal.direccion') }}</span>
+        <input
+          type="text"
+          autocomplete="street-address"
+          [value]="f.direccion"
+          (input)="anotar('direccion', $any($event.target).value)"
+        />
+      </label>
+
+      <div class="campos">
+        <label class="campo">
+          <span>{{ t('datosLocal.telefono') }}</span>
+          <input
+            type="tel"
+            autocomplete="tel"
+            [value]="f.telefono"
+            (input)="anotar('telefono', $any($event.target).value)"
+          />
+        </label>
+        <label class="campo">
+          <span>{{ t('comun.correo') }}</span>
+          <input
+            type="email"
+            autocomplete="email"
+            [value]="f.correo"
+            (input)="anotar('correo', $any($event.target).value)"
+          />
+        </label>
+      </div>
+    </div>
+
+    <div class="formulario bloque">
+      <h2>{{ t('datosLocal.igv') }}</h2>
+      <label class="campo igv">
+        <span>{{ t('datosLocal.porcentajeIgv') }}</span>
+        <input
+          type="number"
+          min="0"
+          max="100"
+          step="0.5"
+          inputmode="decimal"
+          [value]="f.porcentajeIgv ?? ''"
+          (input)="anotarIgv($any($event.target).value)"
+        />
+        <small>{{ t('datosLocal.igvAyuda') }}</small>
+      </label>
+    </div>
+
+    <div class="bloque">
+      <h2>{{ t('datosLocal.horario') }}</h2>
+      <p class="tenue">{{ t('datosLocal.horarioAyuda') }}</p>
+
+      <div class="desplazable">
+        <table class="tabla apilable horario">
+          <thead>
+            <tr>
+              <th>{{ t('datosLocal.dia') }}</th>
+              <th>{{ t('datosLocal.cerrado') }}</th>
+              <th>{{ t('datosLocal.abre') }}</th>
+              <th>{{ t('datosLocal.cierra') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (h of f.horarios; track h.dia) {
+              <tr [class.incompleto]="diasIncompletos().includes(h.dia)">
+                <td>{{ tEnum('dia', h.dia) }}</td>
+                <td [attr.data-etiqueta]="t('datosLocal.cerrado')">
+                  <input
+                    type="checkbox"
+                    [checked]="h.cerrado"
+                    (change)="anotarHorario(h.dia, { cerrado: $any($event.target).checked })"
+                    [attr.aria-label]="t('datosLocal.cerradoAria', { dia: tEnum('dia', h.dia) })"
+                  />
+                </td>
+                <td [attr.data-etiqueta]="t('datosLocal.abre')">
+                  <input
+                    type="time"
+                    [value]="h.abre"
+                    [disabled]="h.cerrado"
+                    (input)="anotarHorario(h.dia, { abre: $any($event.target).value })"
+                    [attr.aria-label]="t('datosLocal.abreAria', { dia: tEnum('dia', h.dia) })"
+                  />
+                </td>
+                <td [attr.data-etiqueta]="t('datosLocal.cierra')">
+                  <input
+                    type="time"
+                    [value]="h.cierra"
+                    [disabled]="h.cerrado"
+                    (input)="anotarHorario(h.dia, { cierra: $any($event.target).value })"
+                    [attr.aria-label]="t('datosLocal.cierraAria', { dia: tEnum('dia', h.dia) })"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (diasIncompletos().length > 0) {
+        <p class="mensaje aviso">{{ t('datosLocal.avisoHorario') }}</p>
+      }
+    </div>
+
+    <div class="campos acciones-formulario">
+      <button type="button" (click)="guardar()" [disabled]="!hayCambios() || guardando()">
+        {{ t(guardando() ? 'comun.guardando' : 'datosLocal.guardar') }}
+      </button>
+      @if (hayCambios()) {
+        <button type="button" class="secundario" (click)="descartar()">
+          {{ t('comun.descartar') }}
+        </button>
+      }
+    </div>
+  } @else {
+    <p class="vacio">{{ t(cargando() ? 'comun.cargando' : 'datosLocal.sinDatos') }}</p>
+  }
+</div>
