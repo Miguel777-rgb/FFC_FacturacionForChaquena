@@ -37,4 +37,17 @@ public interface LoteInsumoRepository extends JpaRepository<LoteInsumo, UUID> {
             where l.cantidadRestante > 0 and l.fechaVencimiento <= :limite
             """)
     List<UUID> insumosConVencimientoHasta(@Param("limite") LocalDate limite);
+
+    /**
+     * El lote mas reciente con costo de cada insumo: lo que costo la ultima
+     * compra, que es lo que costaria reponerlo. Los lotes iniciales no tienen
+     * costo y no cuentan.
+     */
+    @Query("""
+            select l from LoteInsumo l
+            where l.insumo.id in :insumoIds and l.costoUnitario is not null
+              and l.dateCreated = (select max(o.dateCreated) from LoteInsumo o
+                                   where o.insumo = l.insumo and o.costoUnitario is not null)
+            """)
+    List<LoteInsumo> ultimosConCosto(@Param("insumoIds") Collection<UUID> insumoIds);
 }

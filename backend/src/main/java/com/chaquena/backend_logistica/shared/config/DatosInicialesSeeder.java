@@ -8,7 +8,9 @@ import com.chaquena.backend_logistica.auth.domain.RolPermiso;
 import com.chaquena.backend_logistica.auth.domain.Trabajador;
 import com.chaquena.backend_logistica.auth.repository.*;
 import com.chaquena.backend_logistica.auth.service.TrabajadorContexto;
+import com.chaquena.backend_logistica.inventario.domain.Alergeno;
 import com.chaquena.backend_logistica.inventario.domain.CategoriaPlatillo;
+import com.chaquena.backend_logistica.inventario.repository.AlergenoRepository;
 import com.chaquena.backend_logistica.inventario.repository.CategoriaPlatilloRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,12 +93,23 @@ public class DatosInicialesSeeder {
             Map.entry("Cervezas", "Cusqueña trigo, dorada y negra, y Pilsen Callao"),
             Map.entry("Gaseosas y Agua", "Gaseosas de Puno, marcas clásicas y agua San Luis"));
 
+    /**
+     * Los catorce alergenos de declaracion habitual, con los nombres que se usan
+     * en Peru: mani y no cacahuate, ajonjoli y no sesamo, y el tarwi junto al
+     * altramuz porque es la misma legumbre.
+     */
+    private static final List<String> ALERGENOS = List.of(
+            "Gluten", "Crustáceos", "Huevo", "Pescado", "Maní", "Soya", "Lácteos",
+            "Frutos de cáscara", "Apio", "Mostaza", "Ajonjolí", "Sulfitos",
+            "Tarwi y altramuces", "Moluscos");
+
     private final RolRepository rolRepository;
     private final PermisoRepository permisoRepository;
     private final RolPermisoRepository rolPermisoRepository;
     private final CargoRepository cargoRepository;
     private final TrabajadorRepository trabajadorRepository;
     private final CategoriaPlatilloRepository categoriaRepository;
+    private final AlergenoRepository alergenoRepository;
 
     @Bean
     @Order(1) // la seguridad se siembra antes que los datos de demostracion
@@ -109,6 +122,26 @@ public class DatosInicialesSeeder {
         sembrarSeguridadBase();
         sembrarTrabajadorDelBot();
         sembrarCategoriasDeLaCarta();
+        sembrarAlergenos();
+    }
+
+    /**
+     * Solo con la tabla vacia, al reves que las categorias: los alergenos se
+     * pueden renombrar, y sembrar por nombre volveria a crear "Maní" en cada
+     * arranque despues de que alguien lo llamara de otra forma.
+     */
+    private void sembrarAlergenos() {
+        if (alergenoRepository.count() > 0) {
+            return;
+        }
+        for (String nombre : ALERGENOS) {
+            alergenoRepository.save(Alergeno.builder()
+                    .nombre(nombre)
+                    .activo(true)
+                    .createdBy("SEEDER")
+                    .build());
+        }
+        log.info("Catalogo de alergenos sembrado: {} alergenos.", ALERGENOS.size());
     }
 
     /**

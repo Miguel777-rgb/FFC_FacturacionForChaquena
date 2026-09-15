@@ -5,6 +5,7 @@ import com.chaquena.backend_logistica.cocina.dto.KpisCocinaDto;
 import com.chaquena.backend_logistica.cocina.dto.ReportarFaltanteRequestDto;
 import com.chaquena.backend_logistica.cocina.service.KdsService;
 import com.chaquena.backend_logistica.fidelizacion.service.ConfiguracionService;
+import com.chaquena.backend_logistica.inventario.domain.Alergeno;
 import com.chaquena.backend_logistica.inventario.domain.Insumo;
 import com.chaquena.backend_logistica.inventario.repository.InsumoRepository;
 import com.chaquena.backend_logistica.pedidos.domain.EstadoOrdenEnum;
@@ -77,6 +78,7 @@ public class KdsServiceImpl implements KdsService {
                                             .complementos(d.getComplementos().stream()
                                                     .map(c -> c.getComplemento().getNombre())
                                                     .toList())
+                                            .alergenos(Alergeno.nombresDe(d.getPlatillo().getAlergenos()))
                                             .nota(d.getExcepcionesNota())
                                             .listo(d.getListo())
                                             .tiempoListo(d.getTiempoListo())

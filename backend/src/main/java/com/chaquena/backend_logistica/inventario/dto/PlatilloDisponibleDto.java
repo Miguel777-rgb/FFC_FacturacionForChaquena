@@ -32,4 +32,13 @@ public class PlatilloDisponibleDto {
 
     /** Insumos que impiden prepararlo, para que cocina sepa que reponer. */
     private List<String> insumosFaltantes;
+
+    /** La foto, servida en /api/v1/archivos/{fotoId}. Nulo si no tiene. */
+    private UUID fotoId;
+
+    /** Lo que el mozo puede prometer en la mesa. Nulo si nadie lo definio. */
+    private Integer tiempoPreparacionMinutos;
+
+    /** Nombres en orden alfabetico, para responder al comensal que pregunta. */
+    private List<String> alergenos;
 }

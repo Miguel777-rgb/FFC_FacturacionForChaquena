@@ -1,22 +1,23 @@
 package com.chaquena.backend_logistica.inventario.service.impl;
 
+import com.chaquena.backend_logistica.archivos.service.ArchivoService;
 import com.chaquena.backend_logistica.inventario.domain.*;
 import com.chaquena.backend_logistica.inventario.dto.*;
 import com.chaquena.backend_logistica.inventario.repository.*;
 import com.chaquena.backend_logistica.inventario.service.PlatilloService;
+import com.chaquena.backend_logistica.inventario.service.ReglaCosto;
 import com.chaquena.backend_logistica.shared.dto.PageResponseDto;
 import com.chaquena.backend_logistica.shared.exception.RecursoNoEncontradoException;
 import com.chaquena.backend_logistica.shared.security.UsuarioActual;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,9 @@ public class PlatilloServiceImpl implements PlatilloService {
     private final PlatilloRepository platilloRepository;
     private final CategoriaPlatilloRepository categoriaRepository;
     private final InsumoRepository insumoRepository;
+    private final AlergenoRepository alergenoRepository;
+    private final ArchivoService archivoService;
+    private final CostoPlatillos costoPlatillos;
 
     @Override
     @Transactional
@@ -35,26 +39,37 @@ public class PlatilloServiceImpl implements PlatilloService {
                 .descripcion(request.getDescripcion())
                 .precioVentaBase(request.getPrecioVentaBase())
                 .activo(request.getActivo() == null || request.getActivo())
+                .foto(request.getFotoId() != null ? archivoService.obtener(request.getFotoId()) : null)
+                .tiempoPreparacionMinutos(request.getTiempoPreparacionMinutos())
                 .createdBy(UsuarioActual.username())
                 .build();
-        return PlatilloResponseDto.fromEntity(platilloRepository.save(platillo));
+        if (request.getAlergenoIds() != null) {
+            platillo.setAlergenos(alergenos(request.getAlergenoIds()));
+        }
+        return respuesta(platilloRepository.save(platillo));
     }
 
     @Override
     @Transactional(readOnly = true)
     public PageResponseDto<PlatilloResponseDto> buscar(Integer categoriaId, Boolean activo, String termino,
             Pageable pageable) {
-        String t = patron(termino);
-        return PageResponseDto.de(platilloRepository.buscar(categoriaId, activo, t, pageable),
-                PlatilloResponseDto::fromEntity);
+        Page<Platillo> pagina = platilloRepository.buscar(categoriaId, activo, patron(termino), pageable);
+        Map<UUID, ReglaCosto.Costo> costos = costoPlatillos.de(pagina.getContent());
+        return PageResponseDto.de(pagina, p -> PlatilloResponseDto.fromEntity(p, costos.get(p.getId())));
     }
 
     @Override
     @Transactional(readOnly = true)
     public PlatilloResponseDto obtenerPorId(UUID id) {
-        return PlatilloResponseDto.conReceta(buscarConReceta(id));
+        Platillo platillo = buscarConReceta(id);
+        return PlatilloResponseDto.conReceta(platillo, costoDe(platillo));
     }
 
+    /**
+     * El PUT reemplaza: una foto o un tiempo que no llegan se quitan. Los
+     * alergenos son la excepcion, igual que el horario del local: sin la lista
+     * no se tocan, y con una lista vacia se quitan todos.
+     */
     @Override
     @Transactional
     public PlatilloResponseDto actualizar(UUID id, PlatilloRequestDto request) {
@@ -66,8 +81,27 @@ public class PlatilloServiceImpl implements PlatilloService {
         if (request.getActivo() != null) {
             platillo.setActivo(request.getActivo());
         }
+        platillo.setTiempoPreparacionMinutos(request.getTiempoPreparacionMinutos());
+        if (request.getAlergenoIds() != null) {
+            platillo.getAlergenos().clear();
+            platillo.getAlergenos().addAll(alergenos(request.getAlergenoIds()));
+        }
+
+        UUID fotoAnterior = platillo.getFoto() != null ? platillo.getFoto().getId() : null;
+        boolean cambiaFoto = !Objects.equals(fotoAnterior, request.getFotoId());
+        if (cambiaFoto) {
+            platillo.setFoto(request.getFotoId() != null ? archivoService.obtener(request.getFotoId()) : null);
+        }
+
         platillo.setModifiedBy(UsuarioActual.username());
-        return PlatilloResponseDto.fromEntity(platilloRepository.save(platillo));
+        Platillo guardado = platilloRepository.save(platillo);
+
+        // La foto reemplazada no la usa nadie mas: se borra para que el disco no
+        // crezca con cada cambio de foto.
+        if (cambiaFoto && fotoAnterior != null) {
+            archivoService.eliminar(fotoAnterior);
+        }
+        return respuesta(guardado);
     }
 
     @Override
@@ -76,7 +110,7 @@ public class PlatilloServiceImpl implements PlatilloService {
         Platillo platillo = buscar(id);
         platillo.setActivo(activo);
         platillo.setModifiedBy(UsuarioActual.username());
-        return PlatilloResponseDto.fromEntity(platilloRepository.save(platillo));
+        return respuesta(platilloRepository.save(platillo));
     }
 
     @Override
@@ -162,9 +196,32 @@ public class PlatilloServiceImpl implements PlatilloService {
                     .porcionesPosibles(porciones)
                     .disponible(porciones == null || porciones > 0)
                     .insumosFaltantes(faltantes)
+                    .fotoId(platillo.getFoto() != null ? platillo.getFoto().getId() : null)
+                    .tiempoPreparacionMinutos(platillo.getTiempoPreparacionMinutos())
+                    .alergenos(Alergeno.nombresDe(platillo.getAlergenos()))
                     .build());
         }
         return resultado;
+    }
+
+    private PlatilloResponseDto respuesta(Platillo platillo) {
+        return PlatilloResponseDto.fromEntity(platillo, costoDe(platillo));
+    }
+
+    private ReglaCosto.Costo costoDe(Platillo platillo) {
+        return costoPlatillos.de(List.of(platillo)).get(platillo.getId());
+    }
+
+    /** Todos o ninguno: un id que no existe no deja el platillo con la mitad de sus alergenos. */
+    private Set<Alergeno> alergenos(List<Integer> ids) {
+        Set<Integer> pedidos = new LinkedHashSet<>(ids);
+        List<Alergeno> encontrados = alergenoRepository.findAllById(pedidos);
+        if (encontrados.size() != pedidos.size()) {
+            Set<Integer> faltan = new LinkedHashSet<>(pedidos);
+            encontrados.forEach(a -> faltan.remove(a.getId()));
+            throw RecursoNoEncontradoException.de("el alergeno", faltan.iterator().next());
+        }
+        return new HashSet<>(encontrados);
     }
 
     /** Convierte el texto libre en el patron LIKE que espera el repositorio. */

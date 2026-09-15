@@ -42,6 +42,8 @@ public class ComandaKdsDto {
         private Integer cantidad;
         private String platillo;
         private List<String> complementos;
+        /** Para avisar antes de emplatar. Lo que el comensal pidio quitar va en la nota. */
+        private List<String> alergenos;
         private String nota;
         /** Si cocina ya despacho esta linea, y a que hora. */
         private Boolean listo;
