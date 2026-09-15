@@ -26,6 +26,8 @@ import { MesaRequestDto } from '../model/mesa-request-dto';
 // @ts-ignore
 import { MesaResponseDto } from '../model/mesa-response-dto';
 // @ts-ignore
+import { PlanoRequestDto } from '../model/plano-request-dto';
+// @ts-ignore
 import { ReservarMesaRequestDto } from '../model/reservar-mesa-request-dto';
 
 // @ts-ignore
@@ -45,6 +47,10 @@ export interface CambiarEstadoMesaRequestParams {
 
 export interface CrearMesaRequestParams {
   mesaRequestDto: MesaRequestDto;
+}
+
+export interface GuardarPlanoMesasRequestParams {
+  planoRequestDto: PlanoRequestDto;
 }
 
 export interface LiberarRequestParams {
@@ -185,7 +191,7 @@ export class SalonMesasApi extends BaseService {
   }
 
   /**
-   * Cambiar el estado de la mesa
+   * Cambiar el estado de la mesa (libre, ocupada o inhabilitada)
    * @endpoint patch /api/v1/mesas/{id}/estado
    * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -301,7 +307,7 @@ export class SalonMesasApi extends BaseService {
   }
 
   /**
-   * Crear mesa
+   * Crear mesa en el primer hueco del plano de su zona
    * @endpoint post /api/v1/mesas
    * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -409,7 +415,115 @@ export class SalonMesasApi extends BaseService {
   }
 
   /**
-   * Liberar la mesa
+   * Guardar la posicion, el tamano y la forma de las mesas
+   * @endpoint put /api/v1/mesas/plano
+   * @param requestParameters
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public guardarPlanoMesas(
+    requestParameters: GuardarPlanoMesasRequestParams,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<Array<MesaResponseDto>>;
+  public guardarPlanoMesas(
+    requestParameters: GuardarPlanoMesasRequestParams,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<Array<MesaResponseDto>>>;
+  public guardarPlanoMesas(
+    requestParameters: GuardarPlanoMesasRequestParams,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<Array<MesaResponseDto>>>;
+  public guardarPlanoMesas(
+    requestParameters: GuardarPlanoMesasRequestParams,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    const planoRequestDto = requestParameters?.planoRequestDto;
+    if (planoRequestDto === null || planoRequestDto === undefined) {
+      throw new Error(
+        'Required parameter planoRequestDto was null or undefined when calling guardarPlanoMesas.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    // authentication (bearerAuth) required
+    localVarHeaders = this.configuration.addCredentialToHeaders(
+      'bearerAuth',
+      'Authorization',
+      localVarHeaders,
+      'Bearer ',
+    );
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/v1/mesas/plano`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<Array<MesaResponseDto>>('put', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      body: planoRequestDto,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
+   * Liberar la mesa y cancelar la reserva que la aparta
    * @endpoint post /api/v1/mesas/{id}/liberar
    * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -506,7 +620,7 @@ export class SalonMesasApi extends BaseService {
   }
 
   /**
-   * Mapa del salon: mesas activas con su estado, por zona
+   * Mapa del salon: mesas activas con su estado, posicion y proxima reserva
    * @endpoint get /api/v1/mesas
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
@@ -690,7 +804,7 @@ export class SalonMesasApi extends BaseService {
   }
 
   /**
-   * Reservar la mesa a nombre de alguien
+   * Reservar la mesa a nombre de alguien (crea una reserva de 90 minutos)
    * @endpoint post /api/v1/mesas/{id}/reservar
    * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

@@ -1744,7 +1744,19 @@
           "activa": {
             "type": "boolean"
           },
+          "alto": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ancho": {
+            "format": "int32",
+            "type": "integer"
+          },
           "capacidad": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "columna": {
             "format": "int32",
             "type": "integer"
           },
@@ -1757,6 +1769,17 @@
             ],
             "type": "string"
           },
+          "fila": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "forma": {
+            "enum": [
+              "CUADRADA",
+              "REDONDA"
+            ],
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -1764,12 +1787,8 @@
           "numero": {
             "type": "string"
           },
-          "reservadaANombreDe": {
-            "type": "string"
-          },
-          "reservadaPara": {
-            "format": "date-time",
-            "type": "string"
+          "reservaProxima": {
+            "$ref": "#/components/schemas/ReservaResponseDto"
           },
           "zona": {
             "type": "string"
@@ -2665,6 +2684,21 @@
         },
         "type": "object"
       },
+      "PlanoRequestDto": {
+        "properties": {
+          "mesas": {
+            "items": {
+              "$ref": "#/components/schemas/PosicionMesa"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "mesas"
+        ],
+        "type": "object"
+      },
       "PlatilloDisponibleDto": {
         "properties": {
           "alergenos": {
@@ -2891,6 +2925,45 @@
             "type": "number"
           }
         },
+        "type": "object"
+      },
+      "PosicionMesa": {
+        "properties": {
+          "alto": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ancho": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "columna": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "fila": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "forma": {
+            "enum": [
+              "CUADRADA",
+              "REDONDA"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alto",
+          "ancho",
+          "columna",
+          "fila",
+          "id"
+        ],
         "type": "object"
       },
       "PreferenciasClienteDto": {
@@ -3273,6 +3346,120 @@
           },
           "totalVendido": {
             "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "ReservaRequestDto": {
+        "properties": {
+          "celular": {
+            "maxLength": 20,
+            "minLength": 0,
+            "pattern": "[0-9+ ]*",
+            "type": "string"
+          },
+          "duracionMinutos": {
+            "format": "int32",
+            "maximum": 480,
+            "minimum": 15,
+            "type": "integer"
+          },
+          "inicio": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "mesaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nota": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "personas": {
+            "format": "int32",
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "inicio",
+          "mesaId",
+          "nombre",
+          "personas"
+        ],
+        "type": "object"
+      },
+      "ReservaResponseDto": {
+        "properties": {
+          "celular": {
+            "type": "string"
+          },
+          "duracionMinutos": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "estado": {
+            "enum": [
+              "PENDIENTE",
+              "CONFIRMADA",
+              "CUMPLIDA",
+              "CANCELADA",
+              "NO_ASISTIO"
+            ],
+            "type": "string"
+          },
+          "fin": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inicio": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "mesaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mesaNumero": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "nota": {
+            "type": "string"
+          },
+          "personas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "transicionesPermitidas": {
+            "items": {
+              "enum": [
+                "PENDIENTE",
+                "CONFIRMADA",
+                "CUMPLIDA",
+                "CANCELADA",
+                "NO_ASISTIO"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "zona": {
+            "type": "string"
           }
         },
         "type": "object"
@@ -6218,7 +6405,7 @@
             "description": "OK"
           }
         },
-        "summary": "Mapa del salon: mesas activas con su estado, por zona",
+        "summary": "Mapa del salon: mesas activas con su estado, posicion y proxima reserva",
         "tags": [
           "Salon - Mesas"
         ]
@@ -6247,7 +6434,41 @@
             "description": "OK"
           }
         },
-        "summary": "Crear mesa",
+        "summary": "Crear mesa en el primer hueco del plano de su zona",
+        "tags": [
+          "Salon - Mesas"
+        ]
+      }
+    },
+    "/api/v1/mesas/plano": {
+      "put": {
+        "operationId": "guardarPlanoMesas",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanoRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MesaResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Guardar la posicion, el tamano y la forma de las mesas",
         "tags": [
           "Salon - Mesas"
         ]
@@ -6365,7 +6586,7 @@
             "description": "OK"
           }
         },
-        "summary": "Cambiar el estado de la mesa",
+        "summary": "Cambiar el estado de la mesa (libre, ocupada o inhabilitada)",
         "tags": [
           "Salon - Mesas"
         ]
@@ -6397,7 +6618,7 @@
             "description": "OK"
           }
         },
-        "summary": "Liberar la mesa",
+        "summary": "Liberar la mesa y cancelar la reserva que la aparta",
         "tags": [
           "Salon - Mesas"
         ]
@@ -6439,7 +6660,7 @@
             "description": "OK"
           }
         },
-        "summary": "Reservar la mesa a nombre de alguien",
+        "summary": "Reservar la mesa a nombre de alguien (crea una reserva de 90 minutos)",
         "tags": [
           "Salon - Mesas"
         ]
@@ -8474,6 +8695,117 @@
         ]
       }
     },
+    "/api/v1/reservas": {
+      "get": {
+        "operationId": "listarReservas",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dia",
+            "required": false,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Reservas de un dia por hora; sin dia, las de hoy en Lima",
+        "tags": [
+          "Salon - Reservas"
+        ]
+      },
+      "post": {
+        "operationId": "crearReserva",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Reservar una mesa; 409 si ya esta apartada a esa hora",
+        "tags": [
+          "Salon - Reservas"
+        ]
+      }
+    },
+    "/api/v1/reservas/{id}/estado": {
+      "patch": {
+        "operationId": "cambiarEstadoReserva",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "estado",
+            "required": true,
+            "schema": {
+              "enum": [
+                "PENDIENTE",
+                "CONFIRMADA",
+                "CUMPLIDA",
+                "CANCELADA",
+                "NO_ASISTIO"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaResponseDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Confirmar, cumplir, cancelar o marcar que no asistio",
+        "tags": [
+          "Salon - Reservas"
+        ]
+      }
+    },
     "/api/v1/roles": {
       "get": {
         "operationId": "listarRoles",
@@ -9035,10 +9367,6 @@
       "name": "Inventario - Proveedores"
     },
     {
-      "description": "Mapa de mesas con estados y reservas",
-      "name": "Salon - Mesas"
-    },
-    {
       "description": "Alergenos que se marcan en cada platillo",
       "name": "Catalogo - Alergenos"
     },
@@ -9071,6 +9399,10 @@
       "name": "Clientes"
     },
     {
+      "description": "Mapa de mesas con estados, plano y reservas",
+      "name": "Salon - Mesas"
+    },
+    {
       "description": "Asignacion, salida a ruta y entrega con OTP",
       "name": "Despacho - Reparto"
     },
@@ -9085,6 +9417,10 @@
     {
       "description": "Empresas por RUC para comprobantes con factura",
       "name": "Clientes - Empresas"
+    },
+    {
+      "description": "Agenda de reservas por mesa",
+      "name": "Salon - Reservas"
     },
     {
       "description": "Catalogo fijo de roles que reconoce la autorizacion del backend",

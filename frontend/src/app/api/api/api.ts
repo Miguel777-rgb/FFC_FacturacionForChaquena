@@ -52,6 +52,8 @@ export * from './roles.api';
 import { RolesApi } from './roles.api';
 export * from './salon-mesas.api';
 import { SalonMesasApi } from './salon-mesas.api';
+export * from './salon-reservas.api';
+import { SalonReservasApi } from './salon-reservas.api';
 export * from './trabajadores.api';
 import { TrabajadoresApi } from './trabajadores.api';
 export const APIS = [
@@ -82,5 +84,6 @@ export const APIS = [
   ReportesApi,
   RolesApi,
   SalonMesasApi,
+  SalonReservasApi,
   TrabajadoresApi,
 ];

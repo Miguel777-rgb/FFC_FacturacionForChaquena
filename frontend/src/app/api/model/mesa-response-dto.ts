@@ -7,15 +7,20 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ReservaResponseDto } from './reserva-response-dto';
 
 export interface MesaResponseDto {
   activa?: boolean;
+  alto?: number;
+  ancho?: number;
   capacidad?: number;
+  columna?: number;
   estado?: MesaResponseDtoEstadoEnum;
+  fila?: number;
+  forma?: MesaResponseDtoFormaEnum;
   id?: string;
   numero?: string;
-  reservadaANombreDe?: string;
-  reservadaPara?: string;
+  reservaProxima?: ReservaResponseDto;
   zona?: string;
 }
 export enum MesaResponseDtoEstadoEnum {
@@ -23,4 +28,8 @@ export enum MesaResponseDtoEstadoEnum {
   OCUPADA = 'OCUPADA',
   RESERVADA = 'RESERVADA',
   INHABILITADA = 'INHABILITADA',
+}
+export enum MesaResponseDtoFormaEnum {
+  CUADRADA = 'CUADRADA',
+  REDONDA = 'REDONDA',
 }

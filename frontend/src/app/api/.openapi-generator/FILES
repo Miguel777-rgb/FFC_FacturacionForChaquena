@@ -28,6 +28,7 @@ api/outbox.api.ts
 api/reportes.api.ts
 api/roles.api.ts
 api/salon-mesas.api.ts
+api/salon-reservas.api.ts
 api/trabajadores.api.ts
 configuration.ts
 encoder.ts
@@ -115,12 +116,14 @@ model/page-response-dto-trabajador-response-dto.ts
 model/page-response-dto-transportista-response-dto.ts
 model/pageable.ts
 model/pago-response-dto.ts
+model/plano-request-dto.ts
 model/platillo-disponible-dto.ts
 model/platillo-request-dto.ts
 model/platillo-response-dto.ts
 model/por-canal.ts
 model/por-estado.ts
 model/por-metodo.ts
+model/posicion-mesa.ts
 model/preferencias-cliente-dto.ts
 model/producto-top-dto.ts
 model/promocion-request-dto.ts
@@ -134,6 +137,8 @@ model/registrar-trabajador-request-dto.ts
 model/reportar-faltante-request-dto.ts
 model/reporte-satisfaccion-dto.ts
 model/reporte-ventas-dto.ts
+model/reserva-request-dto.ts
+model/reserva-response-dto.ts
 model/reservar-mesa-request-dto.ts
 model/resumen-inventario-dto.ts
 model/rol-response-dto.ts
