@@ -37,6 +37,11 @@ RUN addgroup -S chaquena && adduser -S chaquena -G chaquena
 WORKDIR /aplicacion
 COPY --from=compilacion --chown=chaquena:chaquena /construccion/aplicacion.jar ./aplicacion.jar
 
+# El directorio de las fotos existe en la imagen y es del usuario de la
+# aplicacion: un volumen nuevo hereda ese propietario al montarse, y sin esto
+# la primera foto fallaria por permisos.
+RUN mkdir -p /aplicacion/archivos && chown chaquena:chaquena /aplicacion/archivos
+
 USER chaquena
 EXPOSE 8080
 

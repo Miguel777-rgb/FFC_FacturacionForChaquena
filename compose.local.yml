@@ -81,6 +81,11 @@ services:
       # configurado igualmente por si alguien apunta un Angular de desarrollo
       # a este backend.
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:81,http://localhost:4200}
+      # Fotos de la carta y logo del local. Van en un volumen y no dentro del
+      # contenedor: reconstruir la imagen no debe borrar la carta.
+      ARCHIVOS_DIRECTORIO: /aplicacion/archivos
+    volumes:
+      - archivos_logistica:/aplicacion/archivos
     ports:
       # Publicado para poder usar Swagger y `npm run api:sync` desde la maquina.
       # Si no hiciera falta, se puede quitar: el frontend lo alcanza por la red
@@ -125,3 +130,6 @@ volumes:
     # compose anterior de backend/ y no se pierdan los datos ya sembrados.
     name: backend_postgres_logistica_data
     external: true
+  archivos_logistica:
+    # El mismo nombre que en compose.yml: los dos arranques ven las mismas fotos.
+    name: ffc_archivos_logistica

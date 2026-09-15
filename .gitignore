@@ -29,6 +29,10 @@ target/
 build/
 .mvn/wrapper/maven-wrapper.jar
 
+### Fotos subidas al correr el backend fuera de Docker ###
+# Con la barra inicial: sin ella tambien ignoraria el paquete Java archivos/.
+/backend/archivos/
+
 ### Node ###
 # El cliente HTTP generado (frontend/src/app/api) si se versiona: es lo que
 # hace falta para compilar sin tener el backend delante.

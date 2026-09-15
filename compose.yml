@@ -74,6 +74,10 @@ services:
       SPRING_DATA_REDIS_HOST: redis-logistica
       SPRING_DATA_REDIS_PORT: 6379
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:81,http://localhost:4200}
+      # Fotos de la carta y logo del local, en un volumen que sobrevive al contenedor.
+      ARCHIVOS_DIRECTORIO: /aplicacion/archivos
+    volumes:
+      - archivos_logistica:/aplicacion/archivos
     ports:
       - "8080:8080"
     healthcheck:
@@ -93,3 +97,6 @@ volumes:
     # Nombre explicito para seguir usando el mismo volumen que creo el compose
     # anterior y no perder los datos ya sembrados.
     name: backend_postgres_logistica_data
+  archivos_logistica:
+    # El mismo nombre que en compose.local.yml: los dos arranques ven las mismas fotos.
+    name: ffc_archivos_logistica

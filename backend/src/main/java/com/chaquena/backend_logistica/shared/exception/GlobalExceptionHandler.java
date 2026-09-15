@@ -12,6 +12,9 @@ import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.ZonedDateTime;
@@ -171,6 +174,27 @@ public class GlobalExceptionHandler {
                 .body(construir(HttpStatus.BAD_REQUEST, "Cuerpo de la Peticion Invalido",
                         "No se pudo interpretar el cuerpo de la peticion.",
                         causa != null ? List.of(causa) : null, request));
+    }
+
+    /**
+     * Una imagen por encima del limite de Spring. El servicio ya rechaza con un
+     * 400 lo que pase de 2 MB; esto ataja lo que ni siquiera llega a leerse.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponseDto> archivoDemasiadoGrande(MaxUploadSizeExceededException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
+                .body(construir(HttpStatus.CONTENT_TOO_LARGE, "Archivo Demasiado Grande",
+                        "La imagen supera el maximo de 2 MB.", null, request));
+    }
+
+    /** Un envio de archivo sin la parte que el endpoint espera, o que no es multipart. */
+    @ExceptionHandler({ MissingServletRequestPartException.class, MultipartException.class })
+    public ResponseEntity<ErrorResponseDto> envioDeArchivoInvalido(Exception ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(construir(HttpStatus.BAD_REQUEST, "Envio de Archivo Invalido",
+                        "La peticion no trae la imagen en el campo 'archivo'.",
+                        List.of(ex.getMessage()), request));
     }
 
     @ExceptionHandler(Exception.class)

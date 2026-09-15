@@ -67,6 +67,10 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
 
+                        // Fotos de la carta y logo: un <img> no manda Authorization.
+                        // Solo lectura y por UUID; subirlas sigue pidiendo sesion y cargo.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/archivos/*").permitAll()
+
                         // El alta de trabajadores ya no es publica: antes cualquiera en
                         // internet podia darse de alta. El primer administrador se crea
                         // con POST /api/v1/auth/bootstrap, que solo funciona con la

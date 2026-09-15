@@ -104,8 +104,13 @@ services:
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: ${LOG_NIVEL:-INFO}
       LOGGING_LEVEL_COM_CHAQUENA_BACKEND_LOGISTICA: ${LOG_NIVEL:-INFO}
 
+      # Fotos de la carta y logo del local, en su propio volumen.
+      ARCHIVOS_DIRECTORIO: /aplicacion/archivos
+
       # CORS no se configura: el navegador habla solo con Nginx, en el mismo
       # origen, y nunca llega a cruzar hacia el backend.
+    volumes:
+      - archivos_logistica:/aplicacion/archivos
     expose:
       - "8080"
     healthcheck:
@@ -137,3 +142,6 @@ volumes:
   # Volumen con nombre y no carpeta del host: no depende de ninguna ruta del
   # servidor, sobrevive a cada redespliegue y se respalda como una unidad.
   postgres_logistica_data:
+  # Las fotos de la carta y el logo: se respaldan junto con la base, porque
+  # la base guarda a que fichero apunta cada platillo.
+  archivos_logistica:
