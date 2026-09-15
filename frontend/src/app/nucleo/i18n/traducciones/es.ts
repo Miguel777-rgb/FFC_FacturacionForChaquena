@@ -775,7 +775,6 @@ export const ES = {
   'mesas.personas.otros': '{n} personas',
   'mesas.sinCapacidad': 'Capacidad sin definir',
   'mesas.reservadaA': 'A nombre de {nombre}, {hora}',
-  'mesas.reservadaSinNombre': 'Reservada para {hora}',
   'mesas.ninguna': 'Todavía no hay mesas registradas.',
   'mesas.ningunaConFiltro': 'Ninguna mesa está en ese estado ahora.',
   'mesas.comanda': 'Comanda {codigo}',
@@ -799,6 +798,44 @@ export const ES = {
   'mesas.avisoHabilitada': 'Mesa {numero} habilitada.',
   'mesas.avisoInhabilitada': 'Mesa {numero} inhabilitada.',
   'mesas.avisoAlta': 'Mesa {numero} agregada al salón.',
+  'mesas.salon': 'Salón',
+  'mesas.reservas': 'Reservas',
+  'mesas.vistas': 'Salón y reservas',
+  'mesas.proximaReserva': 'Reserva a las {hora}: {nombre}',
+  'mesas.editarPlano': 'Editar plano',
+  'mesas.guardarPlano': 'Guardar plano',
+  'mesas.descartarPlano': 'Descartar cambios',
+  'mesas.herramientasPlano': 'Tamaño y forma de la mesa',
+  'mesas.ayudaPlano': 'Arrastra una mesa, o elígela y muévela con las flechas. Elegida, puedes cambiar su tamaño y su forma.',
+  'mesas.ancho': 'Ancho',
+  'mesas.alto': 'Alto',
+  'mesas.menosAncho': 'Menos ancha',
+  'mesas.masAncho': 'Más ancha',
+  'mesas.menosAlto': 'Menos alta',
+  'mesas.masAlto': 'Más alta',
+  'mesas.hacerRedonda': 'Hacerla redonda',
+  'mesas.hacerCuadrada': 'Hacerla cuadrada',
+  'mesas.avisoPlano.uno': 'Plano guardado: {n} mesa movida.',
+  'mesas.avisoPlano.otros': 'Plano guardado: {n} mesas movidas.',
+
+  // --- reservas -------------------------------------------------------------
+  'reservas.nueva': 'Nueva reserva',
+  'reservas.dia': 'Día',
+  'reservas.hora': 'Hora',
+  'reservas.mesa': 'Mesa',
+  'reservas.personas': 'Personas',
+  'reservas.celular': 'Celular (opcional)',
+  'reservas.duracion': 'Duración',
+  'reservas.nota': 'Nota (opcional)',
+  'reservas.ninguna': 'No hay reservas para este día.',
+  'reservas.confirmar': 'Confirmar',
+  'reservas.llegaron': 'Llegaron',
+  'reservas.noVino': 'No vino',
+  'reservas.cancelar': 'Cancelar reserva',
+  'reservas.cancelarTitulo': '¿Cancelar la reserva de {nombre}?',
+  'reservas.cancelarMensaje': 'La mesa {mesa} deja de estar apartada para las {hora}. La reserva queda en la agenda como cancelada.',
+  'reservas.avisoEstado': '{nombre}: {estado}.',
+  'reservas.avisoCapacidad': 'La mesa {numero} es para {n} personas.',
 
   // --- clientes -------------------------------------------------------------
   'clientes.buscar': 'Buscar por nombre, documento o celular',
@@ -1041,6 +1078,12 @@ export const ES = {
   'mesa.RESERVADA': 'Reservada',
   'mesa.INHABILITADA': 'Inhabilitada',
 
+  'reserva.PENDIENTE': 'Pendiente',
+  'reserva.CONFIRMADA': 'Confirmada',
+  'reserva.CUMPLIDA': 'Cumplida',
+  'reserva.CANCELADA': 'Cancelada',
+  'reserva.NO_ASISTIO': 'No asistió',
+
   'metodo.EFECTIVO': 'Efectivo',
   'metodo.TARJETA': 'Tarjeta',
   'metodo.E_WALLET': 'Billetera',
@@ -1135,4 +1178,5 @@ export type GrupoEnum =
   | 'cupon'
   | 'tipoComplemento'
   | 'dia'
-  | 'vencimiento';
+  | 'vencimiento'
+  | 'reserva';

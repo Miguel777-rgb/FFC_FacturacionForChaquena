@@ -2,92 +2,318 @@
   <header class="cabecera">
     <h1>{{ t('panel.mesas') }}</h1>
     <div class="acciones-cabecera">
-      @if (esAdmin()) {
-        <button type="button" class="secundario" (click)="abrirAlta()">
+      @if (vista() === 'salon') {
+        @if (editando()) {
+          <button
+            type="button"
+            class="secundario"
+            (click)="descartarPlano()"
+            [disabled]="guardando()"
+          >
+            {{ t('mesas.descartarPlano') }}
+          </button>
+          <button
+            type="button"
+            (click)="guardarPlano()"
+            [disabled]="guardando() || cambiosDelPlano().length === 0"
+          >
+            {{ t(guardando() ? 'comun.guardando' : 'mesas.guardarPlano') }}
+          </button>
+        } @else {
+          @if (esAdmin() && plano()) {
+            <button type="button" class="secundario" (click)="empezarEdicion()">
+              <app-icono nombre="lapiz" [tamano]="18" />
+              {{ t('mesas.editarPlano') }}
+            </button>
+          }
+          @if (esAdmin()) {
+            <button type="button" class="secundario" (click)="abrirAlta()">
+              <app-icono nombre="alta" [tamano]="18" />
+              {{ t('mesas.nueva') }}
+            </button>
+          }
+          <button
+            type="button"
+            class="secundario"
+            (click)="cargar()"
+            [disabled]="cargando()"
+            [attr.aria-busy]="cargando()"
+          >
+            <app-icono nombre="actualizar" [tamano]="18" />
+            {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
+          </button>
+        }
+      } @else {
+        <button type="button" class="secundario" (click)="abrirReserva()">
           <app-icono nombre="alta" [tamano]="18" />
-          {{ t('mesas.nueva') }}
+          {{ t('reservas.nueva') }}
         </button>
       }
-      <button
-        type="button"
-        class="secundario"
-        (click)="cargar()"
-        [disabled]="cargando()"
-        [attr.aria-busy]="cargando()"
-      >
-        <app-icono nombre="actualizar" [tamano]="18" />
-        {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
-      </button>
     </div>
   </header>
 
-  <div class="seccion">
-    <div class="barra">
-      <div class="rangos" role="group" [attr.aria-label]="t('mesas.filtro')">
-        @for (f of FILTROS; track f.id) {
-          <button
-            type="button"
-            class="secundario chico"
-            [attr.aria-pressed]="filtro() === f.id"
-            (click)="filtro.set(f.id)"
+  <nav class="pestanas" [attr.aria-label]="t('mesas.vistas')">
+    @for (v of VISTAS; track v.id) {
+      <button
+        type="button"
+        [class.activa]="vista() === v.id"
+        [attr.aria-current]="vista() === v.id ? 'page' : null"
+        [disabled]="editando()"
+        (click)="elegirVista(v.id)"
+      >
+        {{ t(v.nombre) }}
+      </button>
+    }
+  </nav>
+
+  <!-- Lo que se ve de cada mesa, igual en el plano y en la lista. -->
+  <ng-template #contenidoMesa let-m>
+    <span class="cabeza">
+      <span class="numero">{{ m.numero }}</span>
+      <span class="chip" [attr.data-estado]="m.estado">{{ tEnum('mesa', m.estado) }}</span>
+    </span>
+    <span class="tenue capacidad">{{ capacidadDe(m) }}</span>
+    @if (minutosDe(m) !== null) {
+      <span class="consumo">
+        <span class="cifra">S/ {{ totalDe(m) | number: '1.2-2' }}</span>
+        <span class="tenue">{{ duracion(minutosDe(m)) }}</span>
+      </span>
+    } @else if (reservaDe(m); as texto) {
+      <span class="reserva" [class.luego]="m.estado !== ESTADO.RESERVADA">{{ texto }}</span>
+    }
+  </ng-template>
+
+  @switch (vista()) {
+    @case ('salon') {
+      <div class="seccion">
+        @if (editando()) {
+          <div
+            class="herramientas-plano"
+            role="group"
+            [attr.aria-label]="t('mesas.herramientasPlano')"
           >
-            {{ t(f.nombre) }}
-            @if (f.id !== 'todas') {
-              <span class="cifra cuenta">{{ conteo()[f.id] ?? 0 }}</span>
+            @if (seleccionada(); as s) {
+              @let l = lugarDe(s);
+              <span class="rotulo">{{ t('comun.mesa', { numero: s.numero ?? '' }) }}</span>
+              <span class="medida">
+                {{ t('mesas.ancho') }}
+                <button
+                  type="button"
+                  class="secundario chico"
+                  (click)="redimensionar('ancho', -1)"
+                  [attr.aria-label]="t('mesas.menosAncho')"
+                >
+                  −
+                </button>
+                <span class="cifra">{{ l.ancho }}</span>
+                <button
+                  type="button"
+                  class="secundario chico"
+                  (click)="redimensionar('ancho', 1)"
+                  [attr.aria-label]="t('mesas.masAncho')"
+                >
+                  +
+                </button>
+              </span>
+              <span class="medida">
+                {{ t('mesas.alto') }}
+                <button
+                  type="button"
+                  class="secundario chico"
+                  (click)="redimensionar('alto', -1)"
+                  [attr.aria-label]="t('mesas.menosAlto')"
+                >
+                  −
+                </button>
+                <span class="cifra">{{ l.alto }}</span>
+                <button
+                  type="button"
+                  class="secundario chico"
+                  (click)="redimensionar('alto', 1)"
+                  [attr.aria-label]="t('mesas.masAlto')"
+                >
+                  +
+                </button>
+              </span>
+              <button type="button" class="secundario chico" (click)="alternarForma()">
+                {{ t(l.forma === FORMA.REDONDA ? 'mesas.hacerCuadrada' : 'mesas.hacerRedonda') }}
+              </button>
+            } @else {
+              <span class="tenue">{{ t('mesas.ayudaPlano') }}</span>
             }
-          </button>
+          </div>
+        } @else {
+          <div class="barra">
+            <div class="rangos" role="group" [attr.aria-label]="t('mesas.filtro')">
+              @for (f of FILTROS; track f.id) {
+                <button
+                  type="button"
+                  class="secundario chico"
+                  [attr.aria-pressed]="filtro() === f.id"
+                  (click)="filtro.set(f.id)"
+                >
+                  {{ t(f.nombre) }}
+                  @if (f.id !== 'todas') {
+                    <span class="cifra cuenta">{{ conteo()[f.id] ?? 0 }}</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @for (z of zonas(); track z.nombre) {
+          <section class="bloque">
+            <h2>
+              {{ z.nombre || t('mesas.sinZona') }}
+              <span class="tenue">{{ tp('mesas.cuantas', z.mesas.length) }}</span>
+            </h2>
+
+            @if (plano()) {
+              <!-- Cada mesa en su celda. En edicion se arrastra con el puntero o
+                   se mueve con las flechas; el plano se guarda entero al final. -->
+              <ul
+                class="plano"
+                [class.editando]="editando()"
+                [style.grid-template-rows]="'repeat(' + z.filas + ', 3.25rem)'"
+              >
+                @for (m of z.mesas; track m.id) {
+                  @let l = lugarDe(m);
+                  <li
+                    [style.grid-column]="l.columna + 1 + ' / span ' + l.ancho"
+                    [style.grid-row]="l.fila + 1 + ' / span ' + l.alto"
+                    [class.atenuada]="!editando() && !coincide(m)"
+                  >
+                    <button
+                      type="button"
+                      class="mesa"
+                      [class.redonda]="l.forma === FORMA.REDONDA"
+                      [class.elegida]="editando() && seleccionadaId() === m.id"
+                      [attr.data-estado]="m.estado"
+                      [attr.title]="resumenDe(m)"
+                      (click)="tocarMesa(m)"
+                      (pointerdown)="empezarArrastre($event, m)"
+                      (pointermove)="arrastrar($event, m)"
+                      (pointerup)="soltar()"
+                      (pointercancel)="soltar()"
+                      (keydown)="teclaEnMesa($event, m)"
+                    >
+                      <ng-container *ngTemplateOutlet="contenidoMesa; context: { $implicit: m }" />
+                    </button>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <ul class="rejilla">
+                @for (m of z.mesas; track m.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="mesa"
+                      [attr.data-estado]="m.estado"
+                      (click)="abrir(m)"
+                    >
+                      <ng-container *ngTemplateOutlet="contenidoMesa; context: { $implicit: m }" />
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        } @empty {
+          <p class="vacio">
+            {{
+              t(
+                cargando()
+                  ? 'comun.cargando'
+                  : mesas().length === 0
+                    ? 'mesas.ninguna'
+                    : 'mesas.ningunaConFiltro'
+              )
+            }}
+          </p>
         }
       </div>
-    </div>
-
-    <!-- Una tarjeta por mesa, por zona: asi se recorre el local. -->
-    @for (z of zonas(); track z.nombre) {
-      <section class="bloque">
-        <h2>
-          {{ z.nombre || t('mesas.sinZona') }}
-          <span class="tenue">{{ tp('mesas.cuantas', z.mesas.length) }}</span>
-        </h2>
-        <ul class="rejilla">
-          @for (m of z.mesas; track m.id) {
-            <li>
-              <button
-                type="button"
-                class="mesa"
-                [attr.data-estado]="m.estado"
-                (click)="abrir(m)"
-              >
-                <span class="cabeza">
-                  <span class="numero">{{ m.numero }}</span>
-                  <span class="chip" [attr.data-estado]="m.estado">{{ tEnum('mesa', m.estado) }}</span>
-                </span>
-                <span class="tenue">{{ capacidadDe(m) }}</span>
-                @if (minutosDe(m) !== null) {
-                  <span class="consumo">
-                    <span class="cifra">S/ {{ totalDe(m) | number: '1.2-2' }}</span>
-                    <span class="tenue">{{ duracion(minutosDe(m)) }}</span>
-                  </span>
-                } @else if (m.estado === ESTADO.RESERVADA) {
-                  <span class="reserva">{{ reservaDe(m) }}</span>
-                }
-              </button>
-            </li>
-          }
-        </ul>
-      </section>
-    } @empty {
-      <p class="vacio">
-        {{
-          t(
-            cargando()
-              ? 'comun.cargando'
-              : mesas().length === 0
-                ? 'mesas.ninguna'
-                : 'mesas.ningunaConFiltro'
-          )
-        }}
-      </p>
     }
-  </div>
+
+    @case ('reservas') {
+      <div class="seccion agenda">
+        <div class="barra">
+          <label class="campo">
+            <span>{{ t('reservas.dia') }}</span>
+            <input type="date" [value]="dia()" (change)="cambiarDia($any($event.target).value)" />
+          </label>
+        </div>
+
+        <div class="desplazable">
+          <table class="tabla apilable">
+            <thead>
+              <tr>
+                <th>{{ t('reservas.hora') }}</th>
+                <th>{{ t('reservas.mesa') }}</th>
+                <th>{{ t('mesas.aNombreDe') }}</th>
+                <th class="num">{{ t('reservas.personas') }}</th>
+                <th>{{ t('comun.estado') }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of reservas() ?? []; track r.id) {
+                <tr [class.tenue]="!r.transicionesPermitidas?.length">
+                  <td class="hora cifra">{{ rangoDe(r) }}</td>
+                  <td [attr.data-etiqueta]="t('reservas.mesa')">
+                    {{ r.mesaNumero }}
+                    <small class="tenue">· {{ r.zona || t('mesas.sinZona') }}</small>
+                  </td>
+                  <td [attr.data-etiqueta]="t('mesas.aNombreDe')">
+                    {{ r.nombre }}
+                    @if (r.celular) {
+                      <small class="tenue bajada cifra">{{ r.celular }}</small>
+                    }
+                    @if (r.nota) {
+                      <small class="tenue bajada">{{ r.nota }}</small>
+                    }
+                  </td>
+                  <td class="num cifra" [attr.data-etiqueta]="t('reservas.personas')">
+                    {{ r.personas }}
+                  </td>
+                  <td [attr.data-etiqueta]="t('comun.estado')">
+                    <span
+                      class="chip"
+                      [class.ok]="r.estado === RESERVA.CONFIRMADA"
+                      [class.aviso]="r.estado === RESERVA.PENDIENTE"
+                      [class.info]="r.estado === RESERVA.CUMPLIDA"
+                      [class.peligro]="r.estado === RESERVA.NO_ASISTIO"
+                    >
+                      {{ tEnum('reserva', r.estado) }}
+                    </span>
+                  </td>
+                  <td class="acciones">
+                    @for (g of gestosDe(r); track g.estado) {
+                      <button
+                        type="button"
+                        class="secundario chico"
+                        (click)="cambiarReserva(r, g.estado)"
+                        [disabled]="guardando()"
+                      >
+                        {{ t(g.nombre) }}
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="vacio">
+                    {{ t(reservas() === null ? 'comun.cargando' : 'reservas.ninguna') }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
 </section>
 
 <app-dialogo [titulo]="tituloDetalle()" [(abierto)]="detalleAbierto">
@@ -98,8 +324,19 @@
         <span class="tenue">{{ m.zona || t('mesas.sinZona') }} · {{ capacidadDe(m) }}</span>
       </p>
 
-      @if (m.estado === ESTADO.RESERVADA) {
-        <p class="mensaje info">{{ reservaDe(m) }}</p>
+      @if (m.reservaProxima; as r) {
+        <div class="mensaje info reserva-detalle">
+          <p>
+            <strong>{{ r.nombre }}</strong> · {{ tp('mesas.personas', r.personas ?? 0) }}
+          </p>
+          <p class="cifra">{{ rangoDe(r) }} · {{ tEnum('reserva', r.estado) }}</p>
+          @if (r.celular) {
+            <p class="cifra">{{ r.celular }}</p>
+          }
+          @if (r.nota) {
+            <p>{{ r.nota }}</p>
+          }
+        </div>
       }
 
       @if (comandasElegida().length > 0) {
@@ -108,10 +345,15 @@
             <li>
               <div class="fila">
                 <strong>{{ t('mesas.comanda', { codigo: codigo(o.id) }) }}</strong>
-                <span class="chip" [attr.data-estado]="o.estado">{{ tEnum('estado', o.estado) }}</span>
+                <span class="chip" [attr.data-estado]="o.estado">{{
+                  tEnum('estado', o.estado)
+                }}</span>
               </div>
               <div class="fila tenue">
-                <span>{{ tp('comun.items', o.cantidadItems ?? 0) }} · {{ duracion(o.minutosTranscurridos) }}</span>
+                <span
+                  >{{ tp('comun.items', o.cantidadItems ?? 0) }} ·
+                  {{ duracion(o.minutosTranscurridos) }}</span
+                >
                 <span class="cifra">S/ {{ o.montoTotal ?? 0 | number: '1.2-2' }}</span>
               </div>
               <button type="button" class="secundario chico" (click)="verComanda(o)">
@@ -124,37 +366,33 @@
       } @else if (m.estado === ESTADO.OCUPADA) {
         <p class="tenue">{{ t('mesas.ocupadaSinComanda') }}</p>
       }
-
-      @if (reservando()) {
-        <div class="formulario">
-          <label class="campo">
-            <span>{{ t('mesas.aNombreDe') }}</span>
-            <input
-              type="text"
-              autocomplete="off"
-              [value]="aNombreDe()"
-              (input)="aNombreDe.set($any($event.target).value)"
-            />
-          </label>
-          <label class="campo">
-            <span>{{ t('mesas.para') }}</span>
-            <input
-              type="datetime-local"
-              [value]="para()"
-              (input)="para.set($any($event.target).value)"
-            />
-          </label>
-          <button type="button" (click)="reservar()" [disabled]="!para() || guardando()">
-            {{ t(guardando() ? 'comun.guardando' : 'mesas.confirmarReserva') }}
-          </button>
-        </div>
-      }
     </div>
   }
 
   <!-- Los gestos dependen del estado: una mesa ocupada se libera cobrando. -->
   <div pie>
     @if (elegida(); as m) {
+      @if (m.reservaProxima; as r) {
+        @if (puede(r, RESERVA.CANCELADA)) {
+          <button
+            type="button"
+            class="secundario"
+            (click)="cambiarReserva(r, RESERVA.CANCELADA)"
+            [disabled]="guardando()"
+          >
+            {{ t('mesas.anularReserva') }}
+          </button>
+        }
+        @if (m.estado === ESTADO.RESERVADA && puede(r, RESERVA.CUMPLIDA)) {
+          <button
+            type="button"
+            (click)="cambiarReserva(r, RESERVA.CUMPLIDA)"
+            [disabled]="guardando()"
+          >
+            {{ t('reservas.llegaron') }}
+          </button>
+        }
+      }
       @switch (m.estado) {
         @case (ESTADO.LIBRE) {
           <button
@@ -165,13 +403,8 @@
           >
             {{ t('mesas.inhabilitar') }}
           </button>
-          <button type="button" class="secundario" (click)="alternarReserva()">
-            {{ t(reservando() ? 'comun.dejarlo' : 'mesas.reservar') }}
-          </button>
-        }
-        @case (ESTADO.RESERVADA) {
-          <button type="button" class="secundario" (click)="liberar()" [disabled]="guardando()">
-            {{ t('mesas.anularReserva') }}
+          <button type="button" class="secundario" (click)="abrirReserva(m)">
+            {{ t('mesas.reservar') }}
           </button>
         }
         @case (ESTADO.OCUPADA) {
@@ -193,6 +426,102 @@
         }
       }
     }
+  </div>
+</app-dialogo>
+
+<app-dialogo class="dialogo-reserva" [titulo]="t('reservas.nueva')" [(abierto)]="reservaAbierta">
+  <div class="formulario">
+    <label class="campo">
+      <span>{{ t('reservas.mesa') }}</span>
+      <select (change)="reservaMesaId.set($any($event.target).value)">
+        @for (m of mesasReservables(); track m.id) {
+          <option [value]="m.id" [selected]="reservaMesaId() === m.id">
+            {{ m.numero }} · {{ m.zona || t('mesas.sinZona') }} · {{ capacidadDe(m) }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="campo">
+      <span>{{ t('mesas.aNombreDe') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        maxlength="120"
+        [value]="reservaNombre()"
+        (input)="reservaNombre.set($any($event.target).value)"
+      />
+    </label>
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('reservas.celular') }}</span>
+        <input
+          type="tel"
+          inputmode="tel"
+          autocomplete="off"
+          maxlength="20"
+          [value]="reservaCelular()"
+          (input)="reservaCelular.set($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('reservas.personas') }}</span>
+        <input
+          class="personas"
+          type="number"
+          min="1"
+          max="50"
+          inputmode="numeric"
+          [value]="reservaPersonas() ?? ''"
+          (input)="anotarPersonas($any($event.target).value)"
+        />
+      </label>
+    </div>
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('mesas.para') }}</span>
+        <input
+          type="datetime-local"
+          [value]="reservaInicio()"
+          (input)="reservaInicio.set($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('reservas.duracion') }}</span>
+        <select (change)="elegirDuracion($any($event.target).value)">
+          @for (d of DURACIONES; track d) {
+            <option [value]="d" [selected]="reservaDuracion() === d">{{ duracion(d) }}</option>
+          }
+        </select>
+      </label>
+    </div>
+    <label class="campo">
+      <span>{{ t('reservas.nota') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        maxlength="500"
+        [value]="reservaNota()"
+        (input)="reservaNota.set($any($event.target).value)"
+      />
+    </label>
+  </div>
+  <div pie>
+    <button type="button" class="secundario" (click)="reservaAbierta.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button
+      type="button"
+      (click)="guardarReserva()"
+      [disabled]="
+        !reservaMesaId() ||
+        !reservaNombre().trim() ||
+        !reservaPersonas() ||
+        !reservaInicio() ||
+        guardando()
+      "
+    >
+      {{ t(guardando() ? 'comun.guardando' : 'mesas.confirmarReserva') }}
+    </button>
   </div>
 </app-dialogo>
 

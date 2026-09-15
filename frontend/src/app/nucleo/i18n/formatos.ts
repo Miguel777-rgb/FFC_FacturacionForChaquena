@@ -21,14 +21,15 @@ const REGION: Record<Idioma, string> = {
 };
 
 /**
- * Los dos estilos de fecha que usa la interfaz.
+ * Los estilos de fecha que usa la interfaz.
  *
  * `corta` va en las tablas, donde la fecha es una columna estrecha al lado de
  * datos mas importantes. `larga` va en los detalles, donde hay sitio y donde
  * conviene que no quede ninguna duda sobre que dia es: el mes con letras no se
- * puede leer al reves.
+ * puede leer al reves. `hora` va donde el dia ya se sabe, como la agenda de
+ * reservas de un dia.
  */
-export type EstiloFecha = 'corta' | 'larga' | 'dia';
+export type EstiloFecha = 'corta' | 'larga' | 'dia' | 'hora';
 
 const OPCIONES: Record<EstiloFecha, Intl.DateTimeFormatOptions> = {
   corta: {
@@ -50,12 +51,16 @@ const OPCIONES: Record<EstiloFecha, Intl.DateTimeFormatOptions> = {
     month: '2-digit',
     year: 'numeric',
   },
+  hora: {
+    hour: 'numeric',
+    minute: '2-digit',
+  },
 };
 
 /**
  * Construir un `Intl.DateTimeFormat` no es gratis y la tabla del kardex lo
- * pediria una vez por fila. Como solo hay tres idiomas y tres estilos, el cache
- * tiene como mucho nueve entradas y no hace falta vaciarlo nunca.
+ * pediria una vez por fila. Como solo hay tres idiomas y cuatro estilos, el cache
+ * tiene como mucho doce entradas y no hace falta vaciarlo nunca.
  */
 const CACHE = new Map<string, Intl.DateTimeFormat>();
 
