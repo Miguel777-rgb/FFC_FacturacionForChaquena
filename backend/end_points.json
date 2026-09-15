@@ -2131,6 +2131,41 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Actualizar platillo con foto, tiempo de preparacion y alergenos (ADMIN, ALMACEN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/platillos/{{platilloId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "platillos",
+                "{{platilloId}}"
+              ]
+            },
+            "description": "Actualizar platillo con foto, tiempo de preparacion y alergenos (ADMIN, ALMACEN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoriaId\": \"{{categoriaId}}\",\n  \"nombre\": \"Lomo saltado\",\n  \"descripcion\": \"Con papas fritas y arroz\",\n  \"precioVentaBase\": 32,\n  \"fotoId\": \"{{archivo_id}}\",\n  \"tiempoPreparacionMinutos\": 15,\n  \"alergenoIds\": [\n    \"{{alergeno_id}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
         }
       ],
       "description": "Carta, precios y recetas (BOM)"
@@ -6352,6 +6387,54 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Poner como logo una imagen ya subida (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/local/logo?archivoId={{archivo_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "local",
+                "logo"
+              ],
+              "query": [
+                {
+                  "key": "archivoId",
+                  "value": "{{archivo_id}}"
+                }
+              ]
+            },
+            "description": "Poner como logo una imagen ya subida (ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "Quitar el logo del local (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/local/logo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "local",
+                "logo"
+              ]
+            },
+            "description": "Quitar el logo del local (ADMIN)"
+          },
+          "response": []
         }
       ]
     },
@@ -6478,6 +6561,190 @@
               ]
             },
             "description": "Dar de baja o reactivar un proveedor (ADMIN, ALMACEN)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "27 · Archivos",
+      "item": [
+        {
+          "name": "Subir una imagen WebP, PNG o JPEG de hasta 2 MB (ADMIN, ALMACEN)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/archivos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "archivos"
+              ]
+            },
+            "description": "Subir una imagen WebP, PNG o JPEG de hasta 2 MB (ADMIN, ALMACEN)",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "La imagen (publica, sin token)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/archivos/{{archivo_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "archivos",
+                "{{archivo_id}}"
+              ]
+            },
+            "description": "La imagen (publica, sin token)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "28 · Catalogo · Alergenos",
+      "item": [
+        {
+          "name": "Alergenos por nombre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alergenos?soloActivos=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "alergenos"
+              ],
+              "query": [
+                {
+                  "key": "soloActivos",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Alergenos por nombre"
+          },
+          "response": []
+        },
+        {
+          "name": "Agregar un alergeno (ADMIN, ALMACEN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alergenos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "alergenos"
+              ]
+            },
+            "description": "Agregar un alergeno (ADMIN, ALMACEN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Kiwicha\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Renombrar un alergeno (ADMIN, ALMACEN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alergenos/{{alergeno_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "alergenos",
+                "{{alergeno_id}}"
+              ]
+            },
+            "description": "Renombrar un alergeno (ADMIN, ALMACEN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Kiwicha y quinua\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dar de baja o reactivar un alergeno (ADMIN, ALMACEN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alergenos/{{alergeno_id}}/activo?activo=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "alergenos",
+                "{{alergeno_id}}",
+                "activo"
+              ],
+              "query": [
+                {
+                  "key": "activo",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Dar de baja o reactivar un alergeno (ADMIN, ALMACEN)"
           },
           "response": []
         }
@@ -6676,6 +6943,14 @@
     },
     {
       "key": "proveedor_id",
+      "value": ""
+    },
+    {
+      "key": "archivo_id",
+      "value": ""
+    },
+    {
+      "key": "alergeno_id",
       "value": ""
     }
   ]
