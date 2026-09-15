@@ -1,0 +1,161 @@
+/* --- tabla ------------------------------------------------------------------ */
+.plato {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  min-width: 0;
+
+  .texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .nombre {
+    color: var(--tinta);
+  }
+
+  small {
+    font-size: var(--t-chico);
+  }
+}
+
+/* 15 min · Contiene gluten, soya: los separadores solo entre lo que hay. */
+.detalles span + span::before {
+  content: ' · ';
+}
+
+.miniatura {
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-chico);
+
+  &.vacia {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tenue);
+  }
+}
+
+.negativo {
+  color: var(--critico);
+}
+
+/* --- ficha ------------------------------------------------------------------ */
+.foto-platillo {
+  display: grid;
+  gap: var(--e2);
+
+  img,
+  .sin-foto {
+    width: min(100%, 18rem);
+    max-width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    background: var(--hundido);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+  }
+
+  .sin-foto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--e1);
+    color: var(--tenue);
+    font-size: var(--t-chico);
+  }
+}
+
+.acciones-foto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+}
+
+.error-foto {
+  margin: 0;
+  color: var(--critico);
+  font-size: var(--t-chico);
+}
+
+.tiempo {
+  max-width: 10rem;
+}
+
+.alergenos {
+  display: grid;
+  gap: var(--e2);
+  margin: 0;
+  padding: var(--e3);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+
+  legend {
+    padding: 0 var(--e1);
+    font-size: var(--t-chico);
+    font-weight: 600;
+    color: var(--tenue);
+  }
+}
+
+.casillas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0 var(--e3);
+}
+
+/* Toda la fila es el blanco del dedo, no solo la casilla de 18 px. */
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  min-height: 2.75rem;
+  cursor: pointer;
+
+  input {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    accent-color: var(--acento);
+  }
+}
+
+.costo-platillo {
+  display: grid;
+  gap: var(--e1);
+  padding: var(--e3);
+  background: var(--hundido);
+  border-radius: var(--radio);
+
+  h3 {
+    margin: 0;
+    font-family: var(--f-texto);
+    font-size: var(--t-texto);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+/* Un importe no se parte en dos lineas, y la explicacion de por que no hay
+   costo no ensancha la columna hasta aplastar el precio y el margen. */
+td.num .cifra {
+  white-space: nowrap;
+}
+
+td.num .bajada {
+  max-width: 16rem;
+  margin-left: auto;
+}

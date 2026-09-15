@@ -177,9 +177,26 @@
               [disabled]="!p.disponible"
               (click)="agregar(p)"
             >
+              @if (urlDeArchivo(p.fotoId); as foto) {
+                <img class="foto" [src]="foto" alt="" loading="lazy" />
+              }
               <span class="categoria">{{ p.categoriaNombre }}</span>
               <span class="nombre">{{ p.nombre }}</span>
               <span class="precio cifra">S/ {{ p.precioVentaBase | number: '1.2-2' }}</span>
+
+              <!-- Lo que el comensal pregunta antes de pedir: cuanto tarda y que lleva. -->
+              @if (p.tiempoPreparacionMinutos || p.alergenos?.length) {
+                <span class="detalles">
+                  @if (p.tiempoPreparacionMinutos) {
+                    <span>{{ t('pos.minutos', { n: p.tiempoPreparacionMinutos }) }}</span>
+                  }
+                  @if (p.alergenos?.length) {
+                    <span class="alergenos">
+                      {{ t('pos.contiene', { alergenos: p.alergenos?.join(', ') ?? '' }) }}
+                    </span>
+                  }
+                </span>
+              }
 
               @if (!p.disponible) {
                 <!-- El servidor manda la carta entera con la bandera puesta: el

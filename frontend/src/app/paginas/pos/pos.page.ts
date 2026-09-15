@@ -40,6 +40,7 @@ import {
 } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { urlDeArchivo } from '../../nucleo/marca/archivos';
 
 /** Un complemento elegido para una linea, con su propia cantidad. */
 interface ComplementoElegido {
@@ -105,6 +106,7 @@ export class PosPage implements OnInit {
   protected readonly t = this.i18n.t;
   protected readonly tp = this.i18n.tp;
   protected readonly tEnum = this.i18n.tEnum;
+  protected readonly urlDeArchivo = urlDeArchivo;
 
   /** El enum del contrato, para que la plantilla no escriba las cadenas a mano. */
   protected readonly TIPOS = TIPOS;

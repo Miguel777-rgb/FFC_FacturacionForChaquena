@@ -1,0 +1,92 @@
+<div class="seccion">
+  <div class="barra">
+    <p class="tenue">{{ t('alergenos.ayuda') }}</p>
+    <button type="button" class="secundario" (click)="abrirNuevo()">
+      <app-icono nombre="alta" [tamano]="18" />
+      {{ t('alergenos.nuevo') }}
+    </button>
+  </div>
+
+  <div class="desplazable">
+    <table class="tabla apilable">
+      <thead>
+        <tr>
+          <th>{{ t('alergenos.nombre') }}</th>
+          <th>{{ t('comun.estado') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of alergenos(); track a.id) {
+          <tr [class.tenue]="!a.activo">
+            <td>{{ a.nombre }}</td>
+            <td [attr.data-etiqueta]="t('comun.estado')">
+              <span class="chip" [class.ok]="a.activo">
+                {{ t(a.activo ? 'alergenos.seOfrece' : 'comun.deBaja') }}
+              </span>
+            </td>
+            <td class="acciones">
+              <button
+                type="button"
+                class="icono-accion"
+                (click)="abrirEdicion(a)"
+                [attr.title]="t('comun.editar')"
+                [attr.aria-label]="t('alergenos.editarAria', { nombre: a.nombre })"
+              >
+                <app-icono nombre="lapiz" [tamano]="18" />
+              </button>
+              <button
+                type="button"
+                class="icono-accion"
+                [class.destructiva]="a.activo"
+                [class.afirmativa]="!a.activo"
+                (click)="alternarActivo(a)"
+                [disabled]="guardando()"
+                [attr.title]="t(a.activo ? 'comun.darDeBaja' : 'comun.reactivar')"
+                [attr.aria-label]="
+                  t(a.activo ? 'alergenos.darDeBajaAria' : 'alergenos.reactivarAria', {
+                    nombre: a.nombre,
+                  })
+                "
+              >
+                <app-icono [nombre]="a.activo ? 'baja' : 'alta'" [tamano]="18" />
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="vacio">
+              {{ t(cargando() ? 'comun.cargando' : 'alergenos.ninguno') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-dialogo [titulo]="tituloFormulario()" [(abierto)]="formularioAbierto">
+  <div class="formulario">
+    <label class="campo">
+      <span>{{ t('alergenos.nombre') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        maxlength="60"
+        [value]="nombre()"
+        (input)="nombre.set($any($event.target).value)"
+      />
+    </label>
+    @if (editandoId() !== null) {
+      <p class="tenue">{{ t('alergenos.avisoRenombrar') }}</p>
+    }
+  </div>
+  <div pie>
+    <button type="button" class="secundario" (click)="formularioAbierto.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button type="button" (click)="guardar()" [disabled]="!nombre().trim() || guardando()">
+      {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+    </button>
+  </div>
+</app-dialogo>

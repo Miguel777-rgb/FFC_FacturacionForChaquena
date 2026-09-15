@@ -2,16 +2,18 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 
 import { I18nService } from '../../nucleo/i18n/i18n.service';
 import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
+import { AlergenosSeccion } from './alergenos.seccion';
 import { CartaSeccion } from './carta.seccion';
 import { ComplementosSeccion } from './complementos.seccion';
 import { PromocionesSeccion } from './promociones.seccion';
 
-type Seccion = 'platillos' | 'complementos' | 'promociones';
+type Seccion = 'platillos' | 'complementos' | 'promociones' | 'alergenos';
 
 const SECCIONES: ReadonlyArray<{ id: Seccion; nombre: ClaveI18n }> = [
   { id: 'platillos', nombre: 'menu.platillos' },
   { id: 'complementos', nombre: 'menu.complementos' },
   { id: 'promociones', nombre: 'menu.promociones' },
+  { id: 'alergenos', nombre: 'menu.alergenos' },
 ];
 
 /**
@@ -25,7 +27,7 @@ const SECCIONES: ReadonlyArray<{ id: Seccion; nombre: ClaveI18n }> = [
  */
 @Component({
   selector: 'app-menu',
-  imports: [CartaSeccion, ComplementosSeccion, PromocionesSeccion],
+  imports: [AlergenosSeccion, CartaSeccion, ComplementosSeccion, PromocionesSeccion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="superficie">
@@ -55,6 +57,9 @@ const SECCIONES: ReadonlyArray<{ id: Seccion; nombre: ClaveI18n }> = [
         }
         @case ('promociones') {
           <app-promociones-seccion />
+        }
+        @case ('alergenos') {
+          <app-alergenos-seccion />
         }
       }
     </section>

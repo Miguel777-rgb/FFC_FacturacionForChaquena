@@ -199,6 +199,20 @@
     color: var(--tenue);
   }
 
+  .alergenos {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--t-chico);
+    font-weight: 500;
+    color: var(--tinta);
+
+    app-icono {
+      flex: none;
+      color: var(--aviso);
+    }
+  }
+
   /* La nota cambia como se cocina el plato: tinte y borde, no letra gris que se
      pasa por alto en plena hora punta. */
   .nota {

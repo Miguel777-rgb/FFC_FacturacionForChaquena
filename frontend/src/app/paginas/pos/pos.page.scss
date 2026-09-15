@@ -111,6 +111,31 @@
     color: var(--acento);
   }
 
+  /* La foto ayuda a reconocer el plato, no a decorarlo: baja y recortada, para
+     que la carta siga cabiendo en el celular. */
+  .foto {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-bottom: var(--e1);
+    object-fit: cover;
+    background: var(--hundido);
+    border-radius: var(--radio-chico);
+  }
+
+  .detalles {
+    font-size: var(--t-chico);
+    color: var(--tenue);
+
+    > span + span::before {
+      content: ' · ';
+    }
+  }
+
+  .alergenos {
+    color: var(--tinta);
+  }
+
   .falta,
   .quedan {
     font-size: var(--t-chico);
@@ -138,8 +163,14 @@
   background: var(--hundido);
   border-color: var(--linea);
 
-  .precio {
+  .precio,
+  .alergenos {
     color: var(--tenue);
+  }
+
+  .foto {
+    opacity: 0.5;
+    filter: grayscale(1);
   }
 }
 

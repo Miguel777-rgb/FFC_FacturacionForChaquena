@@ -112,6 +112,15 @@
                       <span class="complementos">+ {{ l.complementos?.join(', ') }}</span>
                     }
 
+                    <!-- Para no emplatar a ciegas: lo que lleva el plato. Lo que el
+                         comensal pidio quitar viene en la nota. -->
+                    @if (l.alergenos?.length) {
+                      <span class="alergenos">
+                        <app-icono nombre="alerta" [tamano]="14" />
+                        {{ t('kds.alergenos', { alergenos: l.alergenos?.join(', ') ?? '' }) }}
+                      </span>
+                    }
+
                     <!-- La nota del comensal es lo unico que cambia como se cocina:
                          va destacada, no como texto secundario. -->
                     @if (l.nota) {

@@ -10,7 +10,13 @@ import { SesionService } from '../../nucleo/sesion/sesion.service';
 function tokenDe(cargo: string, roles: string[]): string {
   const b64 = (o: unknown) =>
     btoa(JSON.stringify(o)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  const claims = { sub: 'quien@chaquena.pe', username: 'quien', cargo, roles, exp: Math.floor(Date.now() / 1000) + 3600 };
+  const claims = {
+    sub: 'quien@chaquena.pe',
+    username: 'quien',
+    cargo,
+    roles,
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  };
   return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64(claims)}.firma-que-no-se-valida`;
 }
 
@@ -25,11 +31,15 @@ describe('MenuPage', () => {
     sessionStorage.clear();
     localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
     });
   });
 
-  it('reparte el menu en platillos, complementos y promociones, y abre por los platillos', () => {
+  it('reparte el menu en platillos, complementos, promociones y alergenos, y abre por los platillos', () => {
     TestBed.inject(SesionService).abrir(tokenDe('ALMACENERO', ['ALMACEN']));
     const fixture = crear();
     const pagina: HTMLElement = fixture.nativeElement;
@@ -37,7 +47,7 @@ describe('MenuPage', () => {
     const pestanas = Array.from(pagina.querySelectorAll('.pestanas button')).map((b) =>
       b.textContent!.trim(),
     );
-    expect(pestanas).toEqual(['Platillos', 'Complementos', 'Promociones']);
+    expect(pestanas).toEqual(['Platillos', 'Complementos', 'Promociones', 'Alérgenos']);
     expect(pagina.querySelector('app-carta-seccion')).not.toBeNull();
     expect(pagina.querySelector('app-promociones-seccion')).toBeNull();
   });

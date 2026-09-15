@@ -18,7 +18,8 @@
       }
     </select>
     <button type="button" class="secundario" (click)="abrirAlta()">
-      {{ t(altaAbierta() ? 'comun.dejarlo' : 'carta.nuevoPlatillo') }}
+      <app-icono nombre="alta" [tamano]="18" />
+      {{ t('carta.nuevoPlatillo') }}
     </button>
     <button type="button" class="secundario" (click)="abrirCategoria()">
       {{ t(categoriaAbierta() ? 'comun.dejarlo' : 'carta.nuevaSeccion') }}
@@ -43,51 +44,6 @@
     </div>
   }
 
-  @if (altaAbierta()) {
-    <div class="formulario bloque">
-      <h2>{{ t('carta.nuevoPlatillo') }}</h2>
-      <p class="vacio">{{ t('carta.avisoReceta') }}</p>
-      <div class="campos">
-        <input
-          type="text"
-          [attr.placeholder]="t('carta.nombre')"
-          [value]="nombre()"
-          (input)="anotarNombre($any($event.target).value)"
-          [attr.aria-label]="t('carta.nombrePlatillo')"
-        />
-        <select
-          [value]="categoriaId() ?? ''"
-          (change)="elegirCategoria($any($event.target).value)"
-          [attr.aria-label]="t('carta.seccionCarta')"
-        >
-          <option value="">{{ t('carta.seccionPlaceholder') }}</option>
-          @for (c of categorias(); track c.id) {
-            <option [value]="c.id">{{ c.nombre }}</option>
-          }
-        </select>
-        <input
-          type="number"
-          step="0.10"
-          min="0"
-          [attr.placeholder]="t('comun.precio')"
-          [value]="precio() ?? ''"
-          (input)="anotarPrecio($any($event.target).value)"
-          [attr.aria-label]="t('carta.precioVenta')"
-        />
-        <input
-          type="text"
-          [attr.placeholder]="t('carta.descripcion')"
-          [value]="descripcion()"
-          (input)="anotarDescripcion($any($event.target).value)"
-          [attr.aria-label]="t('carta.descripcionAria')"
-        />
-        <button type="button" (click)="altaPlatillo()" [disabled]="guardando()">
-          {{ t('comun.guardar') }}
-        </button>
-      </div>
-    </div>
-  }
-
   <div class="desplazable">
     <table class="tabla apilable">
       <thead>
@@ -95,6 +51,8 @@
           <th>{{ t('carta.platillo') }}</th>
           <th>{{ t('carta.seccion') }}</th>
           <th class="num">{{ t('comun.precio') }}</th>
+          <th class="num">{{ t('carta.costo') }}</th>
+          <th class="num">{{ t('carta.margen') }}</th>
           <th>{{ t('comun.estado') }}</th>
           <th></th>
         </tr>
@@ -103,19 +61,84 @@
         @for (p of visibles(); track p.id) {
           <tr [class.baja]="!p.activo">
             <td>
-              {{ p.nombre }}
-              @if (p.descripcion) {
-                <span class="tenue"> · {{ p.descripcion }}</span>
-              }
+              <div class="plato">
+                @if (urlDeArchivo(p.fotoId); as foto) {
+                  <img
+                    class="miniatura"
+                    [src]="foto"
+                    alt=""
+                    loading="lazy"
+                    width="48"
+                    height="48"
+                  />
+                } @else {
+                  <span class="miniatura vacia" aria-hidden="true">
+                    <app-icono nombre="imagen" [tamano]="18" />
+                  </span>
+                }
+                <div class="texto">
+                  <span class="nombre">{{ p.nombre }}</span>
+                  @if (p.descripcion) {
+                    <small class="tenue">{{ p.descripcion }}</small>
+                  }
+                  @if (p.tiempoPreparacionMinutos || p.alergenos?.length) {
+                    <small class="detalles tenue">
+                      @if (p.tiempoPreparacionMinutos) {
+                        <span>{{ t('carta.minutos', { n: p.tiempoPreparacionMinutos }) }}</span>
+                      }
+                      @if (p.alergenos?.length) {
+                        <span>{{ t('carta.contiene', { alergenos: alergenosDe(p) }) }}</span>
+                      }
+                    </small>
+                  }
+                </div>
+              </div>
             </td>
             <td class="tenue" [attr.data-etiqueta]="t('carta.seccion')">
               {{ p.categoriaNombre || nombreCategoriaDe(p.categoriaId) }}
             </td>
-            <td class="num cifra" [attr.data-etiqueta]="t('comun.precio')">S/ {{ p.precioVentaBase | number: '1.2-2' }}</td>
+            <td class="num cifra" [attr.data-etiqueta]="t('comun.precio')">
+              S/ {{ p.precioVentaBase | number: '1.2-2' }}
+            </td>
+            <td class="num" [attr.data-etiqueta]="t('carta.costo')">
+              @if (p.costo !== undefined && p.costo !== null) {
+                <span class="cifra">S/ {{ p.costo | number: '1.2-2' }}</span>
+              } @else if (p.insumosSinCosto?.length) {
+                <span class="tenue">{{ t('carta.sinCosto') }}</span>
+                <small class="tenue bajada">
+                  {{ t('carta.faltaCosto', { insumos: p.insumosSinCosto?.join(', ') ?? '' }) }}
+                </small>
+              } @else {
+                <span class="tenue">—</span>
+              }
+            </td>
+            <td class="num" [attr.data-etiqueta]="t('carta.margen')">
+              @if (p.margen !== undefined && p.margen !== null) {
+                <span class="cifra" [class.negativo]="(p.margen ?? 0) < 0">
+                  S/ {{ p.margen | number: '1.2-2' }}
+                </span>
+                @if (p.margenPorcentaje !== undefined && p.margenPorcentaje !== null) {
+                  <small class="tenue bajada cifra"
+                    >{{ p.margenPorcentaje | number: '1.1-1' }} %</small
+                  >
+                }
+              } @else {
+                <span class="tenue">—</span>
+              }
+            </td>
             <td [attr.data-etiqueta]="t('comun.estado')">
               <span class="chip">{{ t(p.activo ? 'carta.enCarta' : 'carta.fuera') }}</span>
             </td>
             <td class="acciones">
+              <button
+                type="button"
+                class="icono-accion"
+                (click)="abrirEdicion(p)"
+                [attr.title]="t('comun.editar')"
+                [attr.aria-label]="t('carta.editarAria', { platillo: p.nombre ?? '' })"
+              >
+                <app-icono nombre="lapiz" [tamano]="18" />
+              </button>
               <button type="button" class="secundario chico" (click)="abrirReceta(p)">
                 {{ t(recetaDe()?.id === p.id ? 'comun.cerrar' : 'carta.receta') }}
               </button>
@@ -134,7 +157,7 @@
                Lo que no este en esta lista deja de formar parte del plato. -->
           @if (recetaDe()?.id === p.id) {
             <tr class="expandida">
-              <td colspan="5">
+              <td colspan="7">
                 <ul class="listado">
                   @for (i of receta(); track i.insumoId) {
                     <li>
@@ -142,11 +165,7 @@
                       <span class="cifra tenue">
                         {{ i.cantidadRequerida | number: '1.0-3' }} {{ i.unidadMedida }}
                       </span>
-                      <button
-                        type="button"
-                        class="secundario chico"
-                        (click)="quitarIngrediente(i)"
-                      >
+                      <button type="button" class="secundario chico" (click)="quitarIngrediente(i)">
                         {{ t('comun.quitar') }}
                       </button>
                     </li>
@@ -192,7 +211,7 @@
           }
         } @empty {
           <tr>
-            <td colspan="5" class="vacio">
+            <td colspan="7" class="vacio">
               {{ t(cargando() ? 'carta.cargandoCarta' : 'carta.ningunoCoincide') }}
             </td>
           </tr>
@@ -201,3 +220,186 @@
     </table>
   </div>
 </div>
+
+<!-- Ficha del platillo: lo que ve el comensal y lo que cuesta hacerlo. -->
+<app-dialogo class="dialogo-platillo" [titulo]="tituloFicha()" [(abierto)]="fichaAbierta">
+  <div class="formulario">
+    @if (!editando()) {
+      <p class="tenue">{{ t('carta.avisoReceta') }}</p>
+    }
+
+    <div class="foto-platillo">
+      @if (urlDeArchivo(fotoId()); as foto) {
+        <img [src]="foto" [attr.alt]="t('carta.fotoDe', { platillo: nombre() })" />
+      } @else {
+        <span class="sin-foto">
+          <app-icono nombre="imagen" [tamano]="28" />
+          {{ t('carta.sinFoto') }}
+        </span>
+      }
+      <div class="acciones-foto">
+        <input
+          #selectorFoto
+          type="file"
+          accept="image/webp,image/png,image/jpeg"
+          hidden
+          (change)="elegirFoto($event)"
+        />
+        <button
+          type="button"
+          class="secundario"
+          (click)="selectorFoto.click()"
+          [disabled]="subiendoFoto()"
+          [attr.aria-busy]="subiendoFoto()"
+        >
+          <app-icono nombre="imagen" [tamano]="18" />
+          {{
+            t(
+              subiendoFoto()
+                ? 'carta.subiendoFoto'
+                : fotoId()
+                  ? 'carta.cambiarFoto'
+                  : 'carta.elegirFoto'
+            )
+          }}
+        </button>
+        @if (fotoId()) {
+          <button
+            type="button"
+            class="secundario"
+            (click)="quitarFoto()"
+            [disabled]="subiendoFoto()"
+          >
+            {{ t('carta.quitarFoto') }}
+          </button>
+        }
+      </div>
+      <small class="tenue">{{ t('carta.fotoAyuda') }}</small>
+      @if (errorFoto(); as error) {
+        <p class="error-foto" role="alert">{{ error }}</p>
+      }
+    </div>
+
+    <label class="campo">
+      <span>{{ t('carta.nombrePlatillo') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        [value]="nombre()"
+        (input)="anotarNombre($any($event.target).value)"
+      />
+    </label>
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('carta.seccionCarta') }}</span>
+        <select (change)="elegirCategoria($any($event.target).value)">
+          @for (c of categorias(); track c.id) {
+            <option [value]="c.id" [selected]="categoriaId() === c.id">{{ c.nombre }}</option>
+          }
+        </select>
+      </label>
+      <label class="campo">
+        <span>{{ t('carta.precioVenta') }}</span>
+        <input
+          type="number"
+          step="0.10"
+          min="0"
+          inputmode="decimal"
+          [value]="precio() ?? ''"
+          (input)="anotarPrecio($any($event.target).value)"
+        />
+      </label>
+    </div>
+    <label class="campo">
+      <span>{{ t('carta.descripcion') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        [value]="descripcion()"
+        (input)="anotarDescripcion($any($event.target).value)"
+      />
+    </label>
+    <label class="campo">
+      <span>{{ t('carta.tiempoPreparacion') }}</span>
+      <input
+        class="tiempo"
+        type="number"
+        step="1"
+        min="1"
+        max="240"
+        inputmode="numeric"
+        [value]="tiempo() ?? ''"
+        (input)="anotarTiempo($any($event.target).value)"
+      />
+      <small>{{ t('carta.tiempoAyuda') }}</small>
+    </label>
+
+    <fieldset class="alergenos">
+      <legend>{{ t('carta.alergenos') }}</legend>
+      <div class="casillas">
+        @for (a of alergenosOfrecidos(); track a.id) {
+          <label class="casilla">
+            <input
+              type="checkbox"
+              [checked]="marcados().has(a.id ?? -1)"
+              (change)="alternarAlergeno(a.id, $any($event.target).checked)"
+            />
+            <span>
+              {{ a.nombre }}
+              @if (!a.activo) {
+                <small class="tenue">({{ t('comun.deBaja') }})</small>
+              }
+            </span>
+          </label>
+        } @empty {
+          <p class="vacio">{{ t('carta.sinAlergenos') }}</p>
+        }
+      </div>
+      <small class="tenue">{{ t('carta.alergenosAyuda') }}</small>
+    </fieldset>
+
+    @if (editando(); as p) {
+      <div class="costo-platillo">
+        <h3>{{ t('carta.costoYMargen') }}</h3>
+        @if (margenEnFicha(); as m) {
+          <p class="cifra">
+            {{
+              t('carta.costoDetalle', {
+                costo: (m.costo | number: '1.2-2') ?? '',
+                margen: (m.margen | number: '1.2-2') ?? '',
+              })
+            }}
+            @if (m.porcentaje !== null) {
+              <span class="tenue">({{ m.porcentaje | number: '1.1-1' }} %)</span>
+            }
+          </p>
+        } @else if (p.insumosSinCosto?.length) {
+          <p class="tenue">
+            {{ t('carta.faltaCosto', { insumos: p.insumosSinCosto?.join(', ') ?? '' }) }}
+          </p>
+        } @else {
+          <p class="tenue">{{ t('carta.costoSinReceta') }}</p>
+        }
+        <small class="tenue">{{ t('carta.costoAyuda') }}</small>
+      </div>
+    }
+  </div>
+  <div pie>
+    <button type="button" class="secundario" (click)="fichaAbierta.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button
+      type="button"
+      (click)="guardarPlatillo()"
+      [disabled]="
+        !nombre().trim() ||
+        precio() === null ||
+        categoriaId() === null ||
+        guardando() ||
+        subiendoFoto()
+      "
+    >
+      {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+    </button>
+  </div>
+</app-dialogo>
