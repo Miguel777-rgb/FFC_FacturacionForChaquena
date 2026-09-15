@@ -48,7 +48,13 @@ const DESTINOS: Destino[] = [
     grupo: 'operacion',
     roles: ['ADMIN', 'CAJA'],
   },
-  { ruta: '/pos', etiqueta: 'panel.pos', icono: 'pos', grupo: 'operacion', roles: ['MOZO', 'ADMIN'] },
+  {
+    ruta: '/pos',
+    etiqueta: 'panel.pos',
+    icono: 'pos',
+    grupo: 'operacion',
+    roles: ['MOZO', 'ADMIN'],
+  },
   {
     ruta: '/ordenes',
     etiqueta: 'panel.ordenes',
@@ -63,8 +69,20 @@ const DESTINOS: Destino[] = [
     grupo: 'operacion',
     roles: ['ADMIN', 'MOZO', 'CAJA'],
   },
-  { ruta: '/kds', etiqueta: 'panel.kds', icono: 'cocina', grupo: 'operacion', roles: ['COCINA', 'ADMIN'] },
-  { ruta: '/caja', etiqueta: 'panel.caja', icono: 'caja', grupo: 'operacion', roles: ['CAJA', 'ADMIN'] },
+  {
+    ruta: '/kds',
+    etiqueta: 'panel.kds',
+    icono: 'cocina',
+    grupo: 'operacion',
+    roles: ['COCINA', 'ADMIN'],
+  },
+  {
+    ruta: '/caja',
+    etiqueta: 'panel.caja',
+    icono: 'caja',
+    grupo: 'operacion',
+    roles: ['CAJA', 'ADMIN'],
+  },
   {
     ruta: '/despacho',
     etiqueta: 'panel.despacho',
@@ -72,7 +90,13 @@ const DESTINOS: Destino[] = [
     grupo: 'operacion',
     roles: ['DELIVERY', 'MOZO', 'ADMIN'],
   },
-  { ruta: '/menu', etiqueta: 'panel.menu', icono: 'menu', grupo: 'gestion', roles: ['ALMACEN', 'ADMIN'] },
+  {
+    ruta: '/menu',
+    etiqueta: 'panel.menu',
+    icono: 'menu',
+    grupo: 'gestion',
+    roles: ['ALMACEN', 'ADMIN'],
+  },
   {
     ruta: '/inventario',
     etiqueta: 'panel.inventario',
@@ -87,7 +111,13 @@ const DESTINOS: Destino[] = [
     grupo: 'gestion',
     roles: ['ADMIN', 'CAJA'],
   },
-  { ruta: '/personal', etiqueta: 'panel.personal', icono: 'personal', grupo: 'gestion', roles: ['ADMIN'] },
+  {
+    ruta: '/personal',
+    etiqueta: 'panel.personal',
+    icono: 'personal',
+    grupo: 'gestion',
+    roles: ['ADMIN'],
+  },
   {
     ruta: '/clientes',
     etiqueta: 'panel.clientes',
@@ -137,32 +167,39 @@ let siguientePanel = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <aside [class.plegado]="regleta()" [class.cajon]="cajon()">
-      <!-- Marca: el logo del local arriba a la izquierda. Mientras no se cargue
-           ninguno, la ranura invita a hacerlo en vez de dejar un hueco. -->
+      <!-- Marca: el logo del local arriba a la izquierda. Es el mismo en todas
+           las pantallas y solo lo cambia el administrador: para el, la ranura
+           invita a cargarlo; los demas ven el logo, o nada si no hay. -->
       <div class="marca-local">
-        <label
-          class="ranura"
-          [attr.title]="t(logo.logo() ? 'panel.cambiarLogo' : 'panel.cargarLogo')"
-        >
-          @if (logo.logo(); as fuente) {
-            <img [src]="fuente" [alt]="t('panel.cargarLogoAria')" />
-          } @else {
-            <app-icono nombre="imagen" [tamano]="20" />
-          }
-          <input
-            type="file"
-            accept="image/webp,image/png,image/jpeg,image/svg+xml"
-            (change)="elegirLogo($event)"
-            [attr.aria-label]="t(logo.logo() ? 'panel.cambiarLogoAria' : 'panel.cargarLogoAria')"
-          />
-        </label>
+        @if (logo.puedeCambiar()) {
+          <label
+            class="ranura"
+            [attr.title]="t(logo.logo() ? 'panel.cambiarLogo' : 'panel.cargarLogo')"
+          >
+            @if (logo.logo(); as fuente) {
+              <img [src]="fuente" [alt]="t('panel.cargarLogoAria')" />
+            } @else {
+              <app-icono nombre="imagen" [tamano]="20" />
+            }
+            <input
+              type="file"
+              accept="image/webp,image/png,image/jpeg"
+              (change)="elegirLogo($event)"
+              [attr.aria-label]="t(logo.logo() ? 'panel.cambiarLogoAria' : 'panel.cargarLogoAria')"
+            />
+          </label>
+        } @else if (logo.logo(); as fuente) {
+          <span class="ranura fija">
+            <img [src]="fuente" alt="" />
+          </span>
+        }
 
         <div class="identidad">
           <span class="marca">Chaquena</span>
           <span class="modulo">{{ t('panel.modulo') }}</span>
         </div>
 
-        @if (logo.logo()) {
+        @if (logo.logo() && logo.puedeCambiar()) {
           <button
             type="button"
             class="icono-solo quitar-logo"
@@ -302,6 +339,14 @@ let siguientePanel = 0;
     .ranura:focus-within {
       outline: 2px solid var(--acento);
       outline-offset: 2px;
+    }
+
+    /* Quien no es administrador ve el logo, pero no es un boton. */
+    .ranura.fija,
+    .ranura.fija:hover {
+      border-style: solid;
+      border-color: var(--linea);
+      cursor: default;
     }
 
     .ranura img {

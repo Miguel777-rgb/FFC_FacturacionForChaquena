@@ -1,94 +1,87 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
+// Del archivo concreto y no del barril `api`: este servicio carga con el panel
+// al arrancar, y el barril arrastraria todos los servicios generados.
+import { ArchivosApi } from '../../api/api/archivos.api';
+import { LocalApi } from '../../api/api/local.api';
 import { I18nService } from '../i18n/i18n.service';
+import { SesionService } from '../sesion/sesion.service';
+import { problemaDeImagen, urlDeArchivo } from './archivos';
 
-const CLAVE = 'chaquena.logo';
-
-/** 512 KB de data URI. Por encima, localStorage empieza a fallar en algunos
- *  navegadores y el arranque se nota. Un logo de barra no necesita mas, y en
- *  WebP —el formato previsto— sobra de largo. */
-const MAX_BYTES = 512 * 1024;
-
-/** WebP primero: es el formato del logo del local. Los demas se aceptan para
- *  no obligar a convertir un archivo que ya se tiene a mano. */
-const TIPOS = ['image/webp', 'image/png', 'image/jpeg', 'image/svg+xml'];
+/** Donde vivia el logo cuando era de cada dispositivo. Se borra al arrancar. */
+const CLAVE_ANTIGUA = 'chaquena.logo';
 
 /**
- * Logo del local, elegido desde la propia interfaz.
+ * Logo del local, el mismo en todas las pantallas.
  *
- * Vive en `localStorage` y no en `sessionStorage` —al reves que la sesion—
- * porque es una preferencia del dispositivo, no del turno: la tablet del mozo
- * debe seguir mostrando el logo cuando cambia quien la usa.
+ * Antes vivia en el localStorage de cada dispositivo: cada tablet llevaba el
+ * suyo y un celular nuevo arrancaba sin logo. Ahora es un dato del local: lo
+ * cambia el administrador y lo ven todos.
  *
- * No viaja al servidor. `ConfiguracionLocal` no tiene campo para el, y
- * anadirselo obliga a decidir donde se guardan los binarios. Mientras eso no
- * exista, cada dispositivo lleva el suyo; el dia que el backend lo soporte,
- * este servicio es el unico punto que hay que cambiar.
+ * Se pide al abrirse la sesion, porque leer los datos del local exige estar
+ * dentro. La imagen en si se sirve sin token.
  */
 @Injectable({ providedIn: 'root' })
 export class LogoService {
   private readonly t = inject(I18nService).t;
+  private readonly sesion = inject(SesionService);
+  private readonly localApi = inject(LocalApi);
+  private readonly archivosApi = inject(ArchivosApi);
 
-  private readonly _logo = signal<string | null>(this.leer());
+  private readonly logoId = signal<string | null>(null);
 
-  /** Data URI del logo, o null si no se ha cargado ninguno. */
-  readonly logo = this._logo.asReadonly();
+  /** URL del logo, o null si el local no tiene. */
+  readonly logo = computed(() => urlDeArchivo(this.logoId()));
+
+  /** Cambiarlo es del administrador: el servidor lo exige y la pantalla no se lo ofrece a nadie mas. */
+  readonly puedeCambiar = computed(() => this.sesion.tieneAlgunRol(['ADMIN']));
+
+  constructor() {
+    try {
+      localStorage.removeItem(CLAVE_ANTIGUA);
+    } catch {
+      /* sin almacenamiento no hay nada que borrar */
+    }
+
+    // Cada sesion nueva lo vuelve a pedir: quien entra despues puede ser de otro turno.
+    effect(() => {
+      if (!this.sesion.sesion()) {
+        this.logoId.set(null);
+        return;
+      }
+      this.localApi.obtenerDatosLocal().subscribe({
+        next: (datos) => this.logoId.set(datos.logoId ?? null),
+        // Sin logo la barra muestra el nombre del local: no hay nada que avisar.
+        error: () => this.logoId.set(null),
+      });
+    });
+  }
 
   /**
-   * Guarda el archivo elegido. Devuelve un mensaje de error, o null si fue
-   * bien: quien llama decide como mostrarlo.
+   * Sube la imagen y la pone como logo. Devuelve el motivo si no se puede
+   * subir, o null. Un fallo del servidor ya lo avisa el interceptor.
    */
   async cargar(archivo: File): Promise<string | null> {
-    if (!TIPOS.includes(archivo.type)) {
-      return this.t('logo.formato');
-    }
-    if (archivo.size > MAX_BYTES) {
-      return this.t('logo.peso', { kb: Math.round(archivo.size / 1024) });
-    }
-
-    let dataUri: string;
-    try {
-      dataUri = await this.leerComoDataUri(archivo);
-    } catch {
-      return this.t('logo.noSePudoLeer');
+    const problema = problemaDeImagen(archivo);
+    if (problema) {
+      return this.t(problema.clave, { kb: problema.kb });
     }
 
     try {
-      localStorage.setItem(CLAVE, dataUri);
+      const subido = await firstValueFrom(this.archivosApi.subirArchivo({ archivo }));
+      if (!subido.id) return null;
+      const datos = await firstValueFrom(this.localApi.cambiarLogoLocal({ archivoId: subido.id }));
+      this.logoId.set(datos.logoId ?? null);
     } catch {
-      // Modo privado o cuota llena: el logo vale para esta sesion y se pierde
-      // al recargar. Es preferible a rechazar la carga.
-      this._logo.set(dataUri);
-      return null;
+      /* el interceptor ya mostro el mensaje del servidor */
     }
-
-    this._logo.set(dataUri);
     return null;
   }
 
   quitar(): void {
-    this._logo.set(null);
-    try {
-      localStorage.removeItem(CLAVE);
-    } catch {
-      /* sin almacenamiento no hay nada que borrar */
-    }
-  }
-
-  private leerComoDataUri(archivo: File): Promise<string> {
-    return new Promise((resolver, rechazar) => {
-      const lector = new FileReader();
-      lector.onload = () => resolver(String(lector.result));
-      lector.onerror = () => rechazar(lector.error);
-      lector.readAsDataURL(archivo);
+    this.localApi.quitarLogoLocal().subscribe({
+      next: (datos) => this.logoId.set(datos.logoId ?? null),
     });
-  }
-
-  private leer(): string | null {
-    try {
-      return localStorage.getItem(CLAVE);
-    } catch {
-      return null;
-    }
   }
 }

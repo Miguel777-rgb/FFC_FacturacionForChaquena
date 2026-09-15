@@ -244,6 +244,8 @@ export const ES = {
   'pos.avisoCancelada': 'Comanda cancelada y stock repuesto.',
   'pos.avisoQuitado': '{platillo} quitado de la comanda.',
   'pos.descuentoNivel': '{pct} % de descuento, salvo que el cupón rebaje más.',
+  'pos.minutos': '{n} min',
+  'pos.contiene': 'Contiene {alergenos}',
 
   // --- cocina ----------------------------------------------------------------
   'kds.enCola': 'En cola',
@@ -268,6 +270,7 @@ export const ES = {
   'kds.avisoPrometida': 'Comanda {correlativo}: {min} minutos.',
   'kds.avisoLista': 'Comanda {correlativo} lista para servir.',
   'kds.avisoFaltante': 'Aviso enviado al mozo.',
+  'kds.alergenos': 'Alérgenos: {alergenos}',
 
   // --- caja ------------------------------------------------------------------
   'caja.cobradoHoy': 'Cobrado hoy',
@@ -461,14 +464,11 @@ export const ES = {
   'carta.nombreSeccion': 'Nombre de la sección',
   'carta.avisoReceta':
     'Al guardarlo se abre su receta. Un platillo sin receta se puede vender, pero no descuenta nada del almacén.',
-  'carta.nombre': 'Nombre',
   'carta.nombrePlatillo': 'Nombre del platillo',
   'carta.seccion': 'Sección',
-  'carta.seccionPlaceholder': 'Sección…',
   'carta.seccionCarta': 'Sección de la carta',
   'carta.precioVenta': 'Precio de venta',
   'carta.descripcion': 'Descripción (opcional)',
-  'carta.descripcionAria': 'Descripción',
   'carta.platillo': 'Platillo',
   'carta.enCarta': 'EN CARTA',
   'carta.fuera': 'FUERA',
@@ -486,6 +486,48 @@ export const ES = {
   'carta.avisoPlatillo': '{nombre} entra en la carta. Ahora su receta.',
   'carta.avisoSeccion': 'Sección «{nombre}» creada.',
   'carta.avisoRecetaGuardada': 'Receta de {platillo} guardada.',
+  'carta.costo': 'Costo',
+  'carta.margen': 'Margen',
+  'carta.sinCosto': 'Sin costo',
+  'carta.faltaCosto': 'Falta el costo de {insumos}.',
+  'carta.minutos': '{n} min',
+  'carta.contiene': 'Contiene {alergenos}',
+  'carta.editarAria': 'Editar {platillo}',
+  'carta.editarTitulo': 'Editar {platillo}',
+  'carta.fotoDe': 'Foto de {platillo}',
+  'carta.sinFoto': 'Sin foto',
+  'carta.elegirFoto': 'Elegir foto',
+  'carta.cambiarFoto': 'Cambiar foto',
+  'carta.subiendoFoto': 'Subiendo…',
+  'carta.quitarFoto': 'Quitar foto',
+  'carta.fotoAyuda': 'WebP, PNG o JPG de hasta 2 MB. Se ve en la carta y en el POS.',
+  'carta.tiempoPreparacion': 'Tiempo de preparación (min)',
+  'carta.tiempoAyuda': 'Lo que el mozo puede prometer en la mesa. Vacío si nadie lo midió.',
+  'carta.alergenos': 'Alérgenos',
+  'carta.sinAlergenos': 'El catálogo de alérgenos está vacío.',
+  'carta.alergenosAyuda': 'Lo que el comensal pregunta antes de pedir. Se muestra en el POS y en cocina.',
+  'carta.costoYMargen': 'Costo y margen',
+  'carta.costoDetalle': 'Costo S/ {costo} · margen S/ {margen}',
+  'carta.costoSinReceta': 'Sin receta no hay costo: carga los insumos que lleva.',
+  'carta.costoAyuda': 'La receta por el costo de la última compra de cada insumo. El margen usa el precio que estás escribiendo.',
+  'carta.avisoEditado': '{nombre} guardado.',
+
+  // --- alérgenos ------------------------------------------------------------
+  'alergenos.ayuda': 'Se marcan en cada platillo. Uno dado de baja deja de ofrecerse, pero sigue en los platillos que ya lo tenían.',
+  'alergenos.nuevo': 'Nuevo alérgeno',
+  'alergenos.editar': 'Renombrar alérgeno',
+  'alergenos.nombre': 'Nombre',
+  'alergenos.seOfrece': 'Se ofrece',
+  'alergenos.ninguno': 'Todavía no hay alérgenos.',
+  'alergenos.editarAria': 'Renombrar {nombre}',
+  'alergenos.darDeBajaAria': 'Dar de baja {nombre}',
+  'alergenos.reactivarAria': 'Reactivar {nombre}',
+  'alergenos.avisoAlta': '{nombre} agregado al catálogo.',
+  'alergenos.avisoGuardado': '{nombre} guardado.',
+  'alergenos.avisoBaja': '{nombre} dado de baja.',
+  'alergenos.avisoReactivado': '{nombre} reactivado.',
+  'alergenos.avisoRepetido': 'Ya existe {nombre}.',
+  'alergenos.avisoRenombrar': 'El nombre nuevo se verá en todos los platillos que lo llevan.',
 
   // --- trastienda · local ----------------------------------------------------
   'local.parametros': 'Parámetros del local',
@@ -828,6 +870,7 @@ export const ES = {
   'menu.editarAria': 'Editar {nombre}',
   'menu.avisoSeOfrece': '{nombre} vuelve a ofrecerse en el POS.',
   'menu.avisoNoSeOfrece': '{nombre} ya no se ofrece en el POS.',
+  'menu.alergenos': 'Alérgenos',
   'complementos.filtroTipo': 'Filtrar por tipo',
   'complementos.todosTipos': 'Todos los tipos',
   'complementos.nuevo': 'Nuevo complemento',
@@ -973,10 +1016,9 @@ export const ES = {
   'errores.servidor': 'El servidor falló. Si se repite, avisa al administrador.',
   'errores.generico': 'No se pudo completar la operación.',
 
-  // --- logo del local --------------------------------------------------------
-  'logo.formato': 'Formato no admitido. Usa WEBP, PNG, JPG o SVG.',
-  'logo.peso': 'El archivo pesa {kb} KB. El máximo es 512 KB.',
-  'logo.noSePudoLeer': 'No se pudo leer el archivo.',
+  // --- imágenes subidas -----------------------------------------------------
+  'imagen.formato': 'Formato no admitido. Usa WebP, PNG o JPG.',
+  'imagen.peso': 'El archivo pesa {kb} KB. El máximo es 2 MB.',
 
   // --- enumeraciones del contrato -------------------------------------------
   // Se leen con `tEnum`, que devuelve el valor crudo si el servidor manda uno
