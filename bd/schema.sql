@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict v0oldgxqWB3ddVqtcADLU0OTwXclsLRSfmkq7jtnWAIdqllo9quF5cnSPBGgvhl
+\restrict fdajEHND8p8UsNMjcOEXPwH2mPg2wGkTvTXOwz0pRDv87wOKYqPWZd4kwcoKey9
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -451,10 +451,14 @@ CREATE TABLE public.mesas (
     last_date_modified timestamp(6) with time zone DEFAULT now() NOT NULL,
     modified_by character varying(50) DEFAULT 'SYSTEM'::character varying NOT NULL,
     numero character varying(10) NOT NULL,
-    reservada_a_nombre_de character varying(120),
-    reservada_para timestamp(6) with time zone,
     zona character varying(50),
-    CONSTRAINT mesas_estado_check CHECK (((estado)::text = ANY ((ARRAY['LIBRE'::character varying, 'OCUPADA'::character varying, 'RESERVADA'::character varying, 'INHABILITADA'::character varying])::text[])))
+    alto integer DEFAULT 2 NOT NULL,
+    ancho integer DEFAULT 2 NOT NULL,
+    columna integer DEFAULT 0 NOT NULL,
+    fila integer DEFAULT 0 NOT NULL,
+    forma character varying(20) DEFAULT 'CUADRADA'::character varying NOT NULL,
+    CONSTRAINT mesas_estado_check CHECK (((estado)::text = ANY ((ARRAY['LIBRE'::character varying, 'OCUPADA'::character varying, 'RESERVADA'::character varying, 'INHABILITADA'::character varying])::text[]))),
+    CONSTRAINT mesas_forma_check CHECK (((forma)::text = ANY ((ARRAY['CUADRADA'::character varying, 'REDONDA'::character varying])::text[])))
 );
 
 
@@ -769,6 +773,28 @@ CREATE TABLE public.proveedores (
     nombre character varying(120) NOT NULL,
     ruc character varying(11),
     telefono character varying(20)
+);
+
+
+--
+-- Name: reservas; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.reservas (
+    id uuid NOT NULL,
+    celular character varying(20),
+    created_by character varying(50) NOT NULL,
+    date_created timestamp(6) with time zone NOT NULL,
+    duracion_minutos integer NOT NULL,
+    estado character varying(20) NOT NULL,
+    inicio timestamp(6) with time zone NOT NULL,
+    last_date_modified timestamp(6) with time zone NOT NULL,
+    modified_by character varying(50) NOT NULL,
+    nombre character varying(120) NOT NULL,
+    nota text,
+    personas integer NOT NULL,
+    mesa_id uuid NOT NULL,
+    CONSTRAINT reservas_estado_check CHECK (((estado)::text = ANY ((ARRAY['PENDIENTE'::character varying, 'CONFIRMADA'::character varying, 'CUMPLIDA'::character varying, 'CANCELADA'::character varying, 'NO_ASISTIO'::character varying])::text[])))
 );
 
 
@@ -1151,6 +1177,14 @@ ALTER TABLE ONLY public.proveedores
 
 
 --
+-- Name: reservas reservas_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservas
+    ADD CONSTRAINT reservas_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: rol_permisos rol_permisos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1374,6 +1408,13 @@ CREATE INDEX ix_lotes_insumo_insumo ON public.lotes_insumo USING btree (insumo_i
 
 
 --
+-- Name: ix_reservas_inicio; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_reservas_inicio ON public.reservas USING btree (inicio);
+
+
+--
 -- Name: orden_delivery_info fk15bx92n465xc4bpy6764vvvje; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1582,6 +1623,14 @@ ALTER TABLE ONLY public.ordenes
 
 
 --
+-- Name: reservas fkk33nidm20a0k0ssnyjfjmnnnp; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservas
+    ADD CONSTRAINT fkk33nidm20a0k0ssnyjfjmnnnp FOREIGN KEY (mesa_id) REFERENCES public.mesas(id);
+
+
+--
 -- Name: insumos_platillo fklgiipdgqia45v5etp7f6ei01u; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1689,5 +1738,5 @@ ALTER TABLE ONLY public.cliente_empresas
 -- PostgreSQL database dump complete
 --
 
-\unrestrict v0oldgxqWB3ddVqtcADLU0OTwXclsLRSfmkq7jtnWAIdqllo9quF5cnSPBGgvhl
+\unrestrict fdajEHND8p8UsNMjcOEXPwH2mPg2wGkTvTXOwz0pRDv87wOKYqPWZd4kwcoKey9
 
