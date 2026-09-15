@@ -9,7 +9,7 @@ Trece superficies cubren el local, en dos grupos del panel. **Operación**:
 pasa una comanda —`/pos` la toma, `/kds` la cocina, `/caja` la cobra y la
 cierra, y `/despacho` la entrega al conductor de la empresa de reparto— y dos
 vistas de conjunto: `/ordenes` (todas las comandas, con su detalle) y `/mesas`
-(el salón por zonas). **Gestión**: `/menu` (platillos con foto, costo y
+(el salón en plano por zonas y la agenda de reservas). **Gestión**: `/menu` (platillos con foto, costo y
 alérgenos, complementos y promociones), `/inventario` (insumos con lotes y vencimientos, kardex, conteo y
 proveedores), `/reportes` (ventas,
 mozos y satisfacción), `/personal` (quién trabaja y qué abre su cargo),
@@ -49,7 +49,7 @@ Todos se corren desde `frontend/`. El proyecto usa **pnpm**, no npm.
 | `pnpm start` | `ng serve` en `http://localhost:4200` | Usa la configuración *development*, que reemplaza `environment.ts` por `environment.development.ts` y apunta a `localhost:8080` | [angular.json](angular.json) · [environment.development.ts:7](src/environments/environment.development.ts#L7) |
 | `pnpm build` | Compila a `dist/frontend-logistica/browser` | Configuración *production* por defecto: `outputHashing: all` y presupuestos de 500 kB (aviso) / 1 MB (error) para el bundle inicial | [angular.json](angular.json) |
 | `pnpm watch` | `ng build --watch` en desarrollo | Sin optimizar y con *source maps*; útil cuando se sirve desde otro servidor | [package.json](package.json) |
-| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 22 archivos, 82 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
+| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 22 archivos, 84 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
 | `pnpm api:fetch` | Descarga `/v3/api-docs` del backend a `api/openapi.json` | Ordena las claves y borra el bloque `servers` para que dos descargas seguidas den diff vacío; aborta si el contrato no es OpenAPI 3.0 | [api/fetch-spec.mjs](api/fetch-spec.mjs) |
 | `pnpm api:generate` | Genera el cliente en `src/app/api` | `typescript-angular`, `stringEnums`, `useSingleRequestParameter`, `providedInRoot` | [api/generator-config.json](api/generator-config.json) |
 | `pnpm api:sync` | `api:fetch` + `api:generate` | **Es el único modo legítimo de cambiar `src/app/api`.** El backend tiene que estar arriba | [package.json](package.json) |
@@ -165,7 +165,7 @@ a Google Fonts. Ningún rótulo va en mayúsculas espaciadas ni en monoespaciada
 | [caja.page.ts](src/app/paginas/caja/caja.page.ts) | CAJA, ADMIN | Cobrar, acreditar, calificar y cerrar | Ver abajo | `Comandas`, `CajaPagos`, `CajaArqueoYFraude`, `Reportes`, `FeedbackYFidelizacion` |
 | [despacho.page.ts](src/app/paginas/despacho/despacho.page.ts) | DELIVERY, MOZO, ADMIN | El tramo del reparto que ocurre dentro del local | Ver abajo | `Comandas`, `DespachoReparto`, `DespachoTransportistas` |
 | [ordenes.page.ts](src/app/paginas/ordenes/ordenes.page.ts) | ADMIN, MOZO, CAJA | Todas las comandas, filtradas y paginadas en el servidor, con el detalle en un cajón | Los pasos salen de `transicionesPermitidas`, y cobrar o marcar fraude no se ofrecen: son de la caja. Cancelar pide motivo y deja elegir si se repone el stock. `?orden=` abre una comanda directamente | `Comandas` |
-| [mesas.page.ts](src/app/paginas/mesas/mesas.page.ts) | ADMIN, MOZO, CAJA | El salón por zonas: estado, capacidad, lo que lleva cada mesa y sus reservas | La ocupación la decide la comanda: aquí no se ocupa una mesa a mano, solo se reserva, se anula una reserva o se inhabilita. Dar de alta una mesa es de ADMIN | `SalonMesas`, `Comandas` |
+| [mesas.page.ts](src/app/paginas/mesas/mesas.page.ts) | ADMIN, MOZO, CAJA | El salón y la agenda de reservas del día, en pestañas: en PC un plano por zona, en el celular una lista | La ocupación la decide la comanda y «reservada» la agenda: la mesa se ve reservada desde una hora antes de su reserva, sin que nadie la marque a mano. Solo ADMIN mueve el plano, arrastrando o con las flechas; se valida contra las otras mesas de la zona y se guarda entero de una vez (`PUT /mesas/plano`), porque dos mesas que intercambian sitio se pisarían guardadas por separado. Los pasos de una reserva salen de `transicionesPermitidas`, y cancelarla pide confirmación | `SalonMesas`, `SalonReservas`, `Comandas` |
 | [menu.page.ts](src/app/paginas/menu/menu.page.ts) | ALMACEN, ADMIN | Platillos con su receta, foto, costo y alérgenos; complementos, promociones y el catálogo de alérgenos, en pestañas | Ver abajo | `CatalogoCategorias`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `CatalogoAlergenos`, `Archivos`, `InventarioInsumos` |
 | [inventario.page.ts](src/app/paginas/inventario/inventario.page.ts) | ALMACEN, ADMIN | Insumos con sus lotes, vencimientos y valor, y proveedores, en pestañas | Ver abajo | `InventarioInsumos`, `InventarioMovimientos`, `InventarioProveedores` |
 | [configuracion.page.ts](src/app/paginas/configuracion/configuracion.page.ts) | ADMIN | Datos del local e IGV, parámetros, niveles de lealtad, bots y eventos, en cinco pestañas | Ver abajo | — (cada sección pide lo suyo) |
@@ -369,7 +369,7 @@ ajuste.
 | Pieza | Qué es | Por qué así |
 |---|---|---|
 | [traducciones/es.ts](src/app/nucleo/i18n/traducciones/es.ts) | El diccionario español y la **fuente de las claves** | `ClaveI18n` sale de aquí. Los otros dos se declaran `Record<ClaveI18n, string>`, así que una traducción olvidada **no compila** |
-| [traducciones/en.ts](src/app/nucleo/i18n/traducciones/en.ts) · [pt.ts](src/app/nucleo/i18n/traducciones/pt.ts) | Los otros dos idiomas | Se cargan con `import()` al elegirlos: son unos 45 kB cada uno que la pantalla de cocina no tiene por qué descargar |
+| [traducciones/en.ts](src/app/nucleo/i18n/traducciones/en.ts) · [pt.ts](src/app/nucleo/i18n/traducciones/pt.ts) | Los otros dos idiomas | Se cargan con `import()` al elegirlos: son unos 46 kB cada uno que la pantalla de cocina no tiene por qué descargar |
 | [i18n.service.ts](src/app/nucleo/i18n/i18n.service.ts) | `t`, `tp`, `tEnum` y el idioma como señal | El idioma vive en `localStorage`, como el tema y el panel plegado: es preferencia del dispositivo, no del turno |
 | [titulo.strategy.ts](src/app/nucleo/i18n/titulo.strategy.ts) | El título de la pestaña | Las rutas declaran `title: 'panel.pos'`, la misma clave que nombra el destino en el panel y titula la pantalla. Un `effect` lo reescribe al cambiar de idioma: es lo único que vive fuera de una plantilla |
 | [barra-idiomas.ts](src/app/disenio/barra-idiomas.ts) | El control | Tres banderas dibujadas a mano: los emoji de bandera no se pintan en Windows —salen las dos letras del país— y una librería costaría más de lo que ahorra. Va `integrada` en el panel y en la barra superior; sin sesión, flotante en `app.html` |
@@ -447,7 +447,7 @@ cambiarlo sin tocar los componentes:
 | `/despacho` — comandas y conductores | 20 s | [despacho.page.ts:30](src/app/paginas/despacho/despacho.page.ts#L30) |
 | `/tablero` — el día y los pendientes | 60 s | [tablero.page.ts](src/app/paginas/tablero/tablero.page.ts) |
 | `/ordenes` — la página abierta | 30 s | [ordenes.page.ts](src/app/paginas/ordenes/ordenes.page.ts) |
-| `/mesas` — mesas y comandas abiertas | 30 s | [mesas.page.ts](src/app/paginas/mesas/mesas.page.ts) |
+| `/mesas` — mesas y comandas abiertas; se pausa mientras se edita el plano, para no pisar las mesas a medio mover | 30 s | [mesas.page.ts](src/app/paginas/mesas/mesas.page.ts) |
 
 El `nginx.conf` ya está preparado para el cambio: `proxy_buffering off` y
 `proxy_read_timeout 1h` en `/api/`, porque con buffering activado un flujo SSE
@@ -507,19 +507,19 @@ El puerto es el **81** y no el 80, para dejar ese libre al futuro
 
 | Chunk | Raw | Transferido |
 |---|---|---|
-| **Inicial** (main + runtime + estilos + español) | 392,40 kB | 109,05 kB |
-| cliente generado (compartido por las pantallas) | 148,26 kB | 7,05 kB |
+| **Inicial** (main + runtime + estilos + español) | 394,19 kB | 109,53 kB |
+| cliente generado (compartido por las pantallas) | 152,57 kB | 7,21 kB |
 | `menu-page` | 84,20 kB | 11,69 kB |
 | `configuracion-page` | 80,54 kB | 9,92 kB |
 | `inventario-page` | 53,64 kB | 9,45 kB |
-| `login-page` | 47,15 kB | 11,45 kB |
-| `pt` (diccionario) | 45,79 kB | 12,82 kB |
-| `pos-page` | 44,60 kB | 9,36 kB |
-| `en` (diccionario) | 44,19 kB | 12,19 kB |
+| `pt` (diccionario) | 47,44 kB | 13,26 kB |
+| `login-page` | 47,15 kB | 11,46 kB |
+| `mesas-page` | 46,54 kB | 10,47 kB |
+| `en` (diccionario) | 45,80 kB | 12,60 kB |
+| `pos-page` | 44,62 kB | 9,36 kB |
 | `personal-page` | 32,65 kB | 6,72 kB |
 | `caja-page` | 30,26 kB | 6,84 kB |
 | `ordenes-page` | 27,16 kB | 6,25 kB |
-| `mesas-page` | 25,95 kB | 5,83 kB |
 | `clientes-page` | 24,95 kB | 5,95 kB |
 | `reportes-page` | 21,41 kB | 5,26 kB |
 | `despacho-page` | 19,37 kB | 4,79 kB |
@@ -531,7 +531,7 @@ El puerto es el **81** y no el 80, para dejar ese libre al futuro
 Es la prueba de que el diferido funciona: **la pantalla de cocina descarga 17 kB
 de código propio** más el cliente generado, que se baja una vez y comparten
 todas, y **ningún dispositivo descarga un idioma que nadie ha elegido**: el
-inglés y el portugués suman 90 kB y se piden solo al elegirlos. Los 11 kB que
+inglés y el portugués suman 93 kB y se piden solo al elegirlos. Los 11 kB que
 ganó el inicial en la fase 4.3 son `archivos.api` y `local.api`: el logo carga
 con el panel, y los importa sueltos para no arrastrar el barril.
 
