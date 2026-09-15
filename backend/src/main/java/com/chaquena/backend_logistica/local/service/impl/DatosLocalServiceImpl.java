@@ -1,5 +1,6 @@
 package com.chaquena.backend_logistica.local.service.impl;
 
+import com.chaquena.backend_logistica.archivos.service.ArchivoService;
 import com.chaquena.backend_logistica.local.domain.DatosLocal;
 import com.chaquena.backend_logistica.local.domain.HorarioLocal;
 import com.chaquena.backend_logistica.local.dto.DatosLocalDto;
@@ -28,6 +29,7 @@ public class DatosLocalServiceImpl implements DatosLocalService {
 
     private final DatosLocalRepository datosRepository;
     private final HorarioLocalRepository horarioRepository;
+    private final ArchivoService archivoService;
 
     @Override
     @Transactional
@@ -74,6 +76,41 @@ public class DatosLocalServiceImpl implements DatosLocalService {
             horarioRepository.saveAll(porDia.values());
         }
 
+        return obtener();
+    }
+
+    /** El logo que se reemplaza no lo usa nadie mas: se borra al confirmar el cambio. */
+    @Override
+    @Transactional
+    public DatosLocalDto cambiarLogo(UUID archivoId) {
+        DatosLocal datos = datos();
+        UUID anterior = datos.getLogo() != null ? datos.getLogo().getId() : null;
+        if (archivoId.equals(anterior)) {
+            return obtener();
+        }
+
+        datos.setLogo(archivoService.obtener(archivoId));
+        datos.setModifiedBy(UsuarioActual.username());
+        datosRepository.save(datos);
+        if (anterior != null) {
+            archivoService.eliminar(anterior);
+        }
+        return obtener();
+    }
+
+    @Override
+    @Transactional
+    public DatosLocalDto quitarLogo() {
+        DatosLocal datos = datos();
+        if (datos.getLogo() == null) {
+            return obtener();
+        }
+
+        UUID anterior = datos.getLogo().getId();
+        datos.setLogo(null);
+        datos.setModifiedBy(UsuarioActual.username());
+        datosRepository.save(datos);
+        archivoService.eliminar(anterior);
         return obtener();
     }
 

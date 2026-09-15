@@ -1,5 +1,6 @@
 package com.chaquena.backend_logistica.local.domain;
 
+import com.chaquena.backend_logistica.archivos.domain.Archivo;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -54,6 +55,11 @@ public class DatosLocal {
 
     @Column(name = "porcentaje_igv", nullable = false, precision = 5, scale = 2)
     private BigDecimal porcentajeIgv;
+
+    /** El logo que muestran todas las pantallas. Antes vivia en cada dispositivo. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "logo_id")
+    private Archivo logo;
 
     @Column(name = "created_by", nullable = false, length = 50)
     private String createdBy;

@@ -2,12 +2,14 @@ package com.chaquena.backend_logistica.local.dto;
 
 import com.chaquena.backend_logistica.local.domain.DatosLocal;
 import com.chaquena.backend_logistica.local.domain.HorarioLocal;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Los datos del local y su horario en un solo cuerpo: se leen y se guardan
@@ -46,8 +48,13 @@ public class DatosLocalDto {
     @Valid
     private List<HorarioLocalDto> horarios;
 
+    /** Solo lectura: el logo se cambia en PUT /local/logo, para que este formulario no lo pise. */
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    private UUID logoId;
+
     public static DatosLocalDto de(DatosLocal d, List<HorarioLocal> horarios) {
         return DatosLocalDto.builder()
+                .logoId(d.getLogo() != null ? d.getLogo().getId() : null)
                 .nombreComercial(d.getNombreComercial())
                 .ruc(d.getRuc())
                 .direccion(d.getDireccion())
