@@ -9,8 +9,8 @@ Trece superficies cubren el local, en dos grupos del panel. **Operación**:
 pasa una comanda —`/pos` la toma, `/kds` la cocina, `/caja` la cobra y la
 cierra, y `/despacho` la entrega al conductor de la empresa de reparto— y dos
 vistas de conjunto: `/ordenes` (todas las comandas, con su detalle) y `/mesas`
-(el salón por zonas). **Gestión**: `/menu` (platillos, complementos y
-promociones), `/inventario` (insumos con lotes y vencimientos, kardex, conteo y
+(el salón por zonas). **Gestión**: `/menu` (platillos con foto, costo y
+alérgenos, complementos y promociones), `/inventario` (insumos con lotes y vencimientos, kardex, conteo y
 proveedores), `/reportes` (ventas,
 mozos y satisfacción), `/personal` (quién trabaja y qué abre su cargo),
 `/clientes` (fichas, puntos, nivel y cupones) y `/configuracion` (datos del
@@ -49,7 +49,7 @@ Todos se corren desde `frontend/`. El proyecto usa **pnpm**, no npm.
 | `pnpm start` | `ng serve` en `http://localhost:4200` | Usa la configuración *development*, que reemplaza `environment.ts` por `environment.development.ts` y apunta a `localhost:8080` | [angular.json](angular.json) · [environment.development.ts:7](src/environments/environment.development.ts#L7) |
 | `pnpm build` | Compila a `dist/frontend-logistica/browser` | Configuración *production* por defecto: `outputHashing: all` y presupuestos de 500 kB (aviso) / 1 MB (error) para el bundle inicial | [angular.json](angular.json) |
 | `pnpm watch` | `ng build --watch` en desarrollo | Sin optimizar y con *source maps*; útil cuando se sirve desde otro servidor | [package.json](package.json) |
-| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 20 archivos, 77 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
+| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 22 archivos, 82 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
 | `pnpm api:fetch` | Descarga `/v3/api-docs` del backend a `api/openapi.json` | Ordena las claves y borra el bloque `servers` para que dos descargas seguidas den diff vacío; aborta si el contrato no es OpenAPI 3.0 | [api/fetch-spec.mjs](api/fetch-spec.mjs) |
 | `pnpm api:generate` | Genera el cliente en `src/app/api` | `typescript-angular`, `stringEnums`, `useSingleRequestParameter`, `providedInRoot` | [api/generator-config.json](api/generator-config.json) |
 | `pnpm api:sync` | `api:fetch` + `api:generate` | **Es el único modo legítimo de cambiar `src/app/api`.** El backend tiene que estar arriba | [package.json](package.json) |
@@ -118,7 +118,7 @@ src/
 | [google.service.ts](src/app/nucleo/sesion/google.service.ts) | El botón «Entrar con Google» | Pide un **access token**, no un ID token, porque el backend lo valida contra `tokeninfo`. El scope **no** lleva `openid`: en el flujo implícito Google lo rechaza con un 400 genérico | [:36](src/app/nucleo/sesion/google.service.ts#L36) |
 | [errores.interceptor.ts](src/app/nucleo/http/errores.interceptor.ts) | Traductor único de fallos | 401 con sesión abierta la cierra y redirige; 409 y 422 muestran **el texto del servidor**, que ya explica qué transiciones sí se permiten. `mensajeDe` se exporta para que el login lea el mensaje igual | [:35](src/app/nucleo/http/errores.interceptor.ts#L35), [:79](src/app/nucleo/http/errores.interceptor.ts#L79) |
 | [avisos.service.ts](src/app/nucleo/http/avisos.service.ts) | Cola de avisos | Los errores **no se van solos**: en un POS táctil nadie está mirando. Solo éxito (4 s) e info (6 s) caducan. Dos fallos idénticos no se apilan | [:44](src/app/nucleo/http/avisos.service.ts#L44) |
-| [logo.service.ts](src/app/nucleo/marca/logo.service.ts) | Logo del local | Vive en `localStorage` —al revés que la sesión— porque es preferencia del dispositivo, no del turno. Máximo 512 KB. **No viaja al servidor**: `ConfiguracionLocal` no tiene campo para él | [:10](src/app/nucleo/marca/logo.service.ts#L10), [:17](src/app/nucleo/marca/logo.service.ts#L17) |
+| [logo.service.ts](src/app/nucleo/marca/logo.service.ts) + [archivos.ts](src/app/nucleo/marca/archivos.ts) | Logo del local y URL de las imágenes subidas | El logo es un dato del local, el mismo en todas las pantallas: se pide al abrir la sesión y **solo ADMIN lo cambia**; los demás lo ven sin ranura. Importa `archivos.api` y `local.api` sueltos, no el barril, porque carga con el panel. Las imágenes se sirven por UUID **sin token** —un `<img>` no manda cabeceras—, y `problemaDeImagen` rechaza SVG y lo que pase de 2 MB antes de subir; el servidor lo vuelve a mirar en los bytes | [logo.service.ts](src/app/nucleo/marca/logo.service.ts), [archivos.ts](src/app/nucleo/marca/archivos.ts) |
 
 ### Diseño — las piezas compartidas
 
@@ -166,7 +166,7 @@ a Google Fonts. Ningún rótulo va en mayúsculas espaciadas ni en monoespaciada
 | [despacho.page.ts](src/app/paginas/despacho/despacho.page.ts) | DELIVERY, MOZO, ADMIN | El tramo del reparto que ocurre dentro del local | Ver abajo | `Comandas`, `DespachoReparto`, `DespachoTransportistas` |
 | [ordenes.page.ts](src/app/paginas/ordenes/ordenes.page.ts) | ADMIN, MOZO, CAJA | Todas las comandas, filtradas y paginadas en el servidor, con el detalle en un cajón | Los pasos salen de `transicionesPermitidas`, y cobrar o marcar fraude no se ofrecen: son de la caja. Cancelar pide motivo y deja elegir si se repone el stock. `?orden=` abre una comanda directamente | `Comandas` |
 | [mesas.page.ts](src/app/paginas/mesas/mesas.page.ts) | ADMIN, MOZO, CAJA | El salón por zonas: estado, capacidad, lo que lleva cada mesa y sus reservas | La ocupación la decide la comanda: aquí no se ocupa una mesa a mano, solo se reserva, se anula una reserva o se inhabilita. Dar de alta una mesa es de ADMIN | `SalonMesas`, `Comandas` |
-| [menu.page.ts](src/app/paginas/menu/menu.page.ts) | ALMACEN, ADMIN | Platillos con su receta, complementos y promociones, en pestañas | Ver abajo | `CatalogoCategorias`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `InventarioInsumos` |
+| [menu.page.ts](src/app/paginas/menu/menu.page.ts) | ALMACEN, ADMIN | Platillos con su receta, foto, costo y alérgenos; complementos, promociones y el catálogo de alérgenos, en pestañas | Ver abajo | `CatalogoCategorias`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `CatalogoAlergenos`, `Archivos`, `InventarioInsumos` |
 | [inventario.page.ts](src/app/paginas/inventario/inventario.page.ts) | ALMACEN, ADMIN | Insumos con sus lotes, vencimientos y valor, y proveedores, en pestañas | Ver abajo | `InventarioInsumos`, `InventarioMovimientos`, `InventarioProveedores` |
 | [configuracion.page.ts](src/app/paginas/configuracion/configuracion.page.ts) | ADMIN | Datos del local e IGV, parámetros, niveles de lealtad, bots y eventos, en cinco pestañas | Ver abajo | — (cada sección pide lo suyo) |
 | [personal.page.ts](src/app/paginas/personal/personal.page.ts) | ADMIN | Trabajadores, cargos y qué abre cada cargo | Los roles se **leen**, no se crean: un rol es la palabra dentro de un `@PreAuthorize`, así que inventar «SUPERVISOR» no abriría ninguna puerta. Quitar un rol **no expulsa a quien ya inició sesión**: los roles viajan en el token . La ficha de cada persona trae lo que vendió como mozo en los últimos 30 días | `Trabajadores`, `Cargos`, `Roles`, `Reportes` |
@@ -285,7 +285,8 @@ desmonta: mirar un parámetro no descarga la bandeja de eventos entera
 |---|---|---|---|
 | [inventario](src/app/paginas/inventario/inventario.seccion.ts) | ALMACEN, ADMIN | Insumos con su vencimiento y su valor, filtros por alerta, kardex con lotes, alta y edición, movimiento suelto y conteo físico | La cantidad va siempre en positivo: **el signo lo pone el motivo**. Proveedor, costo y vencimiento son del lote de una compra: si se escribieron y luego el motivo pasó a merma, no viajan, porque el servidor rechaza un lote en una salida. Qué está vencido o por vencer lo cuenta el servidor en días de Lima; la pantalla solo lo pinta, y lee «2026-09-16» como día local para no mostrarlo el 15 ([formatos.ts](src/app/nucleo/i18n/formatos.ts)). Los lotes del cajón van en el orden en que se consumen: primero lo que vence antes. El conteo solo envía las líneas escritas —un insumo no contado no es un insumo en cero— y deja los descuadres en pantalla después de aplicarlos |
 | [proveedores](src/app/paginas/inventario/proveedores.seccion.ts) | ALMACEN, ADMIN | A quién se le compra | Se dan de baja, no se borran: uno inactivo deja de ofrecerse en la compra, pero sus lotes siguen diciendo de dónde vinieron. El RUC es opcional y, si se escribe, tiene 11 dígitos; se avisa antes de gastar un 400 |
-| [platillos](src/app/paginas/menu/carta.seccion.ts) | ALMACEN, ADMIN | Categorías, platillos y recetas | `PUT /platillos/{id}/receta` **reemplaza**, no parchea ([:283](src/app/paginas/menu/carta.seccion.ts#L283)). Un platillo sin receta se vende pero no descuenta nada, y el inventario se separa de la realidad sin que nadie lo note ([:25](src/app/paginas/menu/carta.seccion.ts#L25)) |
+| [platillos](src/app/paginas/menu/carta.seccion.ts) | ALMACEN, ADMIN | Categorías, platillos con foto, tiempo de preparación y alérgenos, costo y margen, y recetas | `PUT /platillos/{id}/receta` **reemplaza**, no parchea. Un platillo sin receta se vende pero no descuenta nada, y el inventario se separa de la realidad sin que nadie lo note. **El costo no se escribe**: lo calcula el servidor con la receta y la última compra de cada insumo; si falta el de alguno, la tabla dice cuál en vez de mostrar un costo parcial, y la ficha recalcula el margen con el precio que se está escribiendo. La foto se sube al elegirla y la ficha guarda solo su id. Un alérgeno dado de baja que el plato ya tenía se sigue ofreciendo marcado: esconderlo haría que guardar lo quitara |
+| [alérgenos](src/app/paginas/menu/alergenos.seccion.ts) | ALMACEN, ADMIN | El catálogo que se marca en cada platillo | Llega sembrado con los catorce habituales. Renombrar uno cambia lo que dicen todos los platillos que lo llevan; darlo de baja no lo quita de ellos. El nombre repetido se avisa antes de gastar un 409 |
 | [complementos](src/app/paginas/menu/complementos.seccion.ts) | ALMACEN, ADMIN | Lo que se suma a un plato, con su precio | Apagarlo es el gesto diario y va en la fila. El `PUT` reemplaza, así que al editar viaja también si está activo: si no, cambiar el precio de un complemento apagado lo volvería a ofrecer |
 | [promociones](src/app/paginas/menu/promociones.seccion.ts) | ADMIN; ALMACEN solo consulta | Rebajas con fecha de inicio y de fin | El estado que se lee es **lo que pasa hoy** —vigente, programada, pausada o vencida—, no el interruptor del servidor |
 | [datos del local](src/app/paginas/configuracion/datos-local.seccion.ts) | ADMIN | Nombre comercial, RUC, contacto, IGV y horario de los siete días | Un día **sin horas no es un día cerrado**: queda sin definir, y cerrado es una casilla aparte. Un día abierto con una sola hora se marca en la tabla antes de enviar. El IGV que se guarda aquí es el que congela cada comanda nueva; cambiarlo no reescribe las ventas pasadas. Leer los datos es de cualquier sesión, porque la caja los necesita para el ticket |
@@ -368,8 +369,8 @@ ajuste.
 | Pieza | Qué es | Por qué así |
 |---|---|---|
 | [traducciones/es.ts](src/app/nucleo/i18n/traducciones/es.ts) | El diccionario español y la **fuente de las claves** | `ClaveI18n` sale de aquí. Los otros dos se declaran `Record<ClaveI18n, string>`, así que una traducción olvidada **no compila** |
-| [traducciones/en.ts](src/app/nucleo/i18n/traducciones/en.ts) · [pt.ts](src/app/nucleo/i18n/traducciones/pt.ts) | Los otros dos idiomas | Se cargan con `import()` al elegirlos: son unos 43 kB cada uno que la pantalla de cocina no tiene por qué descargar |
-| [i18n.service.ts](src/app/nucleo/i18n/i18n.service.ts) | `t`, `tp`, `tEnum` y el idioma como señal | El idioma vive en `localStorage`, como el logo y el panel plegado: es preferencia del dispositivo, no del turno |
+| [traducciones/en.ts](src/app/nucleo/i18n/traducciones/en.ts) · [pt.ts](src/app/nucleo/i18n/traducciones/pt.ts) | Los otros dos idiomas | Se cargan con `import()` al elegirlos: son unos 45 kB cada uno que la pantalla de cocina no tiene por qué descargar |
+| [i18n.service.ts](src/app/nucleo/i18n/i18n.service.ts) | `t`, `tp`, `tEnum` y el idioma como señal | El idioma vive en `localStorage`, como el tema y el panel plegado: es preferencia del dispositivo, no del turno |
 | [titulo.strategy.ts](src/app/nucleo/i18n/titulo.strategy.ts) | El título de la pestaña | Las rutas declaran `title: 'panel.pos'`, la misma clave que nombra el destino en el panel y titula la pantalla. Un `effect` lo reescribe al cambiar de idioma: es lo único que vive fuera de una plantilla |
 | [barra-idiomas.ts](src/app/disenio/barra-idiomas.ts) | El control | Tres banderas dibujadas a mano: los emoji de bandera no se pintan en Windows —salen las dos letras del país— y una librería costaría más de lo que ahorra. Va `integrada` en el panel y en la barra superior; sin sesión, flotante en `app.html` |
 | [idioma.interceptor.ts](src/app/nucleo/http/idioma.interceptor.ts) | `Accept-Language` en cada petición | Hoy el backend no la mira. Va igual porque es el mecanismo estándar y esta es la única pieza que sabe el idioma |
@@ -506,31 +507,33 @@ El puerto es el **81** y no el 80, para dejar ese libre al futuro
 
 | Chunk | Raw | Transferido |
 |---|---|---|
-| **Inicial** (main + runtime + estilos + español) | 381,15 kB | 106,77 kB |
-| cliente generado (compartido por las pantallas) | 148,44 kB | 7,85 kB |
-| `configuracion-page` | 80,55 kB | 9,93 kB |
-| `menu-page` | 58,20 kB | 8,53 kB |
+| **Inicial** (main + runtime + estilos + español) | 392,40 kB | 109,05 kB |
+| cliente generado (compartido por las pantallas) | 148,26 kB | 7,05 kB |
+| `menu-page` | 84,20 kB | 11,69 kB |
+| `configuracion-page` | 80,54 kB | 9,92 kB |
 | `inventario-page` | 53,64 kB | 9,45 kB |
-| `login-page` | 47,15 kB | 11,44 kB |
-| `pt` (diccionario) | 43,82 kB | 12,36 kB |
-| `pos-page` | 42,83 kB | 9,00 kB |
-| `en` (diccionario) | 42,23 kB | 11,71 kB |
-| `personal-page` | 32,66 kB | 6,72 kB |
-| `caja-page` | 30,27 kB | 6,86 kB |
-| `ordenes-page` | 27,17 kB | 6,27 kB |
-| `mesas-page` | 25,95 kB | 5,84 kB |
-| `clientes-page` | 24,95 kB | 5,94 kB |
-| `reportes-page` | 21,42 kB | 5,27 kB |
-| `despacho-page` | 19,38 kB | 4,80 kB |
-| `kds-page` | 16,59 kB | 4,19 kB |
+| `login-page` | 47,15 kB | 11,45 kB |
+| `pt` (diccionario) | 45,79 kB | 12,82 kB |
+| `pos-page` | 44,60 kB | 9,36 kB |
+| `en` (diccionario) | 44,19 kB | 12,19 kB |
+| `personal-page` | 32,65 kB | 6,72 kB |
+| `caja-page` | 30,26 kB | 6,84 kB |
+| `ordenes-page` | 27,16 kB | 6,25 kB |
+| `mesas-page` | 25,95 kB | 5,83 kB |
+| `clientes-page` | 24,95 kB | 5,95 kB |
+| `reportes-page` | 21,41 kB | 5,26 kB |
+| `despacho-page` | 19,37 kB | 4,79 kB |
+| `kds-page` | 17,21 kB | 4,31 kB |
 | `tablero-page` | 13,91 kB | 4,08 kB |
-| `perfil-page` | 13,34 kB | 2,91 kB |
-| `sin-permiso-page` | 1,29 kB | 684 B |
+| `perfil-page` | 13,33 kB | 2,91 kB |
+| `sin-permiso-page` | 1,29 kB | 686 B |
 
 Es la prueba de que el diferido funciona: **la pantalla de cocina descarga 17 kB
 de código propio** más el cliente generado, que se baja una vez y comparten
 todas, y **ningún dispositivo descarga un idioma que nadie ha elegido**: el
-inglés y el portugués suman 86 kB y se piden solo al elegirlos.
+inglés y el portugués suman 90 kB y se piden solo al elegirlos. Los 11 kB que
+ganó el inicial en la fase 4.3 son `archivos.api` y `local.api`: el logo carga
+con el panel, y los importa sueltos para no arrastrar el barril.
 
 **Nada del arranque importa desde el barril `./api`.** El barril reexporta los
 23 servicios generados, y `app.config.ts` importaba de ahí `Configuration`: eso
