@@ -3964,6 +3964,41 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Guardar el plano: posicion, tamano y forma de las mesas movidas (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mesas/plano",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mesas",
+                "plano"
+              ]
+            },
+            "description": "Guardar el plano: posicion, tamano y forma de las mesas movidas (ADMIN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mesas\": [\n    {\n      \"id\": \"{{mesaId}}\",\n      \"columna\": 0,\n      \"fila\": 0,\n      \"ancho\": 2,\n      \"alto\": 2,\n      \"forma\": \"REDONDA\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
         }
       ],
       "description": "Mapa de mesas con estados y reservas"
@@ -6749,6 +6784,99 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "29 · Salon · Reservas",
+      "item": [
+        {
+          "name": "Reservas de un dia, por hora; sin dia, las de hoy en Lima (ADMIN, MOZO, CAJA)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reservas?dia=2026-09-14",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas"
+              ],
+              "query": [
+                {
+                  "key": "dia",
+                  "value": "2026-09-14"
+                }
+              ]
+            },
+            "description": "Reservas de un dia, por hora; sin dia, las de hoy en Lima (ADMIN, MOZO, CAJA)"
+          },
+          "response": []
+        },
+        {
+          "name": "Reservar una mesa; 409 si ya esta apartada a esa hora (ADMIN, MOZO, CAJA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reservas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas"
+              ]
+            },
+            "description": "Reservar una mesa; 409 si ya esta apartada a esa hora (ADMIN, MOZO, CAJA)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mesaId\": \"{{mesaId}}\",\n  \"nombre\": \"Familia Zevallos\",\n  \"celular\": \"51987001122\",\n  \"personas\": 4,\n  \"inicio\": \"2026-09-14T20:00:00-05:00\",\n  \"duracionMinutos\": 120,\n  \"nota\": \"Cumpleanos: llevan torta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirmar, cumplir, cancelar o marcar que no asistio (ADMIN, MOZO, CAJA)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reservas/{{reserva_id}}/estado?estado=CONFIRMADA",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas",
+                "{{reserva_id}}",
+                "estado"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "CONFIRMADA"
+                }
+              ]
+            },
+            "description": "Confirmar, cumplir, cancelar o marcar que no asistio (ADMIN, MOZO, CAJA)"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -6951,6 +7079,10 @@
     },
     {
       "key": "alergeno_id",
+      "value": ""
+    },
+    {
+      "key": "reserva_id",
       "value": ""
     }
   ]
