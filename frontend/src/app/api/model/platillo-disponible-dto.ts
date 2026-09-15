@@ -9,13 +9,16 @@
  */
 
 export interface PlatilloDisponibleDto {
+  alergenos?: Array<string>;
   categoriaId?: number;
   categoriaNombre?: string;
   descripcion?: string;
   disponible?: boolean;
+  fotoId?: string;
   id?: string;
   insumosFaltantes?: Array<string>;
   nombre?: string;
   porcionesPosibles?: number;
   precioVentaBase?: number;
+  tiempoPreparacionMinutos?: number;
 }

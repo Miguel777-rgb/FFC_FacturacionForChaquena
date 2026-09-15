@@ -1,3 +1,5 @@
+export * from './archivos.api';
+import { ArchivosApi } from './archivos.api';
 export * from './autenticacion.api';
 import { AutenticacionApi } from './autenticacion.api';
 export * from './bots.api';
@@ -8,6 +10,8 @@ export * from './caja-pagos.api';
 import { CajaPagosApi } from './caja-pagos.api';
 export * from './cargos.api';
 import { CargosApi } from './cargos.api';
+export * from './catalogo-alergenos.api';
+import { CatalogoAlergenosApi } from './catalogo-alergenos.api';
 export * from './catalogo-categorias.api';
 import { CatalogoCategoriasApi } from './catalogo-categorias.api';
 export * from './catalogo-complementos.api';
@@ -51,11 +55,13 @@ import { SalonMesasApi } from './salon-mesas.api';
 export * from './trabajadores.api';
 import { TrabajadoresApi } from './trabajadores.api';
 export const APIS = [
+  ArchivosApi,
   AutenticacionApi,
   BotsApi,
   CajaArqueoYFraudeApi,
   CajaPagosApi,
   CargosApi,
+  CatalogoAlergenosApi,
   CatalogoCategoriasApi,
   CatalogoComplementosApi,
   CatalogoPlatillosApi,

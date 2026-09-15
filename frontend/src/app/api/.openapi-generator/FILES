@@ -1,11 +1,13 @@
 api.base.service.ts
 api.module.ts
 api/api.ts
+api/archivos.api.ts
 api/autenticacion.api.ts
 api/bots.api.ts
 api/caja-arqueo-y-fraude.api.ts
 api/caja-pagos.api.ts
 api/cargos.api.ts
+api/catalogo-alergenos.api.ts
 api/catalogo-categorias.api.ts
 api/catalogo-complementos.api.ts
 api/catalogo-platillos.api.ts
@@ -33,8 +35,10 @@ index.ts
 model/actualizar-cargo-request-dto.ts
 model/actualizar-trabajador-request-dto.ts
 model/ahora-mismo.ts
+model/alergeno-dto.ts
 model/alerta-fraude-request-dto.ts
 model/aplicar-promocion-request-dto.ts
+model/archivo-dto.ts
 model/arqueo-caja-dto.ts
 model/asignar-delivery-request-dto.ts
 model/auth-response-dto.ts

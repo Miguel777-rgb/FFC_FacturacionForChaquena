@@ -8,14 +8,22 @@
  * Do not edit the class manually.
  */
 import { RecetaItemDto } from './receta-item-dto';
+import { AlergenoDto } from './alergeno-dto';
 
 export interface PlatilloResponseDto {
   activo?: boolean;
+  alergenos?: Array<AlergenoDto>;
   categoriaId?: number;
   categoriaNombre?: string;
+  costo?: number;
   descripcion?: string;
+  fotoId?: string;
   id?: string;
+  insumosSinCosto?: Array<string>;
+  margen?: number;
+  margenPorcentaje?: number;
   nombre?: string;
   precioVentaBase?: number;
   receta?: Array<RecetaItemDto>;
+  tiempoPreparacionMinutos?: number;
 }

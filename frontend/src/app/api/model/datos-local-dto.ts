@@ -13,6 +13,7 @@ export interface DatosLocalDto {
   correo?: string;
   direccion?: string;
   horarios?: Array<HorarioLocalDto>;
+  readonly logoId?: string;
   nombreComercial?: string;
   porcentajeIgv?: number;
   ruc?: string;

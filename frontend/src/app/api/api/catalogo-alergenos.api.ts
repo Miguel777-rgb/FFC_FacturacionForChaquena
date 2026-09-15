@@ -22,25 +22,35 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
-import { DatosLocalDto } from '../model/datos-local-dto';
+import { AlergenoDto } from '../model/alergeno-dto';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
 import { Configuration } from '../configuration';
 import { BaseService } from '../api.base.service';
 
-export interface ActualizarDatosLocalRequestParams {
-  datosLocalDto: DatosLocalDto;
+export interface ActualizarAlergenoRequestParams {
+  id: number;
+  alergenoDto: AlergenoDto;
 }
 
-export interface CambiarLogoLocalRequestParams {
-  archivoId: string;
+export interface CambiarActivoAlergenoRequestParams {
+  id: number;
+  activo: boolean;
+}
+
+export interface CrearAlergenoRequestParams {
+  alergenoDto: AlergenoDto;
+}
+
+export interface ListarAlergenosRequestParams {
+  soloActivos?: boolean;
 }
 
 @Injectable({
   providedIn: 'root',
 })
-export class LocalApi extends BaseService {
+export class CatalogoAlergenosApi extends BaseService {
   constructor(
     protected httpClient: HttpClient,
     @Optional() @Inject(BASE_PATH) basePath: string | string[],
@@ -50,15 +60,15 @@ export class LocalApi extends BaseService {
   }
 
   /**
-   * Actualizar los datos del local, su horario y el IGV
-   * @endpoint put /api/v1/local
+   * Renombrar un alergeno
+   * @endpoint put /api/v1/alergenos/{id}
    * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public actualizarDatosLocal(
-    requestParameters: ActualizarDatosLocalRequestParams,
+  public actualizarAlergeno(
+    requestParameters: ActualizarAlergenoRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -66,9 +76,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<DatosLocalDto>;
-  public actualizarDatosLocal(
-    requestParameters: ActualizarDatosLocalRequestParams,
+  ): Observable<AlergenoDto>;
+  public actualizarAlergeno(
+    requestParameters: ActualizarAlergenoRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -76,9 +86,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<DatosLocalDto>>;
-  public actualizarDatosLocal(
-    requestParameters: ActualizarDatosLocalRequestParams,
+  ): Observable<HttpResponse<AlergenoDto>>;
+  public actualizarAlergeno(
+    requestParameters: ActualizarAlergenoRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -86,9 +96,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<DatosLocalDto>>;
-  public actualizarDatosLocal(
-    requestParameters: ActualizarDatosLocalRequestParams,
+  ): Observable<HttpEvent<AlergenoDto>>;
+  public actualizarAlergeno(
+    requestParameters: ActualizarAlergenoRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -97,10 +107,16 @@ export class LocalApi extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
-    const datosLocalDto = requestParameters?.datosLocalDto;
-    if (datosLocalDto === null || datosLocalDto === undefined) {
+    const id = requestParameters?.id;
+    if (id === null || id === undefined) {
       throw new Error(
-        'Required parameter datosLocalDto was null or undefined when calling actualizarDatosLocal.',
+        'Required parameter id was null or undefined when calling actualizarAlergeno.',
+      );
+    }
+    const alergenoDto = requestParameters?.alergenoDto;
+    if (alergenoDto === null || alergenoDto === undefined) {
+      throw new Error(
+        'Required parameter alergenoDto was null or undefined when calling actualizarAlergeno.',
       );
     }
 
@@ -143,11 +159,11 @@ export class LocalApi extends BaseService {
       }
     }
 
-    let localVarPath = `/api/v1/local`;
+    let localVarPath = `/api/v1/alergenos/${this.configuration.encodeParam({ name: 'id', value: id, in: 'path', style: 'simple', explode: false, dataType: 'number', dataFormat: 'int32' })}`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<DatosLocalDto>('put', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<AlergenoDto>('put', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
-      body: datosLocalDto,
+      body: alergenoDto,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,
@@ -158,15 +174,15 @@ export class LocalApi extends BaseService {
   }
 
   /**
-   * Poner como logo una imagen ya subida
-   * @endpoint put /api/v1/local/logo
+   * Dar de baja o reactivar un alergeno
+   * @endpoint patch /api/v1/alergenos/{id}/activo
    * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public cambiarLogoLocal(
-    requestParameters: CambiarLogoLocalRequestParams,
+  public cambiarActivoAlergeno(
+    requestParameters: CambiarActivoAlergenoRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -174,9 +190,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<DatosLocalDto>;
-  public cambiarLogoLocal(
-    requestParameters: CambiarLogoLocalRequestParams,
+  ): Observable<AlergenoDto>;
+  public cambiarActivoAlergeno(
+    requestParameters: CambiarActivoAlergenoRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -184,9 +200,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<DatosLocalDto>>;
-  public cambiarLogoLocal(
-    requestParameters: CambiarLogoLocalRequestParams,
+  ): Observable<HttpResponse<AlergenoDto>>;
+  public cambiarActivoAlergeno(
+    requestParameters: CambiarActivoAlergenoRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -194,9 +210,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<DatosLocalDto>>;
-  public cambiarLogoLocal(
-    requestParameters: CambiarLogoLocalRequestParams,
+  ): Observable<HttpEvent<AlergenoDto>>;
+  public cambiarActivoAlergeno(
+    requestParameters: CambiarActivoAlergenoRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -205,10 +221,16 @@ export class LocalApi extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
-    const archivoId = requestParameters?.archivoId;
-    if (archivoId === null || archivoId === undefined) {
+    const id = requestParameters?.id;
+    if (id === null || id === undefined) {
       throw new Error(
-        'Required parameter archivoId was null or undefined when calling cambiarLogoLocal.',
+        'Required parameter id was null or undefined when calling cambiarActivoAlergeno.',
+      );
+    }
+    const activo = requestParameters?.activo;
+    if (activo === null || activo === undefined) {
+      throw new Error(
+        'Required parameter activo was null or undefined when calling cambiarActivoAlergeno.',
       );
     }
 
@@ -216,8 +238,8 @@ export class LocalApi extends BaseService {
 
     localVarQueryParameters = this.addToHttpParams(
       localVarQueryParameters,
-      'archivoId',
-      <any>archivoId,
+      'activo',
+      <any>activo,
       QueryParamStyle.Form,
       true,
     );
@@ -253,9 +275,9 @@ export class LocalApi extends BaseService {
       }
     }
 
-    let localVarPath = `/api/v1/local/logo`;
+    let localVarPath = `/api/v1/alergenos/${this.configuration.encodeParam({ name: 'id', value: id, in: 'path', style: 'simple', explode: false, dataType: 'number', dataFormat: 'int32' })}/activo`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<DatosLocalDto>('put', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<AlergenoDto>('patch', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
       params: localVarQueryParameters.toHttpParams(),
       responseType: <any>responseType_,
@@ -268,13 +290,15 @@ export class LocalApi extends BaseService {
   }
 
   /**
-   * Datos del local, su horario y el IGV
-   * @endpoint get /api/v1/local
+   * Agregar un alergeno al catalogo
+   * @endpoint post /api/v1/alergenos
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public obtenerDatosLocal(
+  public crearAlergeno(
+    requestParameters: CrearAlergenoRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -282,8 +306,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<DatosLocalDto>;
-  public obtenerDatosLocal(
+  ): Observable<AlergenoDto>;
+  public crearAlergeno(
+    requestParameters: CrearAlergenoRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -291,8 +316,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<DatosLocalDto>>;
-  public obtenerDatosLocal(
+  ): Observable<HttpResponse<AlergenoDto>>;
+  public crearAlergeno(
+    requestParameters: CrearAlergenoRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -300,8 +326,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<DatosLocalDto>>;
-  public obtenerDatosLocal(
+  ): Observable<HttpEvent<AlergenoDto>>;
+  public crearAlergeno(
+    requestParameters: CrearAlergenoRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -310,6 +337,13 @@ export class LocalApi extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const alergenoDto = requestParameters?.alergenoDto;
+    if (alergenoDto === null || alergenoDto === undefined) {
+      throw new Error(
+        'Required parameter alergenoDto was null or undefined when calling crearAlergeno.',
+      );
+    }
+
     let localVarHeaders = this.defaultHeaders;
 
     // authentication (bearerAuth) required
@@ -330,6 +364,14 @@ export class LocalApi extends BaseService {
 
     const localVarTransferCache: boolean = options?.transferCache ?? true;
 
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
     let responseType_: 'text' | 'json' | 'blob' = 'json';
     if (localVarHttpHeaderAcceptSelected) {
       if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
@@ -341,10 +383,11 @@ export class LocalApi extends BaseService {
       }
     }
 
-    let localVarPath = `/api/v1/local`;
+    let localVarPath = `/api/v1/alergenos`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<DatosLocalDto>('get', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<AlergenoDto>('post', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
+      body: alergenoDto,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,
@@ -355,13 +398,15 @@ export class LocalApi extends BaseService {
   }
 
   /**
-   * Quitar el logo del local
-   * @endpoint delete /api/v1/local/logo
+   * Alergenos por nombre; con soloActivos, los que se pueden marcar
+   * @endpoint get /api/v1/alergenos
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public quitarLogoLocal(
+  public listarAlergenos(
+    requestParameters?: ListarAlergenosRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -369,8 +414,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<DatosLocalDto>;
-  public quitarLogoLocal(
+  ): Observable<Array<AlergenoDto>>;
+  public listarAlergenos(
+    requestParameters?: ListarAlergenosRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -378,8 +424,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<DatosLocalDto>>;
-  public quitarLogoLocal(
+  ): Observable<HttpResponse<Array<AlergenoDto>>>;
+  public listarAlergenos(
+    requestParameters?: ListarAlergenosRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -387,8 +434,9 @@ export class LocalApi extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<DatosLocalDto>>;
-  public quitarLogoLocal(
+  ): Observable<HttpEvent<Array<AlergenoDto>>>;
+  public listarAlergenos(
+    requestParameters?: ListarAlergenosRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -397,6 +445,18 @@ export class LocalApi extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const soloActivos = requestParameters?.soloActivos;
+
+    let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
+
+    localVarQueryParameters = this.addToHttpParams(
+      localVarQueryParameters,
+      'soloActivos',
+      <any>soloActivos,
+      QueryParamStyle.Form,
+      true,
+    );
+
     let localVarHeaders = this.defaultHeaders;
 
     // authentication (bearerAuth) required
@@ -428,10 +488,11 @@ export class LocalApi extends BaseService {
       }
     }
 
-    let localVarPath = `/api/v1/local/logo`;
+    let localVarPath = `/api/v1/alergenos`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<DatosLocalDto>('delete', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<Array<AlergenoDto>>('get', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
+      params: localVarQueryParameters.toHttpParams(),
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,

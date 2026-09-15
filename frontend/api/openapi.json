@@ -90,6 +90,28 @@
         },
         "type": "object"
       },
+      "AlergenoDto": {
+        "properties": {
+          "activo": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int32",
+            "readOnly": true,
+            "type": "integer"
+          },
+          "nombre": {
+            "maxLength": 60,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre"
+        ],
+        "type": "object"
+      },
       "AlertaFraudeRequestDto": {
         "properties": {
           "bloquearCliente": {
@@ -116,6 +138,22 @@
           },
           "promocionId": {
             "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ArchivoDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "tamanoBytes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "tipoContenido": {
             "type": "string"
           }
         },
@@ -844,6 +882,11 @@
             },
             "type": "array"
           },
+          "logoId": {
+            "format": "uuid",
+            "readOnly": true,
+            "type": "string"
+          },
           "nombreComercial": {
             "maxLength": 120,
             "minLength": 0,
@@ -1539,6 +1582,12 @@
       },
       "LineaKds": {
         "properties": {
+          "alergenos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "cantidad": {
             "format": "int32",
             "type": "integer"
@@ -2618,6 +2667,12 @@
       },
       "PlatilloDisponibleDto": {
         "properties": {
+          "alergenos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "categoriaId": {
             "format": "int32",
             "type": "integer"
@@ -2630,6 +2685,10 @@
           },
           "disponible": {
             "type": "boolean"
+          },
+          "fotoId": {
+            "format": "uuid",
+            "type": "string"
           },
           "id": {
             "format": "uuid",
@@ -2650,6 +2709,10 @@
           },
           "precioVentaBase": {
             "type": "number"
+          },
+          "tiempoPreparacionMinutos": {
+            "format": "int32",
+            "type": "integer"
           }
         },
         "type": "object"
@@ -2659,11 +2722,22 @@
           "activo": {
             "type": "boolean"
           },
+          "alergenoIds": {
+            "items": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "type": "array"
+          },
           "categoriaId": {
             "format": "int32",
             "type": "integer"
           },
           "descripcion": {
+            "type": "string"
+          },
+          "fotoId": {
+            "format": "uuid",
             "type": "string"
           },
           "nombre": {
@@ -2675,6 +2749,12 @@
             "exclusiveMinimum": false,
             "minimum": 0,
             "type": "number"
+          },
+          "tiempoPreparacionMinutos": {
+            "format": "int32",
+            "maximum": 240,
+            "minimum": 1,
+            "type": "integer"
           }
         },
         "required": [
@@ -2689,6 +2769,12 @@
           "activo": {
             "type": "boolean"
           },
+          "alergenos": {
+            "items": {
+              "$ref": "#/components/schemas/AlergenoDto"
+            },
+            "type": "array"
+          },
           "categoriaId": {
             "format": "int32",
             "type": "integer"
@@ -2696,12 +2782,31 @@
           "categoriaNombre": {
             "type": "string"
           },
+          "costo": {
+            "type": "number"
+          },
           "descripcion": {
+            "type": "string"
+          },
+          "fotoId": {
+            "format": "uuid",
             "type": "string"
           },
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "insumosSinCosto": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "margen": {
+            "type": "number"
+          },
+          "margenPorcentaje": {
+            "type": "number"
           },
           "nombre": {
             "type": "string"
@@ -2714,6 +2819,10 @@
               "$ref": "#/components/schemas/RecetaItemDto"
             },
             "type": "array"
+          },
+          "tiempoPreparacionMinutos": {
+            "format": "int32",
+            "type": "integer"
           }
         },
         "type": "object"
@@ -3647,6 +3756,224 @@
   },
   "openapi": "3.0.1",
   "paths": {
+    "/api/v1/alergenos": {
+      "get": {
+        "operationId": "listarAlergenos",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "soloActivos",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AlergenoDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Alergenos por nombre; con soloActivos, los que se pueden marcar",
+        "tags": [
+          "Catalogo - Alergenos"
+        ]
+      },
+      "post": {
+        "operationId": "crearAlergeno",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlergenoDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlergenoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Agregar un alergeno al catalogo",
+        "tags": [
+          "Catalogo - Alergenos"
+        ]
+      }
+    },
+    "/api/v1/alergenos/{id}": {
+      "put": {
+        "operationId": "actualizarAlergeno",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlergenoDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlergenoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Renombrar un alergeno",
+        "tags": [
+          "Catalogo - Alergenos"
+        ]
+      }
+    },
+    "/api/v1/alergenos/{id}/activo": {
+      "patch": {
+        "operationId": "cambiarActivoAlergeno",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activo",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlergenoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Dar de baja o reactivar un alergeno",
+        "tags": [
+          "Catalogo - Alergenos"
+        ]
+      }
+    },
+    "/api/v1/archivos": {
+      "post": {
+        "operationId": "subirArchivo",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "archivo": {
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "archivo"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchivoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Subir una imagen WebP, PNG o JPEG de hasta 2 MB",
+        "tags": [
+          "Archivos"
+        ]
+      }
+    },
+    "/api/v1/archivos/{id}": {
+      "get": {
+        "operationId": "descargarArchivo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "La imagen tal como se subio",
+        "tags": [
+          "Archivos"
+        ]
+      }
+    },
     "/api/v1/auth/bootstrap": {
       "post": {
         "operationId": "bootstrap",
@@ -5817,6 +6144,57 @@
           }
         },
         "summary": "Actualizar los datos del local, su horario y el IGV",
+        "tags": [
+          "Local"
+        ]
+      }
+    },
+    "/api/v1/local/logo": {
+      "delete": {
+        "operationId": "quitarLogoLocal",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatosLocalDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Quitar el logo del local",
+        "tags": [
+          "Local"
+        ]
+      },
+      "put": {
+        "operationId": "cambiarLogoLocal",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "archivoId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatosLocalDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Poner como logo una imagen ya subida",
         "tags": [
           "Local"
         ]
@@ -8661,8 +9039,16 @@
       "name": "Salon - Mesas"
     },
     {
+      "description": "Alergenos que se marcan en cada platillo",
+      "name": "Catalogo - Alergenos"
+    },
+    {
       "description": "Cargos del personal y los roles que llevan asociados",
       "name": "Cargos"
+    },
+    {
+      "description": "Fotos de la carta y logo del local",
+      "name": "Archivos"
     },
     {
       "description": "Pantalla de cocina: cola, cronometros y faltantes",

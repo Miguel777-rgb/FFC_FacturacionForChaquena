@@ -10,8 +10,11 @@
 
 export interface PlatilloRequestDto {
   activo?: boolean;
+  alergenoIds?: Array<number>;
   categoriaId: number;
   descripcion?: string;
+  fotoId?: string;
   nombre: string;
   precioVentaBase: number;
+  tiempoPreparacionMinutos?: number;
 }

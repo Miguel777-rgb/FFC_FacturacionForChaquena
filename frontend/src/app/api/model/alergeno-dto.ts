@@ -8,13 +8,8 @@
  * Do not edit the class manually.
  */
 
-export interface LineaKds {
-  alergenos?: Array<string>;
-  cantidad?: number;
-  complementos?: Array<string>;
-  detalleId?: string;
-  listo?: boolean;
-  nota?: string;
-  platillo?: string;
-  tiempoListo?: string;
+export interface AlergenoDto {
+  readonly activo?: boolean;
+  readonly id?: number;
+  nombre: string;
 }
