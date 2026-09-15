@@ -20,7 +20,10 @@ import com.chaquena.backend_logistica.inventario.repository.*;
 import com.chaquena.backend_logistica.inventario.service.InventarioService;
 import com.chaquena.backend_logistica.mesas.domain.EstadoMesaEnum;
 import com.chaquena.backend_logistica.mesas.domain.Mesa;
+import com.chaquena.backend_logistica.mesas.domain.EstadoReservaEnum;
+import com.chaquena.backend_logistica.mesas.domain.Reserva;
 import com.chaquena.backend_logistica.mesas.repository.MesaRepository;
+import com.chaquena.backend_logistica.mesas.repository.ReservaRepository;
 import com.chaquena.backend_logistica.pedidos.domain.*;
 import com.chaquena.backend_logistica.pedidos.dto.*;
 import com.chaquena.backend_logistica.pedidos.service.OrdenService;
@@ -89,6 +92,7 @@ public class DatosDemoSeeder {
     private final ComplementoPlatilloRepository complementoRepository;
     private final PromocionRepository promocionRepository;
     private final MesaRepository mesaRepository;
+    private final ReservaRepository reservaRepository;
     private final ClienteRepository clienteRepository;
     private final EmpresaRepository empresaRepository;
     private final ClienteEmpresaRepository clienteEmpresaRepository;
@@ -393,24 +397,33 @@ public class DatosDemoSeeder {
     private List<Mesa> sembrarMesas() {
         java.util.List<Mesa> mesas = new java.util.ArrayList<>();
         for (int i = 1; i <= 8; i++) {
-            mesas.add(mesa("M" + i, "Salon principal", i <= 4 ? 4 : 6, EstadoMesaEnum.LIBRE));
+            mesas.add(mesa("M" + i, "Salon principal", i <= 4 ? 4 : 6, i - 1));
         }
-        for (int i = 1; i <= 3; i++) {
-            mesas.add(mesa("T" + i, "Terraza", 2, EstadoMesaEnum.LIBRE));
+        for (int i = 1; i <= 4; i++) {
+            mesas.add(mesa("T" + i, "Terraza", i < 4 ? 2 : 6, i - 1));
         }
-        // Una reservada, para que el mapa del salon muestre los tres estados.
-        Mesa reservada = mesa("T4", "Terraza", 6, EstadoMesaEnum.RESERVADA);
-        reservada.setReservadaANombreDe("Familia Zevallos");
-        reservada.setReservadaPara(ZonedDateTime.now().plusHours(3));
-        mesaRepository.saveAndFlush(reservada);
-        mesas.add(reservada);
+        // Una reserva para esta noche, para que el salon y la agenda muestren una.
+        Mesa t4 = mesas.get(mesas.size() - 1);
+        reservaRepository.saveAndFlush(Reserva.builder()
+                .mesa(t4)
+                .nombre("Familia Zevallos")
+                .celular("51987001122")
+                .personas(6)
+                .inicio(ZonedDateTime.now().plusHours(3).withMinute(0).withSecond(0).withNano(0))
+                .duracionMinutos(120)
+                .estado(EstadoReservaEnum.CONFIRMADA)
+                .createdBy("SEED_DEMO")
+                .build());
         return mesas;
     }
 
-    private Mesa mesa(String numero, String zona, int capacidad, EstadoMesaEnum estado) {
+    /** En filas de cuatro con una celda de pasillo, como las reparte la migracion 07. */
+    private Mesa mesa(String numero, String zona, int capacidad, int orden) {
         return mesaRepository.saveAndFlush(Mesa.builder()
                 .numero(numero).zona(zona).capacidad(capacidad)
-                .estado(estado).activa(true).createdBy("SEED_DEMO").build());
+                .estado(EstadoMesaEnum.LIBRE).activa(true)
+                .columna((orden % 4) * 3).fila((orden / 4) * 3).ancho(2).alto(2)
+                .createdBy("SEED_DEMO").build());
     }
 
     private List<Cliente> sembrarClientes() {
