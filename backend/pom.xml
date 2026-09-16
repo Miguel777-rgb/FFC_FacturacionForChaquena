@@ -107,6 +107,21 @@
 			</exclusions>
 		</dependency>
 
+		<!--
+			Exportaciones de reportes: Apache POI escribe el xlsx y OpenPDF el
+			pdf. Los dos generan el archivo en memoria, sin servicios externos.
+		-->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.librepdf</groupId>
+			<artifactId>openpdf</artifactId>
+			<version>3.0.5</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
