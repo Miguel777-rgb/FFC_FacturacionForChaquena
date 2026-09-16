@@ -6877,6 +6877,249 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "30 · Personal · Turnos y asistencia",
+      "item": [
+        {
+          "name": "Turnos de la semana desde el lunes (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/turnos?desde=2026-09-14",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "turnos"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-09-14"
+                }
+              ]
+            },
+            "description": "Turnos de la semana desde el lunes (ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar un turno; 409 si se pisa con otro de la misma persona (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/turnos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "turnos"
+              ]
+            },
+            "description": "Asignar un turno; 409 si se pisa con otro de la misma persona (ADMIN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trabajadorId\": \"{{trabajadorId}}\",\n  \"fecha\": \"2026-09-15\",\n  \"inicio\": \"12:00\",\n  \"fin\": \"20:00\",\n  \"nota\": \"Cubre la terraza\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar un turno (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/turnos/{{turno_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "turnos",
+                "{{turno_id}}"
+              ]
+            },
+            "description": "Cambiar un turno (ADMIN)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trabajadorId\": \"{{trabajadorId}}\",\n  \"fecha\": \"2026-09-15\",\n  \"inicio\": \"12:00\",\n  \"fin\": \"22:00\",\n  \"nota\": \"Cubre la terraza\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quitar un turno (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/turnos/{{turno_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "turnos",
+                "{{turno_id}}"
+              ]
+            },
+            "description": "Quitar un turno (ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar mi entrada: siempre sobre quien tiene la sesion",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/asistencia/entrada",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "asistencia",
+                "entrada"
+              ]
+            },
+            "description": "Marcar mi entrada: siempre sobre quien tiene la sesion"
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar mi salida",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/asistencia/salida",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "asistencia",
+                "salida"
+              ]
+            },
+            "description": "Marcar mi salida"
+          },
+          "response": []
+        },
+        {
+          "name": "Si estoy dentro y mis turnos de la semana",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/asistencia/mia",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "asistencia",
+                "mia"
+              ]
+            },
+            "description": "Si estoy dentro y mis turnos de la semana"
+          },
+          "response": []
+        },
+        {
+          "name": "Asistencia del dia: cada turno con su entrada y su salida (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/asistencia/dia?dia=2026-09-14",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "asistencia",
+                "dia"
+              ],
+              "query": [
+                {
+                  "key": "dia",
+                  "value": "2026-09-14"
+                }
+              ]
+            },
+            "description": "Asistencia del dia: cada turno con su entrada y su salida (ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "Desempeno de una persona: venta, atencion y puntualidad (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trabajadores/{{trabajadorId}}/desempeno?desde=2026-08-16&hasta=2026-09-14",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trabajadores",
+                "{{trabajadorId}}",
+                "desempeno"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-08-16"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-09-14"
+                }
+              ]
+            },
+            "description": "Desempeno de una persona: venta, atencion y puntualidad (ADMIN)"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -7083,6 +7326,10 @@
     },
     {
       "key": "reserva_id",
+      "value": ""
+    },
+    {
+      "key": "turno_id",
       "value": ""
     }
   ]
