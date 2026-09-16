@@ -30,6 +30,8 @@ import { SerieVentasDto } from '../model/serie-ventas-dto';
 // @ts-ignore
 import { TableroDto } from '../model/tablero-dto';
 // @ts-ignore
+import { VentasPorMetodoPagoDto } from '../model/ventas-por-metodo-pago-dto';
+// @ts-ignore
 import { VentasPorMozoDto } from '../model/ventas-por-mozo-dto';
 
 // @ts-ignore
@@ -55,6 +57,11 @@ export interface TableroLocalRequestParams {
 }
 
 export interface VentasRequestParams {
+  desde?: string;
+  hasta?: string;
+}
+
+export interface VentasPorMetodoPagoRequestParams {
   desde?: string;
   hasta?: string;
 }
@@ -549,6 +556,124 @@ export class ReportesApi extends BaseService {
       ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
       reportProgress: reportProgress,
     });
+  }
+
+  /**
+   * Lo cobrado con cada metodo de pago en el rango, con los que quedaron en cero
+   * @endpoint get /api/v1/reportes/ventas-por-metodo-pago
+   * @param requestParameters
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public ventasPorMetodoPago(
+    requestParameters?: VentasPorMetodoPagoRequestParams,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<Array<VentasPorMetodoPagoDto>>;
+  public ventasPorMetodoPago(
+    requestParameters?: VentasPorMetodoPagoRequestParams,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<Array<VentasPorMetodoPagoDto>>>;
+  public ventasPorMetodoPago(
+    requestParameters?: VentasPorMetodoPagoRequestParams,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<Array<VentasPorMetodoPagoDto>>>;
+  public ventasPorMetodoPago(
+    requestParameters?: VentasPorMetodoPagoRequestParams,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    const desde = requestParameters?.desde;
+    const hasta = requestParameters?.hasta;
+
+    let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
+
+    localVarQueryParameters = this.addToHttpParams(
+      localVarQueryParameters,
+      'desde',
+      <any>desde,
+      QueryParamStyle.Form,
+      true,
+    );
+
+    localVarQueryParameters = this.addToHttpParams(
+      localVarQueryParameters,
+      'hasta',
+      <any>hasta,
+      QueryParamStyle.Form,
+      true,
+    );
+
+    let localVarHeaders = this.defaultHeaders;
+
+    // authentication (bearerAuth) required
+    localVarHeaders = this.configuration.addCredentialToHeaders(
+      'bearerAuth',
+      'Authorization',
+      localVarHeaders,
+      'Bearer ',
+    );
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/v1/reportes/ventas-por-metodo-pago`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<Array<VentasPorMetodoPagoDto>>(
+      'get',
+      `${basePath}${localVarPath}`,
+      {
+        context: localVarHttpContext,
+        params: localVarQueryParameters.toHttpParams(),
+        responseType: <any>responseType_,
+        ...(withCredentials ? { withCredentials } : {}),
+        headers: localVarHeaders,
+        observe: observe,
+        ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+        reportProgress: reportProgress,
+      },
+    );
   }
 
   /**

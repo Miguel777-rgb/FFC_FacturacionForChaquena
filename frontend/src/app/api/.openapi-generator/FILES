@@ -28,10 +28,12 @@ api/outbox.api.ts
 api/personal-asistencia.api.ts
 api/personal-desempeno.api.ts
 api/personal-turnos.api.ts
+api/reportes-exportar.api.ts
 api/reportes.api.ts
 api/roles.api.ts
 api/salon-mesas.api.ts
 api/salon-reservas.api.ts
+api/tiempo-real.api.ts
 api/trabajadores.api.ts
 configuration.ts
 encoder.ts
@@ -47,6 +49,7 @@ model/arqueo-caja-dto.ts
 model/asignar-delivery-request-dto.ts
 model/asistencia-del-dia-dto.ts
 model/auth-response-dto.ts
+model/aviso-tiempo-real-dto.ts
 model/bootstrap-admin-request-dto.ts
 model/cambiar-password-request-dto.ts
 model/cambio-estado-request-dto.ts
@@ -158,6 +161,7 @@ model/transportista-response-dto.ts
 model/turno-dto.ts
 model/vehiculo-request-dto.ts
 model/vehiculo-response-dto.ts
+model/ventas-por-metodo-pago-dto.ts
 model/ventas-por-mozo-dto.ts
 model/ventas.ts
 model/verificar-otp-request-dto.ts

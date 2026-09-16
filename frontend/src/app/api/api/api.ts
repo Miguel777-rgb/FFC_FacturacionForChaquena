@@ -54,12 +54,16 @@ export * from './personal-turnos.api';
 import { PersonalTurnosApi } from './personal-turnos.api';
 export * from './reportes.api';
 import { ReportesApi } from './reportes.api';
+export * from './reportes-exportar.api';
+import { ReportesExportarApi } from './reportes-exportar.api';
 export * from './roles.api';
 import { RolesApi } from './roles.api';
 export * from './salon-mesas.api';
 import { SalonMesasApi } from './salon-mesas.api';
 export * from './salon-reservas.api';
 import { SalonReservasApi } from './salon-reservas.api';
+export * from './tiempo-real.api';
+import { TiempoRealApi } from './tiempo-real.api';
 export * from './trabajadores.api';
 import { TrabajadoresApi } from './trabajadores.api';
 export const APIS = [
@@ -91,8 +95,10 @@ export const APIS = [
   PersonalDesempenoApi,
   PersonalTurnosApi,
   ReportesApi,
+  ReportesExportarApi,
   RolesApi,
   SalonMesasApi,
   SalonReservasApi,
+  TiempoRealApi,
   TrabajadoresApi,
 ];

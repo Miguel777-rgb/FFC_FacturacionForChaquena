@@ -288,6 +288,23 @@
         },
         "type": "object"
       },
+      "AvisoTiempoRealDto": {
+        "properties": {
+          "tema": {
+            "enum": [
+              "COMANDAS",
+              "COCINA",
+              "REPARTO",
+              "MESAS",
+              "RESERVAS",
+              "CAJA",
+              "STOCK"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "BootstrapAdminRequestDto": {
         "properties": {
           "apellidos": {
@@ -4021,6 +4038,26 @@
         },
         "type": "object"
       },
+      "VentasPorMetodoPagoDto": {
+        "properties": {
+          "metodo": {
+            "enum": [
+              "EFECTIVO",
+              "E_WALLET",
+              "TARJETA"
+            ],
+            "type": "string"
+          },
+          "pagos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
       "VentasPorMozoDto": {
         "properties": {
           "comandas": {
@@ -5871,6 +5908,28 @@
         "summary": "Buscar empresa por RUC",
         "tags": [
           "Clientes - Empresas"
+        ]
+      }
+    },
+    "/api/v1/eventos/stream": {
+      "get": {
+        "description": "Emite 'listo' al conectar, un 'aviso' con el tema por cada rafaga de cambios y un comentario cada 25 segundos. El servidor cierra la conexion a los diez minutos: el cliente reconecta con el token vigente.",
+        "operationId": "streamEventos",
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvisoTiempoRealDto"
+                }
+              }
+            },
+            "description": "Stream abierto"
+          }
+        },
+        "summary": "Avisos de lo que cambia en el local, filtrados por cargo",
+        "tags": [
+          "Tiempo real"
         ]
       }
     },
@@ -8690,6 +8749,111 @@
         ]
       }
     },
+    "/api/v1/reportes/asistencia/exportar": {
+      "get": {
+        "description": "Sin rango, los ultimos siete dias. Un rango al reves se da vuelta; hasta un ano.",
+        "operationId": "exportarAsistencia",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "formato",
+            "required": false,
+            "schema": {
+              "default": "PDF",
+              "enum": [
+                "PDF",
+                "XLSX"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "El archivo, como adjunto"
+          }
+        },
+        "summary": "Asistencia por dia y resumen por persona",
+        "tags": [
+          "Reportes - Exportar"
+        ]
+      }
+    },
+    "/api/v1/reportes/inventario/exportar": {
+      "get": {
+        "operationId": "exportarInventario",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "formato",
+            "required": false,
+            "schema": {
+              "default": "PDF",
+              "enum": [
+                "PDF",
+                "XLSX"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "El archivo, como adjunto"
+          }
+        },
+        "summary": "El almacen en este momento: stock, minimo, vencimientos y valor",
+        "tags": [
+          "Reportes - Exportar"
+        ]
+      }
+    },
     "/api/v1/reportes/productos-top": {
       "get": {
         "operationId": "productosTop",
@@ -8741,6 +8905,67 @@
         "summary": "Platillos mas vendidos, para decidir la carta",
         "tags": [
           "Reportes"
+        ]
+      }
+    },
+    "/api/v1/reportes/productos/exportar": {
+      "get": {
+        "operationId": "exportarProductos",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "formato",
+            "required": false,
+            "schema": {
+              "default": "PDF",
+              "enum": [
+                "PDF",
+                "XLSX"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "El archivo, como adjunto"
+          }
+        },
+        "summary": "Todos los platillos vendidos en el rango, del mas vendido al menos",
+        "tags": [
+          "Reportes - Exportar"
         ]
       }
     },
@@ -8922,6 +9147,50 @@
         ]
       }
     },
+    "/api/v1/reportes/ventas-por-metodo-pago": {
+      "get": {
+        "operationId": "ventasPorMetodoPago",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VentasPorMetodoPagoDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Lo cobrado con cada metodo de pago en el rango, con los que quedaron en cero",
+        "tags": [
+          "Reportes"
+        ]
+      }
+    },
     "/api/v1/reportes/ventas-por-mozo": {
       "get": {
         "operationId": "ventasPorMozo",
@@ -8963,6 +9232,67 @@
         "summary": "Cuanto vendio cada mozo en el rango",
         "tags": [
           "Reportes"
+        ]
+      }
+    },
+    "/api/v1/reportes/ventas/exportar": {
+      "get": {
+        "operationId": "exportarVentas",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "formato",
+            "required": false,
+            "schema": {
+              "default": "PDF",
+              "enum": [
+                "PDF",
+                "XLSX"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "El archivo, como adjunto"
+          }
+        },
+        "summary": "Ventas del rango: resumen, canal, metodo de pago, dia y mozo",
+        "tags": [
+          "Reportes - Exportar"
         ]
       }
     },
@@ -9833,6 +10163,10 @@
       "name": "Cargos"
     },
     {
+      "description": "Avisos de cambios por Server-Sent Events",
+      "name": "Tiempo real"
+    },
+    {
       "description": "Fotos de la carta y logo del local",
       "name": "Archivos"
     },
@@ -9859,6 +10193,10 @@
     {
       "description": "Mapa de mesas con estados, plano y reservas",
       "name": "Salon - Mesas"
+    },
+    {
+      "description": "Ventas, platillos, inventario y asistencia en PDF o Excel",
+      "name": "Reportes - Exportar"
     },
     {
       "description": "Asignacion, salida a ruta y entrega con OTP",
