@@ -5,6 +5,12 @@
       <input type="date" [value]="dia()" (change)="cambiarDia($any($event.target).value)" />
     </label>
     <p class="tenue">{{ t('asistencia.ayuda') }}</p>
+    <app-descarga
+      class="al-final"
+      rotulo="asistencia.descargar"
+      respaldo="chaquena-asistencia"
+      [archivo]="bajarAsistencia"
+    />
   </div>
 
   @if ((filas() ?? []).length > 0) {

@@ -15,6 +15,7 @@ import {
   InventarioInsumosApi,
   InventarioMovimientosApi,
   InventarioProveedoresApi,
+  ReportesExportarApi,
   LoteInsumoDtoEstadoEnum,
   MovimientoRequestDtoTipoControlEnum,
   type Descuadre,
@@ -24,6 +25,7 @@ import {
   type ProveedorDto,
   type ResumenInventarioDto,
 } from '../../api';
+import { Descarga, type PedirArchivo } from '../../disenio/descarga';
 import { Dialogo } from '../../disenio/dialogo';
 import { Icono } from '../../disenio/icono';
 import { AvisosService } from '../../nucleo/http/avisos.service';
@@ -96,7 +98,7 @@ function hoyComoCampo(): string {
  */
 @Component({
   selector: 'app-inventario-seccion',
-  imports: [DecimalPipe, Dialogo, Icono],
+  imports: [DecimalPipe, Dialogo, Icono, Descarga],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inventario.seccion.html',
   styleUrls: ['../../disenio/secciones.scss', './inventario.seccion.scss'],
@@ -105,6 +107,7 @@ export class InventarioSeccion implements OnInit {
   private readonly insumosApi = inject(InventarioInsumosApi);
   private readonly movimientosApi = inject(InventarioMovimientosApi);
   private readonly proveedoresApi = inject(InventarioProveedoresApi);
+  private readonly exportarApi = inject(ReportesExportarApi);
   private readonly avisos = inject(AvisosService);
   private readonly i18n = inject(I18nService);
 
@@ -211,6 +214,10 @@ export class InventarioSeccion implements OnInit {
   protected readonly tituloFormulario = computed(() =>
     this.t(this.editandoId() ? 'inventario.editarInsumo' : 'inventario.nuevoInsumo'),
   );
+
+  /** El archivo lleva todos los insumos, no solo los del filtro: es la foto del almacen. */
+  protected readonly bajarInventario: PedirArchivo = (formato) =>
+    this.exportarApi.exportarInventario({ formato }, 'response');
 
   ngOnInit(): void {
     this.cargar();

@@ -119,3 +119,8 @@ td .chip {
     color: var(--tenue);
   }
 }
+
+/* La descarga se aparta de las acciones del dia a dia; en el celular baja a su propia linea. */
+.al-final {
+  margin-inline-start: auto;
+}

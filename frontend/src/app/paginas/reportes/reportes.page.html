@@ -41,6 +41,12 @@
           </button>
         }
       </div>
+      <app-descarga
+        class="al-final"
+        rotulo="reportes.descargarVentas"
+        respaldo="chaquena-ventas"
+        [archivo]="bajarVentas"
+      />
     </div>
 
     @switch (pestana()) {
@@ -171,6 +177,18 @@
                 </tbody>
               </table>
             </div>
+            <!-- La tabla muestra ocho; el archivo lleva todos los del rango. -->
+            <app-descarga
+              class="pie-bloque"
+              rotulo="reportes.descargarPlatillos"
+              respaldo="chaquena-platillos"
+              [archivo]="bajarPlatillos"
+            />
+          </div>
+
+          <div class="bloque">
+            <h2>{{ t('metodosPago.titulo') }}</h2>
+            <app-metodos-pago [metodos]="metodos()" [cargando]="cargando()" />
           </div>
 
           <!-- El desglose por estado explica el hueco entre lo pedido y lo cobrado:

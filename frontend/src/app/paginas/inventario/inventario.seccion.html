@@ -45,6 +45,12 @@
     <button type="button" class="secundario" (click)="abrirConteo()">
       {{ t(contando() ? 'inventario.dejarConteo' : 'inventario.conteoFisico') }}
     </button>
+    <app-descarga
+      class="al-final"
+      rotulo="inventario.descargar"
+      respaldo="chaquena-inventario"
+      [archivo]="bajarInventario"
+    />
   </div>
 
   <!-- Que se esta mirando: todo, lo que falta o lo que vence. -->

@@ -13,14 +13,18 @@ import { catchError } from 'rxjs/operators';
 import {
   FeedbackYFidelizacionApi,
   ReportesApi,
+  ReportesExportarApi,
   SerieVentasDtoGranularidadEnum,
   type ProductoTopDto,
   type ReporteSatisfaccionDto,
   type SerieVentasDto,
   type TableroDto,
+  type VentasPorMetodoPagoDto,
   type VentasPorMozoDto,
 } from '../../api';
+import { Descarga, type PedirArchivo } from '../../disenio/descarga';
 import { Icono } from '../../disenio/icono';
+import { MetodosPago } from '../../disenio/metodos-pago';
 import { fechaIsoLocal, inicioDelDia } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
 import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
@@ -70,7 +74,7 @@ const GRAFICA = { ancho: 720, alto: 160, hueco: 2 };
  */
 @Component({
   selector: 'app-reportes',
-  imports: [DecimalPipe, Icono],
+  imports: [DecimalPipe, Icono, Descarga, MetodosPago],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reportes.page.html',
   styleUrls: ['../../disenio/secciones.scss', './reportes.page.scss'],
@@ -78,6 +82,7 @@ const GRAFICA = { ancho: 720, alto: 160, hueco: 2 };
 export class ReportesPage implements OnInit {
   private readonly reportesApi = inject(ReportesApi);
   private readonly fidelizacionApi = inject(FeedbackYFidelizacionApi);
+  private readonly exportarApi = inject(ReportesExportarApi);
   private readonly sesion = inject(SesionService);
   private readonly i18n = inject(I18nService);
 
@@ -100,6 +105,7 @@ export class ReportesPage implements OnInit {
   protected readonly serie = signal<SerieVentasDto | null>(null);
   protected readonly mozos = signal<VentasPorMozoDto[]>([]);
   protected readonly top = signal<ProductoTopDto[]>([]);
+  protected readonly metodos = signal<VentasPorMetodoPagoDto[]>([]);
   protected readonly satisfaccion = signal<ReporteSatisfaccionDto | null>(null);
 
   /** Cuanto se pasa la cocina de su propio objetivo. Negativo significa que va sobrada. */
@@ -187,11 +193,23 @@ export class ReportesPage implements OnInit {
     this.cargar();
   }
 
+  /** Las descargas usan el rango que se esta mirando, con la hora del momento de pedirlas. */
+  protected readonly bajarVentas: PedirArchivo = (formato) =>
+    this.exportarApi.exportarVentas({ formato, ...this.rangoIso() }, 'response');
+
+  protected readonly bajarPlatillos: PedirArchivo = (formato) =>
+    this.exportarApi.exportarProductos({ formato, ...this.rangoIso() }, 'response');
+
+  private rangoIso(): { desde: string; hasta: string } {
+    const dias = RANGOS.find((r) => r.id === this.rango())?.dias ?? 0;
+    return { desde: fechaIsoLocal(inicioDelDia(dias)), hasta: fechaIsoLocal(new Date()) };
+  }
+
   protected cargar(): void {
     this.cargando.set(true);
 
     const dias = RANGOS.find((r) => r.id === this.rango())?.dias ?? 0;
-    const rangoIso = { desde: fechaIsoLocal(inicioDelDia(dias)), hasta: fechaIsoLocal(new Date()) };
+    const rangoIso = this.rangoIso();
     const granularidad =
       dias === 0 ? SerieVentasDtoGranularidadEnum.HORA : SerieVentasDtoGranularidadEnum.DIA;
 
@@ -206,16 +224,20 @@ export class ReportesPage implements OnInit {
       top: this.reportesApi
         .productosTop({ ...rangoIso, limite: 8 })
         .pipe(catchError(() => of([] as ProductoTopDto[]))),
+      metodos: this.reportesApi
+        .ventasPorMetodoPago(rangoIso)
+        .pipe(catchError(() => of([] as VentasPorMetodoPagoDto[]))),
       // A caja no se le pide: el servidor le responderia 403.
       satisfaccion: this.esAdmin()
         ? this.fidelizacionApi.satisfaccion(rangoIso).pipe(catchError(() => of(null)))
         : of(null),
     }).subscribe({
-      next: ({ tablero, serie, mozos, top, satisfaccion }) => {
+      next: ({ tablero, serie, mozos, top, metodos, satisfaccion }) => {
         this.tablero.set(tablero);
         this.serie.set(serie);
         this.mozos.set(mozos);
         this.top.set(top);
+        this.metodos.set(metodos);
         this.satisfaccion.set(satisfaccion);
         this.cargando.set(false);
       },

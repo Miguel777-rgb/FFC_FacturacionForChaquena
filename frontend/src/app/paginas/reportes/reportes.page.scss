@@ -20,3 +20,18 @@
     border-radius: 3px;
   }
 }
+
+/* La descarga del rango va al otro extremo de la barra, lejos de los rangos. */
+.al-final {
+  margin-inline-start: auto;
+}
+
+.pie-bloque {
+  display: block;
+  margin-top: var(--e3);
+}
+
+/* Con tres bloques por fila la columna del total se estrecha: el importe no se parte. */
+.tabla td.num {
+  white-space: nowrap;
+}

@@ -10,14 +10,30 @@ import {
 import {
   AsistenciaDelDiaDtoEstadoEnum,
   PersonalAsistenciaApi,
+  ReportesExportarApi,
   type AsistenciaDelDiaDto,
 } from '../../api';
+import { Descarga, type PedirArchivo } from '../../disenio/descarga';
+import { fechaDeDia } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
 
-function hoyComoCampo(): string {
-  const f = new Date();
+function comoCampo(f: Date): string {
   const dos = (n: number) => String(n).padStart(2, '0');
   return `${f.getFullYear()}-${dos(f.getMonth() + 1)}-${dos(f.getDate())}`;
+}
+
+function hoyComoCampo(): string {
+  return comoCampo(new Date());
+}
+
+/** De lunes a domingo, la semana del dia elegido. */
+function semanaDe(dia: string): { desde: string; hasta: string } {
+  const fecha = fechaDeDia(dia) ?? new Date();
+  const lunes = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+  lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+  const domingo = new Date(lunes);
+  domingo.setDate(domingo.getDate() + 6);
+  return { desde: comoCampo(lunes), hasta: comoCampo(domingo) };
 }
 
 /**
@@ -30,12 +46,14 @@ function hoyComoCampo(): string {
  */
 @Component({
   selector: 'app-asistencia-seccion',
+  imports: [Descarga],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './asistencia.seccion.html',
   styleUrls: ['../../disenio/secciones.scss', './asistencia.seccion.scss'],
 })
 export class AsistenciaSeccion implements OnInit {
   private readonly api = inject(PersonalAsistenciaApi);
+  private readonly exportarApi = inject(ReportesExportarApi);
   private readonly i18n = inject(I18nService);
 
   protected readonly t = this.i18n.t;
@@ -55,6 +73,10 @@ export class AsistenciaSeccion implements OnInit {
     }
     return cuenta;
   });
+
+  /** La semana entera del dia que se esta mirando, con el resumen por persona. */
+  protected readonly bajarAsistencia: PedirArchivo = (formato) =>
+    this.exportarApi.exportarAsistencia({ formato, ...semanaDe(this.dia()) }, 'response');
 
   ngOnInit(): void {
     this.cargar();

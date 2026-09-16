@@ -1215,6 +1215,30 @@ export const ES = {
   'vencimiento.POR_VENCER': 'Por vencer',
   'vencimiento.VIGENTE': 'Vigente',
   'vencimiento.SIN_VENCIMIENTO': 'Sin fecha',
+
+  // --- tiempo real y exportaciones ---
+  'kds.sonidoActivar': 'Activar el aviso sonoro de comandas nuevas',
+  'kds.sonidoSilenciar': 'Silenciar el aviso de comandas nuevas',
+  'kds.sonido': 'Sonido',
+  'tiempoReal.enVivo': 'En vivo',
+  'tiempoReal.sinVivo': 'Se actualiza sola',
+  'descarga.grupo': 'Descargar',
+  'descarga.pdf': 'PDF',
+  'descarga.excel': 'Excel',
+  'descarga.pdfAria': 'Descargar en PDF',
+  'descarga.excelAria': 'Descargar en Excel',
+  'descarga.preparando': 'Preparando…',
+  'descarga.lista': 'Se descargó {nombre}.',
+  'metodosPago.titulo': 'Cobrado por método de pago',
+  'metodosPago.tituloHoy': 'Cobrado hoy por método',
+  'metodosPago.pagos.uno': '{n} pago',
+  'metodosPago.pagos.otros': '{n} pagos',
+  'metodosPago.sinPagos': 'Todavía no hay pagos confirmados en este rango.',
+  'metodosPago.sinPagosHoy': 'Todavía no hay pagos confirmados hoy.',
+  'reportes.descargarVentas': 'Ventas del rango',
+  'reportes.descargarPlatillos': 'Todos los platillos',
+  'inventario.descargar': 'Inventario al momento',
+  'asistencia.descargar': 'Asistencia de la semana',
 } as const satisfies Record<string, string>;
 
 /** Toda clave que existe. Los otros diccionarios tienen que cubrirlas todas. */
