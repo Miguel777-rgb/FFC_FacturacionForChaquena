@@ -26,8 +26,8 @@ ver [Idiomas](#idiomas).
 
 | # | Lo que hay que saber | Evidencia |
 |---|---|---|
-| 1 | **No hay zone.js.** La detección de cambios se dispara por señales, y *todos* los componentes son `OnPush`. Un valor que no sea señal no repinta la pantalla. | [app.config.ts:23](src/app/app.config.ts#L23) · `ChangeDetectionStrategy.OnPush` en los 34 componentes |
-| 2 | **El cliente HTTP no se escribe: se genera.** 23 servicios y 110 modelos salen de 99 rutas / 129 operaciones del contrato. Editar a mano `src/app/api` se pierde en el siguiente `pnpm api:sync`. | [api/generator-config.json](api/generator-config.json) · [src/app/api/.openapi-generator/FILES](src/app/api/.openapi-generator/FILES) |
+| 1 | **No hay zone.js.** La detección de cambios se dispara por señales, y *todos* los componentes son `OnPush`. Un valor que no sea señal no repinta la pantalla. | [app.config.ts:23](src/app/app.config.ts#L23) · `ChangeDetectionStrategy.OnPush` en los 43 componentes |
+| 2 | **El cliente HTTP no se escribe: se genera.** 34 servicios y 128 modelos salen de 129 rutas / 168 operaciones del contrato. Editar a mano `src/app/api` se pierde en el siguiente `pnpm api:sync`. | [api/generator-config.json](api/generator-config.json) · [src/app/api/.openapi-generator/FILES](src/app/api/.openapi-generator/FILES) |
 | 3 | **El token lo pone el cliente generado, no un interceptor.** Viaja solo a los endpoints que declaran `bearerAuth` en el contrato, no a toda petición saliente. | [app.config.ts:50](src/app/app.config.ts#L50) |
 | 4 | **El JWT se decodifica, nunca se verifica.** El backend firma con HMAC simétrico; el secreto no está —ni puede estar— en el navegador. Sirve para decidir qué pintar, no qué permitir. | [sesion.service.ts:134](src/app/nucleo/sesion/sesion.service.ts#L134) |
 | 5 | **El rol sale del claim `roles`, no del `cargo`.** El cargo se llama `ADMINISTRADOR`; el `@PreAuthorize` pide `ADMIN`. El puente es la tabla `cargo_roles`. | [sesion.service.ts:125](src/app/nucleo/sesion/sesion.service.ts#L125) · [sesion.service.spec.ts:44](src/app/nucleo/sesion/sesion.service.spec.ts#L44) |
@@ -49,7 +49,7 @@ Todos se corren desde `frontend/`. El proyecto usa **pnpm**, no npm.
 | `pnpm start` | `ng serve` en `http://localhost:4200` | Usa la configuración *development*, que reemplaza `environment.ts` por `environment.development.ts` y apunta a `localhost:8080` | [angular.json](angular.json) · [environment.development.ts:7](src/environments/environment.development.ts#L7) |
 | `pnpm build` | Compila a `dist/frontend-logistica/browser` | Configuración *production* por defecto: `outputHashing: all` y presupuestos de 500 kB (aviso) / 1 MB (error) para el bundle inicial | [angular.json](angular.json) |
 | `pnpm watch` | `ng build --watch` en desarrollo | Sin optimizar y con *source maps*; útil cuando se sirve desde otro servidor | [package.json](package.json) |
-| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 24 archivos, 87 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
+| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 26 archivos, 92 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
 | `pnpm api:fetch` | Descarga `/v3/api-docs` del backend a `api/openapi.json` | Ordena las claves y borra el bloque `servers` para que dos descargas seguidas den diff vacío; aborta si el contrato no es OpenAPI 3.0 | [api/fetch-spec.mjs](api/fetch-spec.mjs) |
 | `pnpm api:generate` | Genera el cliente en `src/app/api` | `typescript-angular`, `stringEnums`, `useSingleRequestParameter`, `providedInRoot` | [api/generator-config.json](api/generator-config.json) |
 | `pnpm api:sync` | `api:fetch` + `api:generate` | **Es el único modo legítimo de cambiar `src/app/api`.** El backend tiene que estar arriba | [package.json](package.json) |
@@ -77,16 +77,19 @@ src/
     ├── app.ts / .html    cascarón: panel lateral o barra superior + <router-outlet> + avisos
     ├── app.routes.ts     doce rutas en diferido + cuatro redirecciones
     ├── api/              GENERADO — no se edita a mano
-    ├── nucleo/           sesión, roles, guardas, errores, avisos, logo, idiomas, tema, confirmación
+    ├── nucleo/           sesión, roles, guardas, errores, avisos, logo, idiomas, tema, confirmación, tiempo real
     │   ├── sesion/       sesion.service · rol · guardas · google.service
-    │   ├── http/         errores.interceptor · avisos.service · idioma.interceptor
+    │   ├── http/         errores.interceptor · avisos.service · idioma.interceptor · descarga
     │   ├── i18n/         i18n.service · idioma · titulo.strategy · formatos
     │   │   └── traducciones/   es (fuente de las claves) · en · pt
     │   ├── tema/         tema.service
     │   ├── confirmacion/ confirmacion.service
-    │   └── marca/        logo.service
+    │   ├── asistencia/   asistencia.service
+    │   ├── tiempo-real/  tiempo-real.service
+    │   └── marca/        logo.service · archivos
     ├── disenio/          panel-lateral · pila-avisos · icono · barra-idiomas
     │                     barra-superior · dialogo · confirmacion · selector-tema
+    │                     en-vivo · descarga · metodos-pago
     │                     secciones.scss (menú, inventario, configuración, personal y reportes)
     └── paginas/          login · inicio · sin-permiso · pos · kds · caja · despacho
                           menu · inventario · configuracion (+3 secciones)
@@ -118,6 +121,8 @@ src/
 | [google.service.ts](src/app/nucleo/sesion/google.service.ts) | El botón «Entrar con Google» | Pide un **access token**, no un ID token, porque el backend lo valida contra `tokeninfo`. El scope **no** lleva `openid`: en el flujo implícito Google lo rechaza con un 400 genérico | [:36](src/app/nucleo/sesion/google.service.ts#L36) |
 | [errores.interceptor.ts](src/app/nucleo/http/errores.interceptor.ts) | Traductor único de fallos | 401 con sesión abierta la cierra y redirige; 409 y 422 muestran **el texto del servidor**, que ya explica qué transiciones sí se permiten. `mensajeDe` se exporta para que el login lea el mensaje igual | [:35](src/app/nucleo/http/errores.interceptor.ts#L35), [:79](src/app/nucleo/http/errores.interceptor.ts#L79) |
 | [avisos.service.ts](src/app/nucleo/http/avisos.service.ts) | Cola de avisos | Los errores **no se van solos**: en un POS táctil nadie está mirando. Solo éxito (4 s) e info (6 s) caducan. Dos fallos idénticos no se apilan | [:44](src/app/nucleo/http/avisos.service.ts#L44) |
+| [tiempo-real.service.ts](src/app/nucleo/tiempo-real/tiempo-real.service.ts) | Los avisos en vivo del backend | Lee `GET /eventos/stream` con `fetch` y no con `EventSource`, que no deja mandar el Bearer. Un aviso solo dice el tema que cambió; la pantalla vuelve a pedir lo suyo. `cambios(temas, respaldoMs)` emite con cada aviso, al reconectar después de una caída y, **mientras no hay conexión, cada `respaldoMs`**: el polling de antes quedó como red. Una conexión por pestaña, abierta solo mientras alguna pantalla escucha | [Tiempo real](#tiempo-real) |
+| [descarga.ts](src/app/nucleo/http/descarga.ts) | Guardar un Blob como archivo | El nombre sale de `Content-Disposition` —`filename*` primero, que admite tildes—, así que lo decide el servidor, que sabe qué rango usó. La URL del Blob se libera a los 30 s y no en el acto: Safari cancela la descarga si se revoca antes | [descarga.spec.ts](src/app/nucleo/http/descarga.spec.ts) |
 | [logo.service.ts](src/app/nucleo/marca/logo.service.ts) + [archivos.ts](src/app/nucleo/marca/archivos.ts) | Logo del local y URL de las imágenes subidas | El logo es un dato del local, el mismo en todas las pantallas: se pide al abrir la sesión y **solo ADMIN lo cambia**; los demás lo ven sin ranura. Importa `archivos.api` y `local.api` sueltos, no el barril, porque carga con el panel. Las imágenes se sirven por UUID **sin token** —un `<img>` no manda cabeceras—, y `problemaDeImagen` rechaza SVG y lo que pase de 2 MB antes de subir; el servidor lo vuelve a mirar en los bytes | [logo.service.ts](src/app/nucleo/marca/logo.service.ts), [archivos.ts](src/app/nucleo/marca/archivos.ts) |
 
 ### Diseño — las piezas compartidas
@@ -130,6 +135,9 @@ src/
 | [barra-idiomas.ts](src/app/disenio/barra-idiomas.ts) | Las tres banderas | `integrada` en el pie del panel y en la barra superior; solo en la pantalla de entrar flota en una esquina. Cada botón lleva el nombre del idioma en `aria-label`: una bandera no es un idioma | [barra-idiomas.ts](src/app/disenio/barra-idiomas.ts) |
 | [icono.ts](src/app/disenio/icono.ts) + [iconos.ts](src/app/disenio/iconos.ts) | Iconos de un solo juego | Tabler Icons 3.46.0 (MIT), de contorno: se copian los `d` de los que se usan, sin instalar la librería. Nada de emojis ni glifos como `★` en lugar de iconos. `aria-hidden` va fijo, porque un icono nunca es la única forma de nombrar algo | [iconos.ts](src/app/disenio/iconos.ts) |
 | [dialogo.ts](src/app/disenio/dialogo.ts) + [confirmacion.ts](src/app/disenio/confirmacion.ts) | Diálogo y confirmación de peligro | Sobre el `<dialog>` nativo: `showModal()` deja inerte el resto, atrapa el foco y cierra con Escape. Toda acción de peligro pasa por `ConfirmacionService.pedir(...)`; el foco arranca en «Dejarlo», no en el botón rojo | [confirmacion.service.ts](src/app/nucleo/confirmacion/confirmacion.service.ts) |
+| [en-vivo.ts](src/app/disenio/en-vivo.ts) | «En vivo» junto al título | En cocina, despacho, órdenes, mesas y el tablero. Con la conexión caída dice «Se actualiza sola»: sin eso, una comanda que no aparece podría no existir o no haber llegado todavía | [en-vivo.ts](src/app/disenio/en-vivo.ts) |
+| [descarga.ts](src/app/disenio/descarga.ts) | Los botones PDF y Excel | Dos botones y no un menú: son dos formatos fijos, y un desplegable en el celular es un toque más. La pantalla le pasa una función que pide el archivo con su rango; el botón se ocupa del estado, el nombre y el aviso | [descarga.ts](src/app/disenio/descarga.ts) |
+| [metodos-pago.ts](src/app/disenio/metodos-pago.ts) | Lo cobrado por método | Barras horizontales, no torta: tres porciones parecidas no se distinguen a ojo. Los tres métodos siempre, también el que quedó en cero | [metodos-pago.ts](src/app/disenio/metodos-pago.ts) |
 | [selector-tema.ts](src/app/disenio/selector-tema.ts) | Claro, oscuro o sistema | Un botón en el pie del panel que recorre los tres. `TemaService` escribe `data-tema` en `<html>` y lo recuerda por dispositivo, como el idioma | [tema.service.ts](src/app/nucleo/tema/tema.service.ts) |
 | [styles.scss](src/styles.scss) + [estilos/](src/estilos/) | Tokens y piezas comunes | Diez parciales: fuentes, tokens de claro y oscuro, base, botones, formularios, tarjetas, insignias, alertas, tablas y utilidades. `.bloque`, `.chip`, `.tabla`, `.cabecera` y `.cifra` viven aquí porque varias superficies los pintan igual | [_tokens.scss](src/estilos/_tokens.scss) |
 
@@ -159,7 +167,7 @@ a Google Fonts. Ningún rótulo va en mayúsculas espaciadas ni en monoespaciada
 | [login.page.ts](src/app/paginas/login/login.page.ts) | — | Dos vías de entrada: usuario/contraseña y Google | Muestra **el texto del servidor**, no uno deducido del código HTTP: cuando el backend empezó a distinguir «cuenta dada de baja» de «contraseña incorrecta», el mapeo anterior quedó al revés ([:122](src/app/paginas/login/login.page.ts#L122)) | `Autenticacion` |
 | [inicio.page.ts](src/app/paginas/inicio/inicio.page.ts) | cualquiera | Reparte a cada rol a su superficie | Sin plantilla: existe para que `/` sea válida sin repetir el destino en cada redirección | — |
 | [sin-permiso.page.ts](src/app/paginas/sin-permiso/sin-permiso.page.ts) | cualquiera | El 403 explicado | Dice con qué roles entró la persona, para que sepa qué pedirle al administrador | — |
-| [tablero.page.ts](src/app/paginas/tablero/tablero.page.ts) | ADMIN, CAJA | Cómo va el día y qué hay que ir a resolver | Compara con **ayer a la misma hora**, no con el día entero de ayer: a las once de la mañana cualquier día pierde contra una noche completa. Cada pendiente enlaza a su pantalla solo si el rol puede entrar; si no, queda en cifra | `Reportes` |
+| [tablero.page.ts](src/app/paginas/tablero/tablero.page.ts) | ADMIN, CAJA | Cómo va el día y qué hay que ir a resolver | Compara con **ayer a la misma hora**, no con el día entero de ayer: a las once de la mañana cualquier día pierde contra una noche completa. Cada pendiente enlaza a su pantalla solo si el rol puede entrar; si no, queda en cifra. Al lado de lo más vendido, lo cobrado hoy por método de pago. Se recarga con los avisos de comandas, caja, mesas y stock, como mucho una vez cada 5 s: son cinco consultas | `Reportes` |
 | [pos.page.ts](src/app/paginas/pos/pos.page.ts) (794 líneas) | MOZO, ADMIN | Nace la comanda y se entrega en la mesa | Ver abajo | `SalonMesas`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `Clientes`, `FeedbackYFidelizacion`, `Comandas` |
 | [kds.page.ts](src/app/paginas/kds/kds.page.ts) | COCINA, ADMIN | La cola de cocina en tres columnas | Ver abajo | `CocinaKDS`, `InventarioInsumos` |
 | [caja.page.ts](src/app/paginas/caja/caja.page.ts) | CAJA, ADMIN | Cobrar, acreditar, calificar y cerrar | Ver abajo | `Comandas`, `CajaPagos`, `CajaArqueoYFraude`, `Reportes`, `FeedbackYFidelizacion` |
@@ -167,10 +175,10 @@ a Google Fonts. Ningún rótulo va en mayúsculas espaciadas ni en monoespaciada
 | [ordenes.page.ts](src/app/paginas/ordenes/ordenes.page.ts) | ADMIN, MOZO, CAJA | Todas las comandas, filtradas y paginadas en el servidor, con el detalle en un cajón | Los pasos salen de `transicionesPermitidas`, y cobrar o marcar fraude no se ofrecen: son de la caja. Cancelar pide motivo y deja elegir si se repone el stock. `?orden=` abre una comanda directamente | `Comandas` |
 | [mesas.page.ts](src/app/paginas/mesas/mesas.page.ts) | ADMIN, MOZO, CAJA | El salón y la agenda de reservas del día, en pestañas: en PC un plano por zona, en el celular una lista | La ocupación la decide la comanda y «reservada» la agenda: la mesa se ve reservada desde una hora antes de su reserva, sin que nadie la marque a mano. Solo ADMIN mueve el plano, arrastrando o con las flechas; se valida contra las otras mesas de la zona y se guarda entero de una vez (`PUT /mesas/plano`), porque dos mesas que intercambian sitio se pisarían guardadas por separado. Los pasos de una reserva salen de `transicionesPermitidas`, y cancelarla pide confirmación | `SalonMesas`, `SalonReservas`, `Comandas` |
 | [menu.page.ts](src/app/paginas/menu/menu.page.ts) | ALMACEN, ADMIN | Platillos con su receta, foto, costo y alérgenos; complementos, promociones y el catálogo de alérgenos, en pestañas | Ver abajo | `CatalogoCategorias`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `CatalogoAlergenos`, `Archivos`, `InventarioInsumos` |
-| [inventario.page.ts](src/app/paginas/inventario/inventario.page.ts) | ALMACEN, ADMIN | Insumos con sus lotes, vencimientos y valor, y proveedores, en pestañas | Ver abajo | `InventarioInsumos`, `InventarioMovimientos`, `InventarioProveedores` |
+| [inventario.page.ts](src/app/paginas/inventario/inventario.page.ts) | ALMACEN, ADMIN | Insumos con sus lotes, vencimientos y valor, y proveedores, en pestañas | Ver abajo | `InventarioInsumos`, `InventarioMovimientos`, `InventarioProveedores`, `ReportesExportar` |
 | [configuracion.page.ts](src/app/paginas/configuracion/configuracion.page.ts) | ADMIN | Datos del local e IGV, parámetros, niveles de lealtad, bots y eventos, en cinco pestañas | Ver abajo | — (cada sección pide lo suyo) |
-| [personal.page.ts](src/app/paginas/personal/personal.page.ts) | ADMIN | Trabajadores, cargos y qué abre cada cargo; el horario de la semana y la asistencia del día, en pestañas | Los roles se **leen**, no se crean: un rol es la palabra dentro de un `@PreAuthorize`, así que inventar «SUPERVISOR» no abriría ninguna puerta. Quitar un rol **no expulsa a quien ya inició sesión**: los roles viajan en el token. Un turno que termina antes de empezar termina al día siguiente, y la ficha lo avisa. La tardanza y la falta **no se escriben**: las calcula el servidor comparando turnos y marcaciones (diez minutos de tolerancia; «faltó» solo cuando el turno ya terminó). La ficha de cada persona trae su desempeño de 30 días: venta, atención, turnos cumplidos, tardanzas, inasistencias y horas | `Trabajadores`, `Cargos`, `Roles`, `PersonalTurnos`, `PersonalAsistencia`, `PersonalDesempeno` |
-| [reportes.page.ts](src/app/paginas/reportes/reportes.page.ts) | ADMIN, CAJA | Ventas del rango, ventas por mozo y, solo para ADMIN, satisfacción | Manda las fechas en ISO **con desfase local**, no en `Z`: con UTC, la cena del sábado en Lima aparece repartida entre sábado y domingo. A la caja no se le pide la satisfacción, que le daría 403. Lo que pasa ahora mismo vive en el tablero | `Reportes`, `FeedbackYFidelizacion` |
+| [personal.page.ts](src/app/paginas/personal/personal.page.ts) | ADMIN | Trabajadores, cargos y qué abre cada cargo; el horario de la semana y la asistencia del día, en pestañas | Los roles se **leen**, no se crean: un rol es la palabra dentro de un `@PreAuthorize`, así que inventar «SUPERVISOR» no abriría ninguna puerta. Quitar un rol **no expulsa a quien ya inició sesión**: los roles viajan en el token. Un turno que termina antes de empezar termina al día siguiente, y la ficha lo avisa. La tardanza y la falta **no se escriben**: las calcula el servidor comparando turnos y marcaciones (diez minutos de tolerancia; «faltó» solo cuando el turno ya terminó). La ficha de cada persona trae su desempeño de 30 días: venta, atención, turnos cumplidos, tardanzas, inasistencias y horas. La asistencia se baja por semanas —la del día elegido, de lunes a domingo— con el detalle diario y un resumen por persona | `Trabajadores`, `Cargos`, `Roles`, `PersonalTurnos`, `PersonalAsistencia`, `PersonalDesempeno`, `ReportesExportar` |
+| [reportes.page.ts](src/app/paginas/reportes/reportes.page.ts) | ADMIN, CAJA | Ventas del rango, ventas por mozo y, solo para ADMIN, satisfacción | Manda las fechas en ISO **con desfase local**, no en `Z`: con UTC, la cena del sábado en Lima aparece repartida entre sábado y domingo. A la caja no se le pide la satisfacción, que le daría 403. Lo cobrado por método de pago va junto a lo más vendido. **Ventas del rango** baja en PDF o Excel el resumen, los canales, los métodos, los días y los mozos; **Todos los platillos**, la lista completa y no solo los ocho de la tabla. Lo que pasa ahora mismo vive en el tablero | `Reportes`, `ReportesExportar`, `FeedbackYFidelizacion` |
 | [clientes.page.ts](src/app/paginas/clientes/clientes.page.ts) | ADMIN, CAJA | Buscar clientes y abrir su ficha: puntos, avance hacia el cupón, cupones, lo que suele pedir, empresas y últimas órdenes | Bloquear por fraude es de ADMIN y pide motivo. El nivel y lo que falta para el siguiente los calcula el servidor desde los puntos: la ficha no guarda ni deduce ningún nivel | `Clientes`, `FeedbackYFidelizacion` |
 | [perfil.page.ts](src/app/paginas/perfil/perfil.page.ts) | cualquiera | Los datos propios, marcar entrada y salida, los turnos de los próximos días, el idioma, el tema y cómo vincular Discord | **La contraseña no se cambia aquí** y la pantalla lo dice: el servidor solo deja restablecerla a un administrador. El documento y el celular salen de `/trabajadores/activos`, el único listado de personal abierto a todos los cargos. Marcar es **siempre sobre uno mismo**: la petición no dice quién, el servidor lo saca del token; el perfil y la barra del celular comparten el mismo estado ([asistencia.service.ts](src/app/nucleo/asistencia/asistencia.service.ts)) | `Trabajadores`, `PersonalAsistencia` |
 
@@ -223,19 +231,25 @@ existiendo como redirecciones a `/inventario` y `/reportes`.
 
 #### `/kds` — la cocina
 
-- **Dos relojes distintos.** La cola se refresca cada 15 s
-  ([:32](src/app/paginas/kds/kds.page.ts#L32)) y el cronómetro late cada segundo
-  ([:111](src/app/paginas/kds/kds.page.ts#L111)): los minutos que manda el
-  servidor ya están viejos en una tarjeta que lleva catorce segundos en pantalla,
-  así que se re-derivan de `recibida`.
+- **Dos relojes distintos.** La cola se repinta con cada aviso de cocina —y cada
+  15 s si se cae el tiempo real— ([:123](src/app/paginas/kds/kds.page.ts#L123)),
+  y el cronómetro late cada segundo ([:129](src/app/paginas/kds/kds.page.ts#L129)):
+  los minutos que manda el servidor ya están viejos en una tarjeta que lleva un
+  rato en pantalla, así que se re-derivan de `recibida`.
 - **El refresco automático es «silencioso»**: no vacía la pantalla, que en cocina
-  se leería como que la cola desapareció ([:125](src/app/paginas/kds/kds.page.ts#L125)).
+  se leería como que la cola desapareció ([:145](src/app/paginas/kds/kds.page.ts#L145)).
+- **El aviso sonoro es opcional** y viene apagado: en una cocina con extractor
+  puede no oírse y en una pequeña sobra. Son dos notas generadas con Web Audio,
+  sin archivo que descargar; suenan cuando la cola trae una comanda que la
+  pantalla no había visto, y la primera carga no cuenta
+  ([:173](src/app/paginas/kds/kds.page.ts#L173)). Encenderlo lo hace sonar ahí
+  mismo: el navegador solo deja sonar después de un gesto.
 - Las tres columnas se derivan del estado más `flagCierrePlatillo`
-  ([:88](src/app/paginas/kds/kds.page.ts#L88)).
+  ([:103](src/app/paginas/kds/kds.page.ts#L103)).
 - **«Tarde» se mide contra la promesa de la propia cocina**; solo si aún no hay
-  promesa se respeta el veredicto del servidor ([:165](src/app/paginas/kds/kds.page.ts#L165)).
+  promesa se respeta el veredicto del servidor ([:234](src/app/paginas/kds/kds.page.ts#L234)).
 - El aviso de insumo faltante **no cambia el estado** de la comanda: va al mozo,
-  que es quien puede hablar con el comensal ([:270](src/app/paginas/kds/kds.page.ts#L270)).
+  que es quien puede hablar con el comensal ([:339](src/app/paginas/kds/kds.page.ts#L339)).
 
 #### `/caja` — cobrar y cerrar
 
@@ -283,7 +297,7 @@ desmonta: mirar un parámetro no descarga la bandeja de eventos entera
 
 | Sección | Roles | Qué hace | Detalle clave |
 |---|---|---|---|
-| [inventario](src/app/paginas/inventario/inventario.seccion.ts) | ALMACEN, ADMIN | Insumos con su vencimiento y su valor, filtros por alerta, kardex con lotes, alta y edición, movimiento suelto y conteo físico | La cantidad va siempre en positivo: **el signo lo pone el motivo**. Proveedor, costo y vencimiento son del lote de una compra: si se escribieron y luego el motivo pasó a merma, no viajan, porque el servidor rechaza un lote en una salida. Qué está vencido o por vencer lo cuenta el servidor en días de Lima; la pantalla solo lo pinta, y lee «2026-09-16» como día local para no mostrarlo el 15 ([formatos.ts](src/app/nucleo/i18n/formatos.ts)). Los lotes del cajón van en el orden en que se consumen: primero lo que vence antes. El conteo solo envía las líneas escritas —un insumo no contado no es un insumo en cero— y deja los descuadres en pantalla después de aplicarlos |
+| [inventario](src/app/paginas/inventario/inventario.seccion.ts) | ALMACEN, ADMIN | Insumos con su vencimiento y su valor, filtros por alerta, kardex con lotes, alta y edición, movimiento suelto y conteo físico | La cantidad va siempre en positivo: **el signo lo pone el motivo**. Proveedor, costo y vencimiento son del lote de una compra: si se escribieron y luego el motivo pasó a merma, no viajan, porque el servidor rechaza un lote en una salida. Qué está vencido o por vencer lo cuenta el servidor en días de Lima; la pantalla solo lo pinta, y lee «2026-09-16» como día local para no mostrarlo el 15 ([formatos.ts](src/app/nucleo/i18n/formatos.ts)). Los lotes del cajón van en el orden en que se consumen: primero lo que vence antes. El conteo solo envía las líneas escritas —un insumo no contado no es un insumo en cero— y deja los descuadres en pantalla después de aplicarlos. **Inventario al momento** baja todos los insumos, no solo los del filtro: es la foto del almacén |
 | [proveedores](src/app/paginas/inventario/proveedores.seccion.ts) | ALMACEN, ADMIN | A quién se le compra | Se dan de baja, no se borran: uno inactivo deja de ofrecerse en la compra, pero sus lotes siguen diciendo de dónde vinieron. El RUC es opcional y, si se escribe, tiene 11 dígitos; se avisa antes de gastar un 400 |
 | [platillos](src/app/paginas/menu/carta.seccion.ts) | ALMACEN, ADMIN | Categorías, platillos con foto, tiempo de preparación y alérgenos, costo y margen, y recetas | `PUT /platillos/{id}/receta` **reemplaza**, no parchea. Un platillo sin receta se vende pero no descuenta nada, y el inventario se separa de la realidad sin que nadie lo note. **El costo no se escribe**: lo calcula el servidor con la receta y la última compra de cada insumo; si falta el de alguno, la tabla dice cuál en vez de mostrar un costo parcial, y la ficha recalcula el margen con el precio que se está escribiendo. La foto se sube al elegirla y la ficha guarda solo su id. Un alérgeno dado de baja que el plato ya tenía se sigue ofreciendo marcado: esconderlo haría que guardar lo quitara |
 | [alérgenos](src/app/paginas/menu/alergenos.seccion.ts) | ALMACEN, ADMIN | El catálogo que se marca en cada platillo | Llega sembrado con los catorce habituales. Renombrar uno cambia lo que dicen todos los platillos que lo llevan; darlo de baja no lo quita de ellos. El nombre repetido se avisa antes de gastar un 409 |
@@ -435,24 +449,42 @@ idiomas del selector tengan diccionario.
 
 ---
 
-## Refresco: no hay WebSocket
+## Tiempo real
 
-El backend no expone SSE ni WebSocket, así que cinco pantallas se refrescan por
-*polling*, aislado en un `interval` con `takeUntilDestroyed` para poder
-cambiarlo sin tocar los componentes:
+El backend avisa por **Server-Sent Events** en `GET /api/v1/eventos/stream` y
+cinco pantallas escuchan. El aviso no trae datos: solo el tema que cambió
+(`COCINA`, `COMANDAS`, `MESAS`...), y la pantalla vuelve a pedir lo suyo por el
+endpoint de siempre, que es el que aplica los permisos finos. El servidor filtra
+además por cargo: la cocina no se entera del ritmo de la caja.
 
-| Pantalla | Cada | Evidencia |
-|---|---|---|
-| `/kds` — la cola | 15 s (+ cronómetro cada 1 s) | [kds.page.ts:32](src/app/paginas/kds/kds.page.ts#L32) |
-| `/despacho` — comandas y conductores | 20 s | [despacho.page.ts:30](src/app/paginas/despacho/despacho.page.ts#L30) |
-| `/tablero` — el día y los pendientes | 60 s | [tablero.page.ts](src/app/paginas/tablero/tablero.page.ts) |
-| `/ordenes` — la página abierta | 30 s | [ordenes.page.ts](src/app/paginas/ordenes/ordenes.page.ts) |
-| `/mesas` — mesas y comandas abiertas; se pausa mientras se edita el plano, para no pisar las mesas a medio mover | 30 s | [mesas.page.ts](src/app/paginas/mesas/mesas.page.ts) |
+| Pantalla | Escucha | Si se cae la conexión, cada | Evidencia |
+|---|---|---|---|
+| `/kds` — la cola | `COCINA` | 15 s (el cronómetro va aparte, cada 1 s) | [kds.page.ts:123](src/app/paginas/kds/kds.page.ts#L123) |
+| `/despacho` — comandas y conductores | `REPARTO` | 20 s | [despacho.page.ts:129](src/app/paginas/despacho/despacho.page.ts#L129) |
+| `/tablero` — el día y los pendientes | `COMANDAS`, `CAJA`, `MESAS`, `STOCK` | 60 s | [tablero.page.ts:214](src/app/paginas/tablero/tablero.page.ts#L214) |
+| `/ordenes` — la página abierta | `COMANDAS` | 30 s | [ordenes.page.ts:179](src/app/paginas/ordenes/ordenes.page.ts#L179) |
+| `/mesas` — mesas y comandas abiertas; se pausa mientras se edita el plano, para no pisar las mesas a medio mover | `MESAS` | 30 s | [mesas.page.ts:322](src/app/paginas/mesas/mesas.page.ts#L322) |
 
-El `nginx.conf` ya está preparado para el cambio: `proxy_buffering off` y
-`proxy_read_timeout 1h` en `/api/`, porque con buffering activado un flujo SSE
-se quedaría entero en Nginx y la cocina no recibiría nada
-([nginx.conf:47](nginx.conf#L47)).
+**Por qué `fetch` y no `EventSource`.** `EventSource` no deja poner la cabecera
+`Authorization`, y el token no puede ir en la URL: quedaría en el registro de
+cada proxy por el que pase. `TiempoRealService` lee el cuerpo como stream y
+separa los eventos a mano; son unas cuarenta líneas.
+
+**Caerse no rompe nada.** Sin conexión, `cambios()` vuelve al refresco
+periódico de antes, y el indicador junto al título pasa de «En vivo» a «Se
+actualiza sola». Reintenta enseguida y luego a 1, 2, 4... hasta 30 s. Al volver
+pide una recarga, por lo que haya cambiado en el hueco. Si en 60 s no llega ni
+un byte —el servidor late cada 25 s— la da por muerta aunque el navegador no lo
+sepa, que es lo que pasa en un celular que cambió de red.
+
+**El servidor cierra cada conexión a los diez minutos** y el navegador la
+reabre con el token vigente: una sesión cerrada deja de recibir avisos sin que
+nadie tenga que acordarse de cortarla.
+
+`nginx.conf` tiene `proxy_buffering off` y `proxy_read_timeout 1h` en `/api/`
+([nginx.conf:47](nginx.conf#L47)): con buffering, los avisos se quedarían en
+Nginx y la cocina no recibiría nada. El backend manda además
+`X-Accel-Buffering: no`, por si hay otro proxy delante.
 
 ---
 
@@ -507,37 +539,38 @@ El puerto es el **81** y no el 80, para dejar ese libre al futuro
 
 | Chunk | Raw | Transferido |
 |---|---|---|
-| **Inicial** (main + runtime + estilos + español) | 402,12 kB | 110,83 kB |
-| cliente generado (compartido por las pantallas) | 158,31 kB | 7,65 kB |
-| `menu-page` | 84,20 kB | 11,69 kB |
-| `configuracion-page` | 80,54 kB | 9,92 kB |
-| `personal-page` | 67,95 kB | 10,74 kB |
-| `inventario-page` | 53,64 kB | 9,45 kB |
-| `pt` (diccionario) | 50,44 kB | 13,98 kB |
-| `en` (diccionario) | 48,66 kB | 13,29 kB |
-| `login-page` | 47,15 kB | 11,46 kB |
-| `mesas-page` | 46,54 kB | 10,47 kB |
-| `pos-page` | 44,62 kB | 9,36 kB |
-| `caja-page` | 30,26 kB | 6,84 kB |
-| `ordenes-page` | 27,16 kB | 6,25 kB |
+| **Inicial** (main + runtime + estilos + español) | 403,98 kB | 111,31 kB |
+| cliente generado (compartido por las pantallas) | 163,77 kB | 7,67 kB |
+| `menu-page` | 84,37 kB | 11,72 kB |
+| `configuracion-page` | 80,47 kB | 9,92 kB |
+| `personal-page` | 68,47 kB | 10,88 kB |
+| `inventario-page` | 53,91 kB | 9,59 kB |
+| `pt` (diccionario) | 51,40 kB | 14,19 kB |
+| `en` (diccionario) | 49,59 kB | 13,53 kB |
+| `login-page` | 47,14 kB | 11,47 kB |
+| `mesas-page` | 46,62 kB | 10,52 kB |
+| `pos-page` | 44,56 kB | 9,36 kB |
+| `caja-page` | 30,27 kB | 6,83 kB |
+| `ordenes-page` | 27,25 kB | 6,31 kB |
 | `clientes-page` | 24,95 kB | 5,95 kB |
-| `reportes-page` | 21,41 kB | 5,26 kB |
-| `despacho-page` | 19,37 kB | 4,79 kB |
-| `kds-page` | 17,21 kB | 4,31 kB |
+| `reportes-page` | 22,61 kB | 5,58 kB |
+| `despacho-page` | 19,46 kB | 4,84 kB |
+| `kds-page` | 18,68 kB | 4,86 kB |
 | `perfil-page` | 16,02 kB | 3,67 kB |
-| `tablero-page` | 13,91 kB | 4,08 kB |
-| `sin-permiso-page` | 1,29 kB | 686 B |
+| `tablero-page` | 14,57 kB | 4,33 kB |
+| `sin-permiso-page` | 1,29 kB | 684 B |
 
-Es la prueba de que el diferido funciona: **la pantalla de cocina descarga 17 kB
+Es la prueba de que el diferido funciona: **la pantalla de cocina descarga 19 kB
 de código propio** más el cliente generado, que se baja una vez y comparten
 todas, y **ningún dispositivo descarga un idioma que nadie ha elegido**: el
-inglés y el portugués suman 99 kB y se piden solo al elegirlos. Lo que ganó el
+inglés y el portugués suman 101 kB y se piden solo al elegirlos. Lo que ganó el
 inicial desde la fase 4.3 son servicios generados importados sueltos, nunca el
 barril: `archivos.api` y `local.api` para el logo del panel (11 kB) y
-`personal-asistencia.api` para el reloj de la barra del celular (8 kB).
+`personal-asistencia.api` para el reloj de la barra del celular (8 kB). El
+servicio de tiempo real no está ahí: lo traen las cinco pantallas que escuchan.
 
-**Nada del arranque importa desde el barril `./api`.** El barril reexporta los
-23 servicios generados, y `app.config.ts` importaba de ahí `Configuration`: eso
+**Nada del arranque importa desde el barril `./api`.** El barril reexporta todos
+los servicios generados, y `app.config.ts` importaba de ahí `Configuration`: eso
 bastaba para meter todos los servicios en el bundle inicial, aunque cada
 pantalla use dos o tres. Importándolo desde `./api/configuration`, el inicial
 bajó de 511 kB a 375 kB y los servicios pasaron a un chunk compartido que llega
@@ -554,10 +587,10 @@ runtime añadido pesaba más que lo que sacaba del inicial.
 ## Pruebas
 
 ```bash
-pnpm test        # Vitest 4 + jsdom · 18 archivos, 73 pruebas, ~5 s
+pnpm test        # Vitest 4 + jsdom · 26 archivos, 92 pruebas, ~5 s
 ```
 
-Las dieciocho suites cubren lo que falla en silencio, que es lo que no se ve al
+Las veintiséis suites cubren lo que falla en silencio, que es lo que no se ve al
 mirar la pantalla:
 
 | Suite | Qué guarda |
@@ -579,6 +612,14 @@ mirar la pantalla:
 | [perfil.page.spec.ts](src/app/paginas/perfil/perfil.page.spec.ts) | Que quien no administra sepa a quién pedir la contraseña y cómo vincular Discord, y que al administrador no se le ofrezca vincularse |
 | [reportes.page.spec.ts](src/app/paginas/reportes/reportes.page.spec.ts) | Que a la caja no se le pida la satisfacción —sería un 403 en cada carga— y que el administrador la vea del mismo rango |
 | [menu.page.spec.ts](src/app/paginas/menu/menu.page.spec.ts) | Que el menú ofrezca sus tres pestañas y que el almacén vea las promociones sin poder crearlas |
+| [tiempo-real.service.spec.ts](src/app/nucleo/tiempo-real/tiempo-real.service.spec.ts) | Que el stream se abra con el Bearer, que solo recargue por los temas que se escuchan —también con un evento partido en dos trozos—, que sin conexión vuelva al refresco periódico y que al volver de una caída pida una recarga. El stream es uno de verdad, escrito a mano por la prueba |
+| [descarga.spec.ts](src/app/nucleo/http/descarga.spec.ts) | Que el nombre del archivo salga de `filename*` con sus tildes, luego de `filename`, y si no hay ninguno, el de respaldo |
+| [inventario.seccion.spec.ts](src/app/paginas/inventario/inventario.seccion.spec.ts) | Que el filtro de lo que vence funcione y la fecha no se corra un día, y que una merma no arrastre el proveedor, costo y vencimiento escritos para una compra |
+| [proveedores.seccion.spec.ts](src/app/paginas/inventario/proveedores.seccion.spec.ts) | Que los dados de baja sigan a la vista, porque sus lotes existen, y que un RUC sin 11 dígitos no se envíe |
+| [carta.seccion.spec.ts](src/app/paginas/menu/carta.seccion.spec.ts) | Que el costo y el margen digan qué insumo falta comprar, que editar no pierda un alérgeno dado de baja que el plato ya tenía y que un SVG se rechace antes de subirlo |
+| [alergenos.seccion.spec.ts](src/app/paginas/menu/alergenos.seccion.spec.ts) | Que los dados de baja sigan a la vista y que un nombre repetido, con otras mayúsculas, no se envíe |
+| [turnos.seccion.spec.ts](src/app/paginas/personal/turnos.seccion.spec.ts) | Que la semana se pinte por persona y que un turno de noche se guarde terminando al día siguiente |
+| [asistencia.seccion.spec.ts](src/app/paginas/personal/asistencia.seccion.spec.ts) | Que cada turno muestre su entrada, marque la tardanza y diga quién faltó |
 | [barra-idiomas.spec.ts](src/app/disenio/barra-idiomas.spec.ts) | Que las tres banderas estén, que marquen cuál está en uso y que pulsarlas cambie el idioma: si la barra desaparece, los otros dos idiomas quedan inalcanzables sin que falle nada |
 
 ---
@@ -590,21 +631,14 @@ mirar la pantalla:
   no existe. Por eso el worker del outbox está apagado (`app.outbox.enabled=false`)
   y los eventos se quedan en `PENDIENTE`, que es lo que la bandeja explica en vez
   de fingir una avería.
-- **Refresco en vivo.** Sin WebSocket ni SSE en el backend, KDS, despacho,
-  tablero, órdenes y mesas van por *polling*.
 - **Cambiar la contraseña propia.** `PATCH /trabajadores/{id}/password` es solo
   de ADMIN, así que Mi perfil explica a quién pedírsela en vez de ofrecer un
   formulario que terminaría en 403.
-- **El plano del salón y la agenda de reservas.** Una mesa no guarda posición y
-  una reserva es un nombre y una hora sobre la propia mesa. Mesas pinta una
-  cuadrícula por zona y no finge una distribución que el servidor no conoce.
-- **El logo no viaja al servidor.** Cada dispositivo lleva el suyo en
-  `localStorage` porque `ConfiguracionLocal` no tiene campo para él. El día que
-  lo tenga, `LogoService` es el único punto a cambiar.
-- **Los mensajes del servidor siguen en español.** El backend no mira la
-  cabecera `Accept-Language` que el frontend ya manda, así que un 409 llega con
-  su texto en español aunque la interfaz esté en inglés. Se muestra igual porque
-  explica cosas que la pantalla no sabe; traducirlo es trabajo del backend.
+- **Los mensajes del servidor siguen en español.** El backend solo mira la
+  cabecera `Accept-Language` que el frontend ya manda para los PDF y Excel, que
+  salen en el idioma de la pantalla; un 409 llega con su texto en español aunque
+  la interfaz esté en inglés. Se muestra igual porque explica cosas que la
+  pantalla no sabe; traducirlo es trabajo del backend.
 - **Los números y las fechas no cambian con el idioma.** Los importes son soles
   y se escriben como en el local: `1,234.56`. Formatear a la portuguesa
   (`1.234,56`) el cambio que se le devuelve a un comensal en Lima confundiría
