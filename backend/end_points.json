@@ -7120,6 +7120,224 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "31 · Tiempo real y exportaciones",
+      "item": [
+        {
+          "name": "Stream de avisos por SSE (cualquier sesion; lo que llega depende del cargo)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/eventos/stream",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "eventos",
+                "stream"
+              ]
+            },
+            "description": "Stream de avisos por SSE (cualquier sesion; lo que llega depende del cargo)"
+          },
+          "response": []
+        },
+        {
+          "name": "Ventas por metodo de pago (ADMIN, CAJA)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/ventas-por-metodo-pago?desde=2026-09-01T00:00:00-05:00&hasta=2026-09-16T23:59:59-05:00",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "ventas-por-metodo-pago"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-09-01T00:00:00-05:00"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-09-16T23:59:59-05:00"
+                }
+              ]
+            },
+            "description": "Ventas por metodo de pago (ADMIN, CAJA)"
+          },
+          "response": []
+        },
+        {
+          "name": "Exportar ventas en PDF (ADMIN, CAJA)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "es"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/ventas/exportar?formato=PDF&desde=2026-09-01T00:00:00-05:00&hasta=2026-09-16T23:59:59-05:00",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "ventas",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "formato",
+                  "value": "PDF"
+                },
+                {
+                  "key": "desde",
+                  "value": "2026-09-01T00:00:00-05:00"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-09-16T23:59:59-05:00"
+                }
+              ]
+            },
+            "description": "Exportar ventas en PDF (ADMIN, CAJA)"
+          },
+          "response": []
+        },
+        {
+          "name": "Exportar platillos en Excel (ADMIN, CAJA, COCINA)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "en"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/productos/exportar?formato=XLSX&desde=2026-09-01T00:00:00-05:00&hasta=2026-09-16T23:59:59-05:00",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "productos",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "formato",
+                  "value": "XLSX"
+                },
+                {
+                  "key": "desde",
+                  "value": "2026-09-01T00:00:00-05:00"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-09-16T23:59:59-05:00"
+                }
+              ]
+            },
+            "description": "Exportar platillos en Excel (ADMIN, CAJA, COCINA)"
+          },
+          "response": []
+        },
+        {
+          "name": "Exportar inventario en Excel (ADMIN, ALMACEN)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "es"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/inventario/exportar?formato=XLSX",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "inventario",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "formato",
+                  "value": "XLSX"
+                }
+              ]
+            },
+            "description": "Exportar inventario en Excel (ADMIN, ALMACEN)"
+          },
+          "response": []
+        },
+        {
+          "name": "Exportar asistencia en PDF (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "pt"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reportes/asistencia/exportar?formato=PDF&desde=2026-09-14&hasta=2026-09-20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reportes",
+                "asistencia",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "formato",
+                  "value": "PDF"
+                },
+                {
+                  "key": "desde",
+                  "value": "2026-09-14"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-09-20"
+                }
+              ]
+            },
+            "description": "Exportar asistencia en PDF (ADMIN)"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
