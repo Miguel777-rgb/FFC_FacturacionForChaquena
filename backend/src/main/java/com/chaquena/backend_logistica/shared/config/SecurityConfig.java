@@ -1,6 +1,7 @@
 package com.chaquena.backend_logistica.shared.config;
 
 import com.chaquena.backend_logistica.shared.security.JwtAuthenticationFilter;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -49,6 +50,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Preflight CORS: el navegador lo manda sin cabecera Authorization.
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // El stream de tiempo real termina con un despacho asincrono
+                        // que ya no pasa por el filtro JWT: la peticion original se
+                        // autorizo al abrirse y este despacho solo la cierra.
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
 
                         // Autenticacion y webhooks de Meta: publicos por definicion.
                         //
