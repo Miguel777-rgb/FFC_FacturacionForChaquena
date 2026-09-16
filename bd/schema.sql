@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict fdajEHND8p8UsNMjcOEXPwH2mPg2wGkTvTXOwz0pRDv87wOKYqPWZd4kwcoKey9
+\restrict 1HwAkoHyA9fIxq5rzaCIDXpGxxkEglXUUVOqQvTXuoDrYmJzLp9ZqBJcp8xfHik
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -434,6 +434,22 @@ CREATE TABLE public.lotes_insumo (
     control_origen_id uuid,
     insumo_id uuid NOT NULL,
     proveedor_id uuid
+);
+
+
+--
+-- Name: marcaciones; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.marcaciones (
+    id uuid NOT NULL,
+    created_by character varying(50) NOT NULL,
+    date_created timestamp(6) with time zone NOT NULL,
+    entrada timestamp(6) with time zone NOT NULL,
+    last_date_modified timestamp(6) with time zone NOT NULL,
+    modified_by character varying(50) NOT NULL,
+    salida timestamp(6) with time zone,
+    trabajador_id uuid NOT NULL
 );
 
 
@@ -902,6 +918,24 @@ CREATE TABLE public.transportistas (
 
 
 --
+-- Name: turnos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.turnos (
+    id uuid NOT NULL,
+    created_by character varying(50) NOT NULL,
+    date_created timestamp(6) with time zone NOT NULL,
+    fecha date NOT NULL,
+    fin time(0) without time zone NOT NULL,
+    inicio time(0) without time zone NOT NULL,
+    last_date_modified timestamp(6) with time zone NOT NULL,
+    modified_by character varying(50) NOT NULL,
+    nota character varying(200),
+    trabajador_id uuid NOT NULL
+);
+
+
+--
 -- Name: vehiculos; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1065,6 +1099,14 @@ ALTER TABLE ONLY public.lotes_insumo
 
 
 --
+-- Name: marcaciones marcaciones_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.marcaciones
+    ADD CONSTRAINT marcaciones_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: mesas mesas_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1222,6 +1264,14 @@ ALTER TABLE ONLY public.trabajadores
 
 ALTER TABLE ONLY public.transportistas
     ADD CONSTRAINT transportistas_pkey PRIMARY KEY (persona_id);
+
+
+--
+-- Name: turnos turnos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.turnos
+    ADD CONSTRAINT turnos_pkey PRIMARY KEY (id);
 
 
 --
@@ -1408,10 +1458,24 @@ CREATE INDEX ix_lotes_insumo_insumo ON public.lotes_insumo USING btree (insumo_i
 
 
 --
+-- Name: ix_marcaciones_entrada; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_marcaciones_entrada ON public.marcaciones USING btree (entrada);
+
+
+--
 -- Name: ix_reservas_inicio; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX ix_reservas_inicio ON public.reservas USING btree (inicio);
+
+
+--
+-- Name: ix_turnos_fecha; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_turnos_fecha ON public.turnos USING btree (fecha);
 
 
 --
@@ -1583,6 +1647,14 @@ ALTER TABLE ONLY public.trabajadores
 
 
 --
+-- Name: marcaciones fkfggui265wswp9503d160g58yi; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.marcaciones
+    ADD CONSTRAINT fkfggui265wswp9503d160g58yi FOREIGN KEY (trabajador_id) REFERENCES public.trabajadores(persona_id);
+
+
+--
 -- Name: calificaciones_feedback fkfswmipcr7l9dko1tp1m8qk2o8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1596,6 +1668,14 @@ ALTER TABLE ONLY public.calificaciones_feedback
 
 ALTER TABLE ONLY public.pagos
     ADD CONSTRAINT fkgwc09q159u2vka6huvllyf6jy FOREIGN KEY (orden_id) REFERENCES public.ordenes(id);
+
+
+--
+-- Name: turnos fkhftxpmtlqmkydlhi61rf7vrh5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.turnos
+    ADD CONSTRAINT fkhftxpmtlqmkydlhi61rf7vrh5 FOREIGN KEY (trabajador_id) REFERENCES public.trabajadores(persona_id);
 
 
 --
@@ -1738,5 +1818,5 @@ ALTER TABLE ONLY public.cliente_empresas
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fdajEHND8p8UsNMjcOEXPwH2mPg2wGkTvTXOwz0pRDv87wOKYqPWZd4kwcoKey9
+\unrestrict 1HwAkoHyA9fIxq5rzaCIDXpGxxkEglXUUVOqQvTXuoDrYmJzLp9ZqBJcp8xfHik
 
