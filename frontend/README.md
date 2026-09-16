@@ -539,7 +539,7 @@ El puerto es el **81** y no el 80, para dejar ese libre al futuro
 
 | Chunk | Raw | Transferido |
 |---|---|---|
-| **Inicial** (main + runtime + estilos + español) | 403,98 kB | 111,31 kB |
+| **Inicial** (main + runtime + estilos + español) | 404,19 kB | 111,28 kB |
 | cliente generado (compartido por las pantallas) | 163,77 kB | 7,67 kB |
 | `menu-page` | 84,37 kB | 11,72 kB |
 | `configuracion-page` | 80,47 kB | 9,92 kB |
@@ -646,6 +646,33 @@ mirar la pantalla:
 
 ---
 
+## Accesibilidad
+
+La meta es **WCAG 2.2 AA**, y se comprueba en Chrome en vez de suponerse.
+axe-core corre sobre las catorce superficies y sobre tres diálogos —detalle de
+orden, nueva reserva y nuevo turno—, en tema claro y oscuro, a 1440 px, y a
+390 px sobre POS, Caja, Tablero y Órdenes. La última pasada, 37 pantallas, salió
+sin violaciones. En POS, Caja, Tablero y Órdenes se
+recorrió además la página con Tab: todas las paradas muestran el foco
+(`:focus-visible`, contorno de 2 px en el acento) y ninguna cae en un elemento
+oculto.
+
+Lo que esa verificación enseñó, y ahora es regla:
+
+- **`--tenue` no va sobre `--hundido`.** Da 4,4:1. Los selectores segmentados
+  (`.rangos`, los tipos de comanda del POS) pintan lo no elegido en `--texto` y
+  separan lo elegido con superficie, borde y tinta.
+- **Lo inactivo se apaga con color, nunca con opacidad.** Una fila dada de baja
+  al 55 % bajaba el texto a 3:1. `tr.baja` usa `--tenue`, que pasa AA sobre
+  cualquier fondo de tabla, y en Personal lleva además el chip «De baja», porque
+  el color solo no basta.
+- **Una columna de acciones también tiene cabecera**, aunque no se vea:
+  `<span class="visualmente-oculto">` con «Acciones».
+- **Un solo `<main>`.** Sin sesión, el cascarón envuelve la pantalla de entrar y
+  la barra de idiomas; las páginas no declaran el suyo.
+- **Ningún control táctil baja de 44 px**, y el movimiento se reduce a la
+  entrada de diálogos y del cajón, que `prefers-reduced-motion` anula.
+
 ## Convenciones que conviene respetar
 
 - El token lo pone el **cliente generado** vía `credentials.bearerAuth`, no un
@@ -665,4 +692,8 @@ mirar la pantalla:
   arriba de `_botones.scss`: una acción de peligro siempre pasa por
   `ConfirmacionService`, nunca a un solo toque.
 - Un icono nuevo sale del mismo juego (Tabler, contorno) y va a `iconos.ts`.
-  Nunca un emoji ni un carácter Unicode en su lugar.
+  Nunca un emoji ni un carácter Unicode en su lugar: el tilde de cocina era un
+  «✓» y ahora es el icono `confirmar`.
+- Nada anima ancho, alto ni márgenes: el panel se pliega sin transición.
+- Una celda `td` no lleva `display: flex`: deja de estirarse con la fila y su
+  borde queda a otra altura. Las acciones de fila se separan con margen.
