@@ -10,7 +10,7 @@ import {
 import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, interval, of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import {
@@ -27,11 +27,13 @@ import {
   type ReservaResponseDto,
 } from '../../api';
 import { Dialogo } from '../../disenio/dialogo';
+import { EnVivo } from '../../disenio/en-vivo';
 import { Icono } from '../../disenio/icono';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { codigoDeOrden, fechaIsoLocal, formatearDuracion } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { TiempoRealService } from '../../nucleo/tiempo-real/tiempo-real.service';
 import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 import { SesionService } from '../../nucleo/sesion/sesion.service';
 
@@ -76,6 +78,7 @@ const GESTOS: ReadonlyArray<{ estado: ReservaResponseDtoEstadoEnum; nombre: Clav
   { estado: ReservaResponseDtoEstadoEnum.CANCELADA, nombre: 'reservas.cancelar' },
 ];
 
+/** Solo si se cae el tiempo real. */
 const REFRESCO_MS = 30_000;
 
 /** La mesa 2 antes que la 10: el numero se lee como numero aunque sea texto. */
@@ -132,7 +135,7 @@ function hoyComoCampo(): string {
  */
 @Component({
   selector: 'app-mesas',
-  imports: [DecimalPipe, NgTemplateOutlet, Icono, Dialogo],
+  imports: [DecimalPipe, NgTemplateOutlet, Icono, Dialogo, EnVivo],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mesas.page.html',
   styleUrls: ['../../disenio/secciones.scss', './mesas.page.scss'],
@@ -313,7 +316,10 @@ export class MesasPage implements OnInit {
   );
 
   constructor() {
-    interval(REFRESCO_MS)
+    // Se repinta con cada aviso del servidor; si el tiempo real se cae, cada
+    // REFRESCO_MS como antes.
+    inject(TiempoRealService)
+      .cambios(['MESAS'], REFRESCO_MS)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.cargar(true));
 

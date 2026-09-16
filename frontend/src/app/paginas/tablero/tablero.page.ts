@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, interval, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { asyncScheduler, forkJoin, of } from 'rxjs';
+import { catchError, throttleTime } from 'rxjs/operators';
 
 import {
   ReportesApi,
@@ -11,16 +11,20 @@ import {
   type ProductoTopDto,
   type SerieVentasDto,
   type TableroDto,
+  type VentasPorMetodoPagoDto,
 } from '../../api';
+import { EnVivo } from '../../disenio/en-vivo';
 import { Icono } from '../../disenio/icono';
+import { MetodosPago } from '../../disenio/metodos-pago';
 import type { NombreIcono } from '../../disenio/iconos';
 import { fechaIsoLocal, inicioDelDia } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { TiempoRealService } from '../../nucleo/tiempo-real/tiempo-real.service';
 import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 import type { Rol } from '../../nucleo/sesion/rol';
 import { SesionService } from '../../nucleo/sesion/sesion.service';
 
-/** Un tablero que se mira de pasada: se refresca solo cada minuto. */
+/** Sin tiempo real, un tablero que se mira de pasada se refresca solo cada minuto. */
 const REFRESCO_MS = 60_000;
 
 const GRAFICA = { ancho: 640, alto: 160, margen: 24 };
@@ -60,7 +64,7 @@ interface Comparacion {
  */
 @Component({
   selector: 'app-tablero',
-  imports: [DecimalPipe, RouterLink, Icono],
+  imports: [DecimalPipe, RouterLink, Icono, EnVivo, MetodosPago],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tablero.page.html',
   styleUrl: './tablero.page.scss',
@@ -79,6 +83,7 @@ export class TableroPage implements OnInit {
   protected readonly ayer = signal<TableroDto | null>(null);
   protected readonly semana = signal<SerieVentasDto | null>(null);
   protected readonly top = signal<ProductoTopDto[]>([]);
+  protected readonly metodos = signal<VentasPorMetodoPagoDto[]>([]);
 
   protected readonly comparacionVentas = computed(() =>
     this.comparar(this.hoy()?.ventas?.total, this.ayer()?.ventas?.total),
@@ -196,8 +201,15 @@ export class TableroPage implements OnInit {
   });
 
   constructor() {
-    interval(REFRESCO_MS)
-      .pipe(takeUntilDestroyed())
+    // Se repinta con cada aviso del servidor; si el tiempo real se cae, cada
+    // REFRESCO_MS como antes.
+    inject(TiempoRealService)
+      .cambios(['COMANDAS', 'CAJA', 'MESAS', 'STOCK'], REFRESCO_MS)
+      // Cinco consultas por recarga: en hora punta, con una cada cinco segundos basta.
+      .pipe(
+        throttleTime(5_000, asyncScheduler, { leading: true, trailing: true }),
+        takeUntilDestroyed(),
+      )
       .subscribe(() => this.cargar(true));
   }
 
@@ -229,12 +241,16 @@ export class TableroPage implements OnInit {
       top: this.reportesApi
         .productosTop({ ...hoy, limite: 5 })
         .pipe(catchError(() => of([] as ProductoTopDto[]))),
+      metodos: this.reportesApi
+        .ventasPorMetodoPago(hoy)
+        .pipe(catchError(() => of([] as VentasPorMetodoPagoDto[]))),
     }).subscribe({
-      next: ({ hoy: deHoy, ayer, semana, top }) => {
+      next: ({ hoy: deHoy, ayer, semana, top, metodos }) => {
         this.hoy.set(deHoy);
         this.ayer.set(ayer);
         this.semana.set(semana);
         this.top.set(top);
+        this.metodos.set(metodos);
         this.cargando.set(false);
       },
       error: () => this.cargando.set(false),

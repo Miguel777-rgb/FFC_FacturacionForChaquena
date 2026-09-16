@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, interval, of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 
 import {
@@ -25,11 +25,13 @@ import {
 } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { TiempoRealService } from '../../nucleo/tiempo-real/tiempo-real.service';
 import { formatearDuracion } from '../../nucleo/i18n/formatos';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
+import { EnVivo } from '../../disenio/en-vivo';
 import { Icono } from '../../disenio/icono';
 
-/** Un mostrador con movimiento constante: la lista se refresca sola. */
+/** Un mostrador con movimiento constante: sin tiempo real, la lista se refresca sola. */
 const REFRESCO_MS = 20_000;
 
 const TIPOS_VEHICULO = VehiculoRequestDtoTipoVehiculoEnum;
@@ -48,7 +50,7 @@ const TIPOS_VEHICULO = VehiculoRequestDtoTipoVehiculoEnum;
  */
 @Component({
   selector: 'app-despacho',
-  imports: [Icono],
+  imports: [Icono, EnVivo],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './despacho.page.html',
   styleUrl: './despacho.page.scss',
@@ -121,7 +123,10 @@ export class DespachoPage implements OnInit {
   );
 
   constructor() {
-    interval(REFRESCO_MS)
+    // Se repinta con cada aviso del servidor; si el tiempo real se cae, cada
+    // REFRESCO_MS como antes.
+    inject(TiempoRealService)
+      .cambios(['REPARTO'], REFRESCO_MS)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.cargar(true));
   }

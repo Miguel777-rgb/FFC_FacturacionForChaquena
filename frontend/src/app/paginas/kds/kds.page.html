@@ -1,6 +1,18 @@
 <section class="kds">
   <header class="cabecera">
     <h1>{{ t('panel.kds') }}</h1>
+    <app-en-vivo />
+    <button
+      type="button"
+      class="secundario"
+      [attr.aria-pressed]="sonido()"
+      [attr.title]="t(sonido() ? 'kds.sonidoSilenciar' : 'kds.sonidoActivar')"
+      [attr.aria-label]="t(sonido() ? 'kds.sonidoSilenciar' : 'kds.sonidoActivar')"
+      (click)="alternarSonido()"
+    >
+      <app-icono [nombre]="sonido() ? 'campana' : 'campanaTachada'" [tamano]="18" />
+      {{ t('kds.sonido') }}
+    </button>
     <button
       type="button"
       class="secundario"

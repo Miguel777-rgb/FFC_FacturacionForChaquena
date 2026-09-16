@@ -1,6 +1,7 @@
 <section class="superficie">
   <header class="cabecera">
     <h1>{{ t('panel.tablero') }}</h1>
+    <app-en-vivo />
     <button
       type="button"
       class="secundario"
@@ -115,27 +116,39 @@
         }
       </section>
 
-      <section class="bloque">
-        <h2>{{ t('tablero.topHoy') }}</h2>
-        @if (topConBarra().length > 0) {
-          <ol class="top">
-            @for (p of topConBarra(); track p.platillo) {
-              <li>
-                <div class="fila">
-                  <span class="nombre">{{ p.platillo }}</span>
-                  <span class="cifra">S/ {{ p.montoTotal ?? 0 | number: '1.2-2' }}</span>
-                </div>
-                <div class="barra-top" aria-hidden="true">
-                  <span [style.width.%]="p.pct"></span>
-                </div>
-                <span class="unidades">{{ tp('tablero.unidades', p.unidadesVendidas ?? 0) }}</span>
-              </li>
-            }
-          </ol>
-        } @else {
-          <p class="vacio">{{ t(cargando() ? 'comun.cargando' : 'tablero.sinTopHoy') }}</p>
-        }
-      </section>
+      <div class="pila">
+        <section class="bloque">
+          <h2>{{ t('tablero.topHoy') }}</h2>
+          @if (topConBarra().length > 0) {
+            <ol class="top">
+              @for (p of topConBarra(); track p.platillo) {
+                <li>
+                  <div class="fila">
+                    <span class="nombre">{{ p.platillo }}</span>
+                    <span class="cifra">S/ {{ p.montoTotal ?? 0 | number: '1.2-2' }}</span>
+                  </div>
+                  <div class="barra-top" aria-hidden="true">
+                    <span [style.width.%]="p.pct"></span>
+                  </div>
+                  <span class="unidades">{{ tp('tablero.unidades', p.unidadesVendidas ?? 0) }}</span>
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="vacio">{{ t(cargando() ? 'comun.cargando' : 'tablero.sinTopHoy') }}</p>
+          }
+        </section>
+
+        <!-- Cuanto entro por cada metodo: lo que la caja tiene que cuadrar al cierre. -->
+        <section class="bloque">
+          <h2>{{ t('metodosPago.tituloHoy') }}</h2>
+          <app-metodos-pago
+            [metodos]="metodos()"
+            [cargando]="cargando()"
+            vacio="metodosPago.sinPagosHoy"
+          />
+        </section>
+      </div>
     </div>
   } @else if (!cargando()) {
     <p class="vacio">{{ t('tablero.sinDatos') }}</p>

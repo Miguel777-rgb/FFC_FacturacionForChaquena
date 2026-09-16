@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, interval, of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import {
@@ -16,6 +16,7 @@ import {
   type TicketCocinaDto,
 } from '../../api';
 import { Dialogo } from '../../disenio/dialogo';
+import { EnVivo } from '../../disenio/en-vivo';
 import { Icono } from '../../disenio/icono';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import {
@@ -25,6 +26,7 @@ import {
   inicioDelDia,
 } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { TiempoRealService } from '../../nucleo/tiempo-real/tiempo-real.service';
 import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 
 type Rango = 'hoy' | 'semana' | 'mes';
@@ -63,6 +65,7 @@ const PASOS_MANUALES: readonly OrdenResponseDtoTransicionesPermitidasEnum[] = [
 ];
 
 const TAMANO_PAGINA = 20;
+/** Solo si se cae el tiempo real. */
 const REFRESCO_MS = 30_000;
 
 /**
@@ -80,7 +83,7 @@ const REFRESCO_MS = 30_000;
  */
 @Component({
   selector: 'app-ordenes',
-  imports: [DecimalPipe, Icono, Dialogo],
+  imports: [DecimalPipe, Icono, Dialogo, EnVivo],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ordenes.page.html',
   styleUrls: ['../../disenio/secciones.scss', './ordenes.page.scss'],
@@ -163,7 +166,10 @@ export class OrdenesPage implements OnInit {
   });
 
   constructor() {
-    interval(REFRESCO_MS)
+    // Se repinta con cada aviso del servidor; si el tiempo real se cae, cada
+    // REFRESCO_MS como antes.
+    inject(TiempoRealService)
+      .cambios(['COMANDAS'], REFRESCO_MS)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.cargar(true));
   }
