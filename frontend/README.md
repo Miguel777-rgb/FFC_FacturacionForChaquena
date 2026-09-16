@@ -12,7 +12,7 @@ vistas de conjunto: `/ordenes` (todas las comandas, con su detalle) y `/mesas`
 (el salón en plano por zonas y la agenda de reservas). **Gestión**: `/menu` (platillos con foto, costo y
 alérgenos, complementos y promociones), `/inventario` (insumos con lotes y vencimientos, kardex, conteo y
 proveedores), `/reportes` (ventas,
-mozos y satisfacción), `/personal` (quién trabaja y qué abre su cargo),
+mozos y satisfacción), `/personal` (quién trabaja, qué abre su cargo, sus turnos, su asistencia y su desempeño),
 `/clientes` (fichas, puntos, nivel y cupones) y `/configuracion` (datos del
 local e IGV, parámetros, niveles de lealtad, bots y eventos). Cada usuario tiene además `/perfil`. El recorrido de una comanda es el mismo que documenta
 [`backend/FLUJO_PRINCIPAL.md`](../backend/FLUJO_PRINCIPAL.md).
@@ -49,7 +49,7 @@ Todos se corren desde `frontend/`. El proyecto usa **pnpm**, no npm.
 | `pnpm start` | `ng serve` en `http://localhost:4200` | Usa la configuración *development*, que reemplaza `environment.ts` por `environment.development.ts` y apunta a `localhost:8080` | [angular.json](angular.json) · [environment.development.ts:7](src/environments/environment.development.ts#L7) |
 | `pnpm build` | Compila a `dist/frontend-logistica/browser` | Configuración *production* por defecto: `outputHashing: all` y presupuestos de 500 kB (aviso) / 1 MB (error) para el bundle inicial | [angular.json](angular.json) |
 | `pnpm watch` | `ng build --watch` en desarrollo | Sin optimizar y con *source maps*; útil cuando se sirve desde otro servidor | [package.json](package.json) |
-| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 22 archivos, 84 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
+| `pnpm test` | `ng test` con el builder `@angular/build:unit-test` | Corre sobre **Vitest 4 + jsdom**. Hoy: 24 archivos, 87 pruebas, ~5 s | [angular.json](angular.json) · [tsconfig.spec.json](tsconfig.spec.json) |
 | `pnpm api:fetch` | Descarga `/v3/api-docs` del backend a `api/openapi.json` | Ordena las claves y borra el bloque `servers` para que dos descargas seguidas den diff vacío; aborta si el contrato no es OpenAPI 3.0 | [api/fetch-spec.mjs](api/fetch-spec.mjs) |
 | `pnpm api:generate` | Genera el cliente en `src/app/api` | `typescript-angular`, `stringEnums`, `useSingleRequestParameter`, `providedInRoot` | [api/generator-config.json](api/generator-config.json) |
 | `pnpm api:sync` | `api:fetch` + `api:generate` | **Es el único modo legítimo de cambiar `src/app/api`.** El backend tiene que estar arriba | [package.json](package.json) |
@@ -125,7 +125,7 @@ src/
 | Archivo | Qué es | Lo que hay que saber | Evidencia |
 |---|---|---|---|
 | [panel-lateral.ts](src/app/disenio/panel-lateral.ts) | Navegación entre superficies | Solo lista destinos que el rol permite, en dos grupos: **Operación** y **Gestión**. En PC se pliega a una regleta de iconos y lo recuerda por dispositivo; entre 768 y 1023 px es regleta siempre. En su pie van quién es el usuario —que lleva a `/perfil`—, el idioma, el tema y la salida. El mismo componente, con `cajon`, es el menú del celular | [panel-lateral.ts](src/app/disenio/panel-lateral.ts) |
-| [barra-superior.ts](src/app/disenio/barra-superior.ts) | La barra del celular | Por debajo de 768 px el panel desaparece: una regleta se comía un sexto del ancho. La barra lleva el menú, la marca, el idioma y el tema; el menú se abre en un `<dialog>` a la izquierda que se cierra al elegir destino | [barra-superior.ts](src/app/disenio/barra-superior.ts) |
+| [barra-superior.ts](src/app/disenio/barra-superior.ts) | La barra del celular | Por debajo de 768 px el panel desaparece: una regleta se comía un sexto del ancho. La barra lleva el menú, la marca, el reloj para marcar entrada y salida, el idioma y el tema; el menú se abre en un `<dialog>` a la izquierda que se cierra al elegir destino | [barra-superior.ts](src/app/disenio/barra-superior.ts) |
 | [pila-avisos.ts](src/app/disenio/pila-avisos.ts) | Los avisos en pantalla | `role="status"` + `aria-live="polite"`: el lector de pantalla los anuncia sin interrumpir. Se apilan en la esquina inferior derecha |
 | [barra-idiomas.ts](src/app/disenio/barra-idiomas.ts) | Las tres banderas | `integrada` en el pie del panel y en la barra superior; solo en la pantalla de entrar flota en una esquina. Cada botón lleva el nombre del idioma en `aria-label`: una bandera no es un idioma | [barra-idiomas.ts](src/app/disenio/barra-idiomas.ts) |
 | [icono.ts](src/app/disenio/icono.ts) + [iconos.ts](src/app/disenio/iconos.ts) | Iconos de un solo juego | Tabler Icons 3.46.0 (MIT), de contorno: se copian los `d` de los que se usan, sin instalar la librería. Nada de emojis ni glifos como `★` en lugar de iconos. `aria-hidden` va fijo, porque un icono nunca es la única forma de nombrar algo | [iconos.ts](src/app/disenio/iconos.ts) |
@@ -169,10 +169,10 @@ a Google Fonts. Ningún rótulo va en mayúsculas espaciadas ni en monoespaciada
 | [menu.page.ts](src/app/paginas/menu/menu.page.ts) | ALMACEN, ADMIN | Platillos con su receta, foto, costo y alérgenos; complementos, promociones y el catálogo de alérgenos, en pestañas | Ver abajo | `CatalogoCategorias`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `CatalogoAlergenos`, `Archivos`, `InventarioInsumos` |
 | [inventario.page.ts](src/app/paginas/inventario/inventario.page.ts) | ALMACEN, ADMIN | Insumos con sus lotes, vencimientos y valor, y proveedores, en pestañas | Ver abajo | `InventarioInsumos`, `InventarioMovimientos`, `InventarioProveedores` |
 | [configuracion.page.ts](src/app/paginas/configuracion/configuracion.page.ts) | ADMIN | Datos del local e IGV, parámetros, niveles de lealtad, bots y eventos, en cinco pestañas | Ver abajo | — (cada sección pide lo suyo) |
-| [personal.page.ts](src/app/paginas/personal/personal.page.ts) | ADMIN | Trabajadores, cargos y qué abre cada cargo | Los roles se **leen**, no se crean: un rol es la palabra dentro de un `@PreAuthorize`, así que inventar «SUPERVISOR» no abriría ninguna puerta. Quitar un rol **no expulsa a quien ya inició sesión**: los roles viajan en el token . La ficha de cada persona trae lo que vendió como mozo en los últimos 30 días | `Trabajadores`, `Cargos`, `Roles`, `Reportes` |
+| [personal.page.ts](src/app/paginas/personal/personal.page.ts) | ADMIN | Trabajadores, cargos y qué abre cada cargo; el horario de la semana y la asistencia del día, en pestañas | Los roles se **leen**, no se crean: un rol es la palabra dentro de un `@PreAuthorize`, así que inventar «SUPERVISOR» no abriría ninguna puerta. Quitar un rol **no expulsa a quien ya inició sesión**: los roles viajan en el token. Un turno que termina antes de empezar termina al día siguiente, y la ficha lo avisa. La tardanza y la falta **no se escriben**: las calcula el servidor comparando turnos y marcaciones (diez minutos de tolerancia; «faltó» solo cuando el turno ya terminó). La ficha de cada persona trae su desempeño de 30 días: venta, atención, turnos cumplidos, tardanzas, inasistencias y horas | `Trabajadores`, `Cargos`, `Roles`, `PersonalTurnos`, `PersonalAsistencia`, `PersonalDesempeno` |
 | [reportes.page.ts](src/app/paginas/reportes/reportes.page.ts) | ADMIN, CAJA | Ventas del rango, ventas por mozo y, solo para ADMIN, satisfacción | Manda las fechas en ISO **con desfase local**, no en `Z`: con UTC, la cena del sábado en Lima aparece repartida entre sábado y domingo. A la caja no se le pide la satisfacción, que le daría 403. Lo que pasa ahora mismo vive en el tablero | `Reportes`, `FeedbackYFidelizacion` |
 | [clientes.page.ts](src/app/paginas/clientes/clientes.page.ts) | ADMIN, CAJA | Buscar clientes y abrir su ficha: puntos, avance hacia el cupón, cupones, lo que suele pedir, empresas y últimas órdenes | Bloquear por fraude es de ADMIN y pide motivo. El nivel y lo que falta para el siguiente los calcula el servidor desde los puntos: la ficha no guarda ni deduce ningún nivel | `Clientes`, `FeedbackYFidelizacion` |
-| [perfil.page.ts](src/app/paginas/perfil/perfil.page.ts) | cualquiera | Los datos propios, el idioma, el tema y cómo vincular Discord | **La contraseña no se cambia aquí** y la pantalla lo dice: el servidor solo deja restablecerla a un administrador. El documento y el celular salen de `/trabajadores/activos`, el único listado de personal abierto a todos los cargos | `Trabajadores` |
+| [perfil.page.ts](src/app/paginas/perfil/perfil.page.ts) | cualquiera | Los datos propios, marcar entrada y salida, los turnos de los próximos días, el idioma, el tema y cómo vincular Discord | **La contraseña no se cambia aquí** y la pantalla lo dice: el servidor solo deja restablecerla a un administrador. El documento y el celular salen de `/trabajadores/activos`, el único listado de personal abierto a todos los cargos. Marcar es **siempre sobre uno mismo**: la petición no dice quién, el servidor lo saca del token; el perfil y la barra del celular comparten el mismo estado ([asistencia.service.ts](src/app/nucleo/asistencia/asistencia.service.ts)) | `Trabajadores`, `PersonalAsistencia` |
 
 Cada superficie grande es un trío `.ts` + `.html` + `.scss` con el mismo
 nombre; solo `inicio` y `sin-permiso` llevan la plantilla en línea, porque son
@@ -369,7 +369,7 @@ ajuste.
 | Pieza | Qué es | Por qué así |
 |---|---|---|
 | [traducciones/es.ts](src/app/nucleo/i18n/traducciones/es.ts) | El diccionario español y la **fuente de las claves** | `ClaveI18n` sale de aquí. Los otros dos se declaran `Record<ClaveI18n, string>`, así que una traducción olvidada **no compila** |
-| [traducciones/en.ts](src/app/nucleo/i18n/traducciones/en.ts) · [pt.ts](src/app/nucleo/i18n/traducciones/pt.ts) | Los otros dos idiomas | Se cargan con `import()` al elegirlos: son unos 46 kB cada uno que la pantalla de cocina no tiene por qué descargar |
+| [traducciones/en.ts](src/app/nucleo/i18n/traducciones/en.ts) · [pt.ts](src/app/nucleo/i18n/traducciones/pt.ts) | Los otros dos idiomas | Se cargan con `import()` al elegirlos: son unos 50 kB cada uno que la pantalla de cocina no tiene por qué descargar |
 | [i18n.service.ts](src/app/nucleo/i18n/i18n.service.ts) | `t`, `tp`, `tEnum` y el idioma como señal | El idioma vive en `localStorage`, como el tema y el panel plegado: es preferencia del dispositivo, no del turno |
 | [titulo.strategy.ts](src/app/nucleo/i18n/titulo.strategy.ts) | El título de la pestaña | Las rutas declaran `title: 'panel.pos'`, la misma clave que nombra el destino en el panel y titula la pantalla. Un `effect` lo reescribe al cambiar de idioma: es lo único que vive fuera de una plantilla |
 | [barra-idiomas.ts](src/app/disenio/barra-idiomas.ts) | El control | Tres banderas dibujadas a mano: los emoji de bandera no se pintan en Windows —salen las dos letras del país— y una librería costaría más de lo que ahorra. Va `integrada` en el panel y en la barra superior; sin sesión, flotante en `app.html` |
@@ -507,33 +507,34 @@ El puerto es el **81** y no el 80, para dejar ese libre al futuro
 
 | Chunk | Raw | Transferido |
 |---|---|---|
-| **Inicial** (main + runtime + estilos + español) | 394,19 kB | 109,53 kB |
-| cliente generado (compartido por las pantallas) | 152,57 kB | 7,21 kB |
+| **Inicial** (main + runtime + estilos + español) | 402,12 kB | 110,83 kB |
+| cliente generado (compartido por las pantallas) | 158,31 kB | 7,65 kB |
 | `menu-page` | 84,20 kB | 11,69 kB |
 | `configuracion-page` | 80,54 kB | 9,92 kB |
+| `personal-page` | 67,95 kB | 10,74 kB |
 | `inventario-page` | 53,64 kB | 9,45 kB |
-| `pt` (diccionario) | 47,44 kB | 13,26 kB |
+| `pt` (diccionario) | 50,44 kB | 13,98 kB |
+| `en` (diccionario) | 48,66 kB | 13,29 kB |
 | `login-page` | 47,15 kB | 11,46 kB |
 | `mesas-page` | 46,54 kB | 10,47 kB |
-| `en` (diccionario) | 45,80 kB | 12,60 kB |
 | `pos-page` | 44,62 kB | 9,36 kB |
-| `personal-page` | 32,65 kB | 6,72 kB |
 | `caja-page` | 30,26 kB | 6,84 kB |
 | `ordenes-page` | 27,16 kB | 6,25 kB |
 | `clientes-page` | 24,95 kB | 5,95 kB |
 | `reportes-page` | 21,41 kB | 5,26 kB |
 | `despacho-page` | 19,37 kB | 4,79 kB |
 | `kds-page` | 17,21 kB | 4,31 kB |
+| `perfil-page` | 16,02 kB | 3,67 kB |
 | `tablero-page` | 13,91 kB | 4,08 kB |
-| `perfil-page` | 13,33 kB | 2,91 kB |
 | `sin-permiso-page` | 1,29 kB | 686 B |
 
 Es la prueba de que el diferido funciona: **la pantalla de cocina descarga 17 kB
 de código propio** más el cliente generado, que se baja una vez y comparten
 todas, y **ningún dispositivo descarga un idioma que nadie ha elegido**: el
-inglés y el portugués suman 93 kB y se piden solo al elegirlos. Los 11 kB que
-ganó el inicial en la fase 4.3 son `archivos.api` y `local.api`: el logo carga
-con el panel, y los importa sueltos para no arrastrar el barril.
+inglés y el portugués suman 99 kB y se piden solo al elegirlos. Lo que ganó el
+inicial desde la fase 4.3 son servicios generados importados sueltos, nunca el
+barril: `archivos.api` y `local.api` para el logo del panel (11 kB) y
+`personal-asistencia.api` para el reloj de la barra del celular (8 kB).
 
 **Nada del arranque importa desde el barril `./api`.** El barril reexporta los
 23 servicios generados, y `app.config.ts` importaba de ahí `Configuration`: eso
