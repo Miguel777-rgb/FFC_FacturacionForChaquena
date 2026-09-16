@@ -46,6 +46,12 @@ export * from './niveles-de-lealtad.api';
 import { NivelesDeLealtadApi } from './niveles-de-lealtad.api';
 export * from './outbox.api';
 import { OutboxApi } from './outbox.api';
+export * from './personal-asistencia.api';
+import { PersonalAsistenciaApi } from './personal-asistencia.api';
+export * from './personal-desempeno.api';
+import { PersonalDesempenoApi } from './personal-desempeno.api';
+export * from './personal-turnos.api';
+import { PersonalTurnosApi } from './personal-turnos.api';
 export * from './reportes.api';
 import { ReportesApi } from './reportes.api';
 export * from './roles.api';
@@ -81,6 +87,9 @@ export const APIS = [
   LocalApi,
   NivelesDeLealtadApi,
   OutboxApi,
+  PersonalAsistenciaApi,
+  PersonalDesempenoApi,
+  PersonalTurnosApi,
   ReportesApi,
   RolesApi,
   SalonMesasApi,

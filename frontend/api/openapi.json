@@ -207,6 +207,51 @@
         ],
         "type": "object"
       },
+      "AsistenciaDelDiaDto": {
+        "properties": {
+          "cargo": {
+            "type": "string"
+          },
+          "entrada": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "estado": {
+            "enum": [
+              "POR_LLEGAR",
+              "DENTRO",
+              "SALIO",
+              "NO_LLEGA",
+              "FALTO"
+            ],
+            "type": "string"
+          },
+          "minutosTarde": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "salida": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "trabajadorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "turnoFin": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "turnoInicio": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "AuthResponseDto": {
         "properties": {
           "apellidos": {
@@ -992,6 +1037,73 @@
           },
           "unidadMedida": {
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DesempenoDto": {
+        "properties": {
+          "asistidos": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "calificaciones": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "cargo": {
+            "type": "string"
+          },
+          "comandas": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "desde": {
+            "format": "date",
+            "type": "string"
+          },
+          "hasta": {
+            "format": "date",
+            "type": "string"
+          },
+          "horasTrabajadas": {
+            "type": "number"
+          },
+          "inasistencias": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "minutosTarde": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "salidasSinMarcar": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "satisfaccionAtencion": {
+            "type": "number"
+          },
+          "tardanzas": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "ticketPromedio": {
+            "type": "number"
+          },
+          "trabajadorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "turnos": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "vendido": {
+            "type": "number"
           }
         },
         "type": "object"
@@ -1792,6 +1904,24 @@
           },
           "zona": {
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MiAsistenciaDto": {
+        "properties": {
+          "dentro": {
+            "type": "boolean"
+          },
+          "entrada": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "turnos": {
+            "items": {
+              "$ref": "#/components/schemas/TurnoDto"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -3773,6 +3903,49 @@
         },
         "type": "object"
       },
+      "TurnoDto": {
+        "properties": {
+          "fecha": {
+            "format": "date",
+            "type": "string"
+          },
+          "fin": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "readOnly": true,
+            "type": "string"
+          },
+          "inicio": {
+            "type": "string"
+          },
+          "nota": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string"
+          },
+          "terminaAlDiaSiguiente": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "trabajadorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "trabajadorNombre": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "fecha",
+          "fin",
+          "inicio",
+          "trabajadorId"
+        ],
+        "type": "object"
+      },
       "VehiculoRequestDto": {
         "properties": {
           "activo": {
@@ -4158,6 +4331,104 @@
         "summary": "La imagen tal como se subio",
         "tags": [
           "Archivos"
+        ]
+      }
+    },
+    "/api/v1/asistencia/dia": {
+      "get": {
+        "operationId": "asistenciaDelDia",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dia",
+            "required": false,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AsistenciaDelDiaDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cada turno del dia con su entrada y su salida; sin dia, hoy",
+        "tags": [
+          "Personal - Asistencia"
+        ]
+      }
+    },
+    "/api/v1/asistencia/entrada": {
+      "post": {
+        "operationId": "marcarEntrada",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MiAsistenciaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Marcar mi entrada; 409 si ya tengo una abierta",
+        "tags": [
+          "Personal - Asistencia"
+        ]
+      }
+    },
+    "/api/v1/asistencia/mia": {
+      "get": {
+        "operationId": "miAsistencia",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MiAsistenciaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Si estoy dentro y mis turnos de la semana",
+        "tags": [
+          "Personal - Asistencia"
+        ]
+      }
+    },
+    "/api/v1/asistencia/salida": {
+      "post": {
+        "operationId": "marcarSalida",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MiAsistenciaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Marcar mi salida; 409 si no tengo una entrada abierta",
+        "tags": [
+          "Personal - Asistencia"
         ]
       }
     },
@@ -9035,6 +9306,56 @@
         ]
       }
     },
+    "/api/v1/trabajadores/{id}/desempeno": {
+      "get": {
+        "operationId": "desempenoTrabajador",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DesempenoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Comandas, ticket, atencion, tardanzas e inasistencias; sin rango, los ultimos 30 dias",
+        "tags": [
+          "Personal - Desempeno"
+        ]
+      }
+    },
     "/api/v1/trabajadores/{id}/password": {
       "patch": {
         "description": "No pide la contrasena anterior: es la puerta que usa administracion cuando alguien pierde el acceso a mitad de turno.",
@@ -9326,6 +9647,135 @@
           "Despacho - Transportistas"
         ]
       }
+    },
+    "/api/v1/turnos": {
+      "get": {
+        "operationId": "listarTurnos",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TurnoDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Turnos de los siete dias desde la fecha; sin fecha, la semana de hoy",
+        "tags": [
+          "Personal - Turnos"
+        ]
+      },
+      "post": {
+        "operationId": "crearTurno",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnoDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Asignar un turno; 409 si se pisa con otro de la misma persona",
+        "tags": [
+          "Personal - Turnos"
+        ]
+      }
+    },
+    "/api/v1/turnos/{id}": {
+      "delete": {
+        "operationId": "eliminarTurno",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Quitar un turno del horario",
+        "tags": [
+          "Personal - Turnos"
+        ]
+      },
+      "put": {
+        "operationId": "actualizarTurno",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnoDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Cambiar un turno",
+        "tags": [
+          "Personal - Turnos"
+        ]
+      }
     }
   },
   "security": [
@@ -9334,6 +9784,10 @@
     }
   ],
   "tags": [
+    {
+      "description": "Entradas, salidas y asistencia del dia",
+      "name": "Personal - Asistencia"
+    },
     {
       "description": "Personal del local; el alta requiere cargo administrativo",
       "name": "Trabajadores"
@@ -9349,6 +9803,10 @@
     {
       "description": "Carta, precios y recetas (BOM)",
       "name": "Catalogo - Platillos"
+    },
+    {
+      "description": "Venta, atencion y puntualidad de cada persona",
+      "name": "Personal - Desempeno"
     },
     {
       "description": "Cierre de caja y bandeja de alertas",
@@ -9405,6 +9863,10 @@
     {
       "description": "Asignacion, salida a ruta y entrega con OTP",
       "name": "Despacho - Reparto"
+    },
+    {
+      "description": "Horario semanal del personal",
+      "name": "Personal - Turnos"
     },
     {
       "description": "Calificaciones, cupones y parametros del local",

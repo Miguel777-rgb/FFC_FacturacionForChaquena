@@ -25,6 +25,9 @@ api/inventario-proveedores.api.ts
 api/local.api.ts
 api/niveles-de-lealtad.api.ts
 api/outbox.api.ts
+api/personal-asistencia.api.ts
+api/personal-desempeno.api.ts
+api/personal-turnos.api.ts
 api/reportes.api.ts
 api/roles.api.ts
 api/salon-mesas.api.ts
@@ -42,6 +45,7 @@ model/aplicar-promocion-request-dto.ts
 model/archivo-dto.ts
 model/arqueo-caja-dto.ts
 model/asignar-delivery-request-dto.ts
+model/asistencia-del-dia-dto.ts
 model/auth-response-dto.ts
 model/bootstrap-admin-request-dto.ts
 model/cambiar-password-request-dto.ts
@@ -67,6 +71,7 @@ model/cupon-response-dto.ts
 model/datos-local-dto.ts
 model/delivery-info-dto.ts
 model/descuadre.ts
+model/desempeno-dto.ts
 model/disponibilidad-request-dto.ts
 model/disponibilidad-response-dto.ts
 model/empresa-request-dto.ts
@@ -95,6 +100,7 @@ model/lote-insumo-dto.ts
 model/mensaje-dto.ts
 model/mesa-request-dto.ts
 model/mesa-response-dto.ts
+model/mi-asistencia-dto.ts
 model/models.ts
 model/movimiento-request-dto.ts
 model/movimiento-response-dto.ts
@@ -149,6 +155,7 @@ model/trabajador-response-dto.ts
 model/transformacion-request-dto.ts
 model/transportista-request-dto.ts
 model/transportista-response-dto.ts
+model/turno-dto.ts
 model/vehiculo-request-dto.ts
 model/vehiculo-response-dto.ts
 model/ventas-por-mozo-dto.ts
