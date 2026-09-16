@@ -30,3 +30,27 @@
   overflow-wrap: anywhere;
   user-select: all;
 }
+
+/* --- asistencia ------------------------------------------------------------- */
+.estado-asistencia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e2) var(--e3);
+
+  .marcar {
+    margin-left: auto;
+  }
+}
+
+.asistencia h3 {
+  margin: var(--e4) 0 var(--e2);
+  font-family: var(--f-texto);
+  font-size: var(--t-texto);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.mis-turnos li {
+  justify-content: space-between;
+}

@@ -51,6 +51,53 @@
         </dl>
       </div>
 
+      <!-- Marcar es siempre sobre uno mismo: el servidor saca a quien del token. -->
+      <div class="bloque asistencia">
+        <h2>{{ t('asistencia.titulo') }}</h2>
+        @if (asistencia.mia(); as mia) {
+          <div class="estado-asistencia">
+            <span class="chip" [class.ok]="mia.dentro">
+              {{ t(mia.dentro ? 'asistencia.dentro' : 'asistencia.fuera') }}
+            </span>
+            @if (mia.dentro && mia.entrada) {
+              <span class="tenue">{{
+                t('asistencia.desde', { hora: fecha(mia.entrada, 'hora') })
+              }}</span>
+            }
+            <button
+              type="button"
+              class="marcar"
+              [class.secundario]="mia.dentro"
+              (click)="asistencia.marcar()"
+              [disabled]="asistencia.marcando()"
+              [attr.aria-busy]="asistencia.marcando()"
+            >
+              <app-icono nombre="reloj" [tamano]="18" />
+              {{ t(mia.dentro ? 'asistencia.marcarSalida' : 'asistencia.marcarEntrada') }}
+            </button>
+          </div>
+
+          <h3>{{ t('asistencia.misTurnos') }}</h3>
+          <ul class="listado mis-turnos">
+            @for (turno of mia.turnos ?? []; track turno.id) {
+              <li>
+                <span>{{ diaDe(turno) }}</span>
+                <span class="cifra">
+                  {{ rangoDe(turno) }}
+                  @if (turno.terminaAlDiaSiguiente) {
+                    <small class="tenue">{{ t('asistencia.alDiaSiguiente') }}</small>
+                  }
+                </span>
+              </li>
+            } @empty {
+              <li class="vacio">{{ t('asistencia.sinTurnos') }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="tenue">{{ t('comun.cargando') }}</p>
+        }
+      </div>
+
       <div class="columnas">
         <div class="bloque">
           <h2>{{ t('perfil.preferencias') }}</h2>
@@ -85,7 +132,9 @@
           <p>{{ t('perfil.discordAdmin') }}</p>
         } @else if (s.correo) {
           <p>{{ t('perfil.discordTexto') }}</p>
-          <p><code class="comando">/vincular correo:{{ s.correo }}</code></p>
+          <p>
+            <code class="comando">/vincular correo:{{ s.correo }}</code>
+          </p>
         } @else {
           <p>{{ t('perfil.discordSinCorreo') }}</p>
         }

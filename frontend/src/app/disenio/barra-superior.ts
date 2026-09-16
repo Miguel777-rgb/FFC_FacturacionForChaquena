@@ -11,6 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
+import { AsistenciaService } from '../nucleo/asistencia/asistencia.service';
 import { I18nService } from '../nucleo/i18n/i18n.service';
 import { LogoService } from '../nucleo/marca/logo.service';
 import { BarraIdiomas } from './barra-idiomas';
@@ -53,6 +54,27 @@ import { SelectorTema } from './selector-tema';
         }
         <span class="marca">Chaquena</span>
       </span>
+
+      <!-- Marcar asistencia sin ir al perfil: es el gesto del primer y el
+           ultimo minuto del turno, y se hace con el celular en la mano. -->
+      @if (asistencia.conocida()) {
+        <button
+          type="button"
+          class="fantasma icono marcar"
+          [class.dentro]="asistencia.dentro()"
+          [attr.aria-label]="
+            t(asistencia.dentro() ? 'asistencia.marcarSalida' : 'asistencia.marcarEntrada')
+          "
+          [attr.title]="
+            t(asistencia.dentro() ? 'asistencia.marcarSalida' : 'asistencia.marcarEntrada')
+          "
+          [attr.aria-busy]="asistencia.marcando()"
+          [disabled]="asistencia.marcando()"
+          (click)="asistencia.marcar()"
+        >
+          <app-icono nombre="reloj" />
+        </button>
+      }
 
       <app-barra-idiomas variante="integrada" />
       <app-selector-tema />
@@ -106,6 +128,19 @@ import { SelectorTema } from './selector-tema';
       border-radius: var(--radio-chico);
     }
 
+    /* Con el reloj en la barra no cabe el nombre entero en 390 px: si hay logo,
+       el logo ya dice de quien es la pantalla y el nombre cortado a medias sobra. */
+    @media (max-width: 26rem) {
+      .identidad img + .marca {
+        display: none;
+      }
+    }
+
+    /* Dentro se nota en el color del reloj: el mismo boton sirve para entrar y salir. */
+    .marcar.dentro {
+      color: var(--ok);
+    }
+
     dialog.cajon {
       width: min(18rem, 86vw);
       max-width: none;
@@ -150,6 +185,7 @@ import { SelectorTema } from './selector-tema';
 export class BarraSuperior {
   protected readonly t = inject(I18nService).t;
   protected readonly logo = inject(LogoService);
+  protected readonly asistencia = inject(AsistenciaService);
 
   protected readonly abierto = signal(false);
 
