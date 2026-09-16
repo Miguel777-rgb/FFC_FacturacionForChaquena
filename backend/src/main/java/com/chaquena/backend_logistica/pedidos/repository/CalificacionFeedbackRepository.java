@@ -29,4 +29,25 @@ public interface CalificacionFeedbackRepository extends JpaRepository<Calificaci
             where f.dateCreated between :desde and :hasta
             """)
     Object[] promedios(@Param("desde") ZonedDateTime desde, @Param("hasta") ZonedDateTime hasta);
+
+    /**
+     * El puntaje de atencion de las comandas que tomo un mozo. Es lo unico de
+     * la calificacion que depende de el: la comida es de cocina y el lugar, del
+     * local. Nulo si nadie califico.
+     */
+    @Query("""
+            select avg(cast(f.puntajeAtencion as double))
+            from CalificacionFeedback f
+            where f.orden.mozoId = :mozoId and f.dateCreated >= :desde and f.dateCreated < :hasta
+            """)
+    Double promedioAtencionDelMozo(@Param("mozoId") UUID mozoId, @Param("desde") ZonedDateTime desde,
+            @Param("hasta") ZonedDateTime hasta);
+
+    @Query("""
+            select count(f)
+            from CalificacionFeedback f
+            where f.orden.mozoId = :mozoId and f.dateCreated >= :desde and f.dateCreated < :hasta
+            """)
+    long calificacionesDelMozo(@Param("mozoId") UUID mozoId, @Param("desde") ZonedDateTime desde,
+            @Param("hasta") ZonedDateTime hasta);
 }
