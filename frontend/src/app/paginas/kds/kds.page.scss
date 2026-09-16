@@ -295,15 +295,17 @@
   border-color: var(--ok);
 }
 
-/* Servido no se tacha: tachado se vuelve ilegible a dos metros. Se baja el
-   contraste y el tilde queda de testigo. */
+/* Servido no se tacha: tachado se vuelve ilegible a dos metros. El texto pasa
+   a tenue —con opacidad caia por debajo de AA— y el tilde queda de testigo. */
 .lineas li.servido {
-  opacity: 0.55;
+  .cantidad,
+  .plato {
+    color: var(--tenue);
+  }
 
   .tilde {
     background: var(--ok-suave);
     border-color: var(--ok);
-    opacity: 1;
   }
 }
 

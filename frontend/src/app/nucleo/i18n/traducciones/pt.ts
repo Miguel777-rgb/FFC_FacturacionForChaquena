@@ -54,6 +54,7 @@ export const PT: Record<ClaveI18n, string> = {
   'comun.items.otros': '{n} itens',
   'comun.deAlta': 'Ativo',
   'comun.deBaja': 'Inativo',
+  'comun.acciones': 'Ações',
   'comun.darDeBaja': 'Desativar',
   'comun.reactivar': 'Reativar',
   'comun.desde': 'De',

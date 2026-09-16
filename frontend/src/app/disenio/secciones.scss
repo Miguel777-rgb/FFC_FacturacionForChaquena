@@ -234,10 +234,12 @@
   border: 1px solid var(--linea);
   border-radius: var(--radio);
 
+  /* `--texto` y no `--tenue`: sobre el fondo hundido el tenue da 4,4:1. Lo
+     elegido se distingue por la superficie, el borde y la tinta. */
   button,
   button.secundario {
     min-height: var(--control-chico);
-    color: var(--tenue);
+    color: var(--texto);
     background: transparent;
     border-color: transparent;
     border-radius: var(--radio-chico);

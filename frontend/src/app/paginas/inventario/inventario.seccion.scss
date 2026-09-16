@@ -9,10 +9,11 @@ td .chip {
     white-space: nowrap;
   }
 
+  /* La cifra se aparta por el peso, no por el color: tenue sobre el fondo
+     hundido del selector no llega a 4,5:1. */
   .cuenta {
     margin-left: var(--e1);
     font-weight: 400;
-    color: var(--tenue);
   }
 }
 

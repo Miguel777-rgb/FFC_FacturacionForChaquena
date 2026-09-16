@@ -54,3 +54,11 @@
 .mis-turnos li {
   justify-content: space-between;
 }
+
+/* Un enlace suelto, fuera de una frase, es un control: con el dedo mide 44 px
+   como cualquier boton (`--control-chico` sube a `--toque` en pantallas tactiles). */
+.bloque > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-chico);
+}

@@ -68,6 +68,7 @@ export const ES = {
   'comun.items.otros': '{n} ítems',
   'comun.deAlta': 'De alta',
   'comun.deBaja': 'De baja',
+  'comun.acciones': 'Acciones',
   'comun.darDeBaja': 'Dar de baja',
   'comun.reactivar': 'Reactivar',
   'comun.desde': 'Desde',

@@ -113,7 +113,9 @@
                     [attr.aria-pressed]="l.listo"
                     (click)="marcarPlatillo(c, l)"
                   >
-                    {{ l.listo ? '✓' : '' }}
+                    @if (l.listo) {
+                      <app-icono nombre="confirmar" [tamano]="18" />
+                    }
                   </button>
 
                   <span class="cantidad cifra">{{ l.cantidad }}×</span>

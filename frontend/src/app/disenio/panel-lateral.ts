@@ -291,7 +291,6 @@ let siguientePanel = 0;
       padding: var(--e3);
       background: var(--superficie);
       border-right: 1px solid var(--linea);
-      transition: width 0.15s ease;
       overflow: hidden;
     }
 
@@ -475,9 +474,10 @@ let siguientePanel = 0;
       white-space: nowrap;
     }
 
+    /* Sobre el fondo del destino activo el tenue baja a 4:1: va en texto. */
     .roles {
       font-size: var(--t-leyenda);
-      color: var(--tenue);
+      color: var(--texto);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

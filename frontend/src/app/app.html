@@ -12,9 +12,12 @@
     </div>
   </div>
 } @else {
-  <router-outlet />
-  <!-- Sin sesion no hay panel: en la pantalla de entrar el idioma flota. -->
-  <app-barra-idiomas />
+  <!-- Sin sesion no hay panel: en la pantalla de entrar el idioma flota. Va
+       dentro de <main> para que nada quede fuera de una region. -->
+  <main>
+    <router-outlet />
+    <app-barra-idiomas />
+  </main>
 }
 
 <app-pila-avisos />

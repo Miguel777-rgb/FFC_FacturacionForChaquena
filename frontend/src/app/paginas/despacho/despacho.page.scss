@@ -151,8 +151,11 @@
 /* Dado de baja no se esconde: las comandas que ya se llevo conservan su nombre,
    y la empresa puede volver a mandarlo manana. */
 .conductores li.baja {
-  opacity: 0.6;
   border-style: dashed;
+
+  strong {
+    color: var(--tenue);
+  }
 }
 
 .vehiculos {

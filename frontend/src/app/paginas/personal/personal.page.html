@@ -150,7 +150,7 @@
                 <th>{{ t('comun.documento') }}</th>
                 <th>{{ t('comun.cargo') }}</th>
                 <th>{{ t('personal.abre') }}</th>
-                <th></th>
+                <th><span class="visualmente-oculto">{{ t('comun.acciones') }}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -158,6 +158,9 @@
                 <tr [class.baja]="!trabajador.activo">
                   <td>
                     {{ trabajador.nombres }} {{ trabajador.apellidos }}
+                    @if (!trabajador.activo) {
+                      <span class="chip">{{ t('comun.deBaja') }}</span>
+                    }
                     <!-- Se marca la falta, no el dato: quien no tiene correo no puede
                      entrar con Google ni vincular Discord, y eso se descubre
                      siempre en el peor momento. -->

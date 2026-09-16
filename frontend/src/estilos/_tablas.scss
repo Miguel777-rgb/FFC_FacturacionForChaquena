@@ -51,14 +51,27 @@
     font-weight: 600;
   }
 
-  tr.baja {
-    opacity: 0.55;
+  /* Dado de baja se apaga con el color y no con opacidad: al 55 % el texto
+     tenue caia a 3:1 y dejaba de leerse. El tenue solo pasa AA sobre cualquier
+     fondo de tabla. */
+  tr.baja td {
+    color: var(--tenue);
   }
 
-  .acciones {
-    display: flex;
-    gap: var(--e2);
-    justify-content: flex-end;
+  /* La celda de acciones sigue siendo celda. Con `display: flex` dejaba de
+     estirarse con la fila: en una fila de dos lineas su borde inferior quedaba
+     a otra altura que el de las demas columnas. */
+  td.acciones {
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  td.acciones > * {
+    vertical-align: middle;
+  }
+
+  td.acciones > * + * {
+    margin-inline-start: var(--e2);
   }
 }
 
@@ -135,6 +148,12 @@
       justify-content: flex-start;
       flex-wrap: wrap;
       padding-top: var(--e2);
+      white-space: normal;
+    }
+
+    /* En la ficha la celda vuelve a ser flex y el hueco lo pone `gap`. */
+    tr:not(.expandida) > td.acciones > * + * {
+      margin-inline-start: 0;
     }
 
     tr:not(.expandida) > td.vacio {
