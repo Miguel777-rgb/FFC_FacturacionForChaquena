@@ -5,6 +5,7 @@ import com.chaquena.backend_logistica.reportes.dto.ProductoTopDto;
 import com.chaquena.backend_logistica.reportes.dto.ReporteVentasDto;
 import com.chaquena.backend_logistica.reportes.dto.SerieVentasDto;
 import com.chaquena.backend_logistica.reportes.dto.TableroDto;
+import com.chaquena.backend_logistica.reportes.dto.VentasPorMetodoPagoDto;
 import com.chaquena.backend_logistica.reportes.dto.VentasPorMozoDto;
 
 import java.time.ZonedDateTime;
@@ -21,4 +22,6 @@ public interface ReporteService {
     SerieVentasDto serieVentas(ZonedDateTime desde, ZonedDateTime hasta, GranularidadEnum granularidad);
 
     List<VentasPorMozoDto> ventasPorMozo(ZonedDateTime desde, ZonedDateTime hasta);
+
+    List<VentasPorMetodoPagoDto> ventasPorMetodoPago(ZonedDateTime desde, ZonedDateTime hasta);
 }

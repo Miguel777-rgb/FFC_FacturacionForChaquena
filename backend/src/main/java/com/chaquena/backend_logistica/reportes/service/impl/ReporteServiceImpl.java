@@ -12,6 +12,7 @@ import com.chaquena.backend_logistica.pagos.domain.EstadoPagoEnum;
 import com.chaquena.backend_logistica.pagos.repository.PagoRepository;
 import com.chaquena.backend_logistica.pedidos.domain.CanalOrigenEnum;
 import com.chaquena.backend_logistica.pedidos.domain.EstadoOrdenEnum;
+import com.chaquena.backend_logistica.pedidos.domain.TipoPagoEnum;
 import com.chaquena.backend_logistica.pedidos.repository.OrdenDetalleRepository;
 import com.chaquena.backend_logistica.pedidos.repository.OrdenRepository;
 import com.chaquena.backend_logistica.reportes.dto.GranularidadEnum;
@@ -19,6 +20,7 @@ import com.chaquena.backend_logistica.reportes.dto.ProductoTopDto;
 import com.chaquena.backend_logistica.reportes.dto.ReporteVentasDto;
 import com.chaquena.backend_logistica.reportes.dto.SerieVentasDto;
 import com.chaquena.backend_logistica.reportes.dto.TableroDto;
+import com.chaquena.backend_logistica.reportes.dto.VentasPorMetodoPagoDto;
 import com.chaquena.backend_logistica.reportes.dto.VentasPorMozoDto;
 import com.chaquena.backend_logistica.reportes.service.ReporteService;
 import lombok.RequiredArgsConstructor;
@@ -215,6 +217,29 @@ public class ReporteServiceImpl implements ReporteService {
                             .build();
                 })
                 .toList();
+    }
+
+    /**
+     * Los tres metodos siempre, tambien los que no cobraron nada: en la grafica
+     * una barra en cero dice mas que una barra que falta.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<VentasPorMetodoPagoDto> ventasPorMetodoPago(ZonedDateTime desde, ZonedDateTime hasta) {
+        Map<TipoPagoEnum, VentasPorMetodoPagoDto> porMetodo = new EnumMap<>(TipoPagoEnum.class);
+        for (TipoPagoEnum metodo : TipoPagoEnum.values()) {
+            porMetodo.put(metodo, VentasPorMetodoPagoDto.builder()
+                    .metodo(metodo)
+                    .pagos(0)
+                    .total(BigDecimal.ZERO)
+                    .build());
+        }
+        for (Object[] fila : pagoRepository.arqueoPorMetodo(EstadoPagoEnum.CONFIRMADO, desde, hasta)) {
+            VentasPorMetodoPagoDto dto = porMetodo.get((TipoPagoEnum) fila[0]);
+            dto.setPagos(((Number) fila[1]).longValue());
+            dto.setTotal((BigDecimal) fila[2]);
+        }
+        return List.copyOf(porMetodo.values());
     }
 
     // --- apoyos ---------------------------------------------------------------

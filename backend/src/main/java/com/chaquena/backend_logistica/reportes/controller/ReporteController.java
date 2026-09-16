@@ -5,6 +5,7 @@ import com.chaquena.backend_logistica.reportes.dto.ProductoTopDto;
 import com.chaquena.backend_logistica.reportes.dto.ReporteVentasDto;
 import com.chaquena.backend_logistica.reportes.dto.SerieVentasDto;
 import com.chaquena.backend_logistica.reportes.dto.TableroDto;
+import com.chaquena.backend_logistica.reportes.dto.VentasPorMetodoPagoDto;
 import com.chaquena.backend_logistica.reportes.dto.VentasPorMozoDto;
 import com.chaquena.backend_logistica.reportes.service.ReporteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -99,5 +100,17 @@ public class ReporteController {
         ZonedDateTime fin = hasta != null ? hasta : ZonedDateTime.now();
         ZonedDateTime inicio = desde != null ? desde : fin.minusDays(30);
         return ResponseEntity.ok(reporteService.ventasPorMozo(inicio, fin));
+    }
+
+    @GetMapping("/ventas-por-metodo-pago")
+    @PreAuthorize("hasAnyRole('ADMIN','CAJA')")
+    @Operation(operationId = "ventasPorMetodoPago",
+            summary = "Lo cobrado con cada metodo de pago en el rango, con los que quedaron en cero")
+    public ResponseEntity<List<VentasPorMetodoPagoDto>> ventasPorMetodoPago(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime hasta) {
+        ZonedDateTime fin = hasta != null ? hasta : ZonedDateTime.now();
+        ZonedDateTime inicio = desde != null ? desde : fin.minusDays(30);
+        return ResponseEntity.ok(reporteService.ventasPorMetodoPago(inicio, fin));
     }
 }
