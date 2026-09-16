@@ -30,6 +30,56 @@ pnpm dlx newman run end_points.json \
   --folder "Flujo principal (recorrido completo)"
 ```
 
+## Lo que se agregó con el reajuste de la interfaz
+
+Todas las rutas cuelgan de `/api/v1`; el contrato completo está en `/v3/api-docs`
+y cada una tiene su petición de ejemplo en `end_points.json` (carpetas 25 a 31).
+Leer los catálogos (local, niveles, proveedores, alérgenos) es de cualquier
+sesión; la columna «Quién» dice quién puede cambiarlos.
+
+| Módulo | Endpoints | Quién | Lo que hay que saber |
+|---|---|---|---|
+| Datos del local e IGV (`local`) | `GET` y `PUT /local` · `PUT` y `DELETE /local/logo` | ADMIN | Los precios ya incluyen el IGV. Cada comanda guarda la tasa con la que se vendió (`ordenes.porcentaje_igv`): cambiarla no reescribe las ventas pasadas |
+| Niveles de lealtad (`fidelizacion`) | `/niveles-lealtad` · `GET /clientes/{id}/fidelizacion` | ADMIN | El descuento del nivel lo aplica el servidor al crear la comanda en el POS y no se suma al cupón: gana el que más rebaja |
+| Proveedores y lotes (`inventario`) | `/proveedores` · `GET /inventario/lotes/{insumoId}` · `GET /inventario/valorizado` · `GET /insumos/alertas` | ADMIN, ALMACEN | Cada compra crea un lote con proveedor, costo y vencimiento, todos opcionales. El consumo descuenta primero lo que vence antes; `stock_actual` sigue siendo el total |
+| Fotos y logo (`archivos`) | `POST /archivos` · `GET /archivos/{id}` | subir: ADMIN, ALMACEN; ver: público | WebP, PNG o JPEG hasta 2 MB. El tipo se lee de los bytes, no de lo que dice la subida, y SVG se rechaza porque puede llevar scripts. Se sirven por UUID sin token, porque un `<img>` no manda cabeceras |
+| Alérgenos (`inventario`) | `/alergenos` | ADMIN, ALMACEN | Llega sembrado con los catorce habituales. El costo y el margen de un platillo no se guardan: se calculan con su receta y la última compra de cada insumo |
+| Reservas y plano (`mesas`) | `GET` y `POST /reservas` · `PATCH /reservas/{id}/estado` · `PUT /mesas/plano` | reservas: ADMIN, MOZO, CAJA; plano: ADMIN | Una mesa no guarda que está reservada: lo calcula la agenda, desde una hora antes de la reserva. El plano se guarda entero de una vez, porque dos mesas que intercambian sitio se pisarían guardadas por separado |
+| Turnos, asistencia y desempeño (`asistencia`) | `/turnos` · `POST /asistencia/entrada` y `/salida` · `GET /asistencia/mia` · `GET /asistencia/dia` · `GET /trabajadores/{id}/desempeno` | marcar: cada sesión sobre sí misma; lo demás: ADMIN | La tardanza y la falta no se escriben: se calculan comparando turnos y marcaciones, con diez minutos de tolerancia |
+| Tiempo real (`tiemporeal`) | `GET /eventos/stream` | cualquier sesión, filtrado por cargo | Ver abajo |
+| Reportes (`reportes`) | `GET /reportes/ventas-por-metodo-pago` · `GET /reportes/{ventas,productos,inventario,asistencia}/exportar` | los cargos de cada pantalla | Ver abajo |
+
+### Tiempo real
+
+`GET /eventos/stream` es un flujo de **Server-Sent Events**. Emite `listo` al
+conectar, un `aviso` con el tema que cambió (`COMANDAS`, `COCINA`, `REPARTO`,
+`MESAS`, `RESERVAS`, `CAJA`, `STOCK`) y un comentario cada 25 segundos. El aviso
+no lleva datos: la pantalla vuelve a pedir lo suyo por el endpoint de siempre,
+que es el que aplica los permisos. Aun así se filtra por cargo, y ADMIN recibe
+todos los temas.
+
+Los avisos no los publica cada servicio: salen de los oyentes de Hibernate que
+se ejecutan **después de confirmar la transacción**, según la tabla que se
+escribió. Así ningún camino se olvida de avisar —una comanda del bot del mozo
+avisa igual que una del POS— y una venta que se deshace no avisa a nadie. Los
+cambios se juntan en ráfagas de 400 ms, y el servidor cierra cada conexión a
+los diez minutos para que el navegador reconecte con el token vigente. Vive en
+memoria: sirve con una sola instancia del backend.
+
+```bash
+curl -N http://localhost:8080/api/v1/eventos/stream -H "Authorization: Bearer $TOKEN"
+```
+
+### Exportaciones
+
+`GET /reportes/{ventas|productos|inventario|asistencia}/exportar?formato=PDF|XLSX`
+devuelve el archivo como adjunto. Ventas y platillos aceptan `desde` y `hasta`
+como el resto de reportes; asistencia, dos días (`2026-09-14`), hasta un año.
+Cada reporte se arma una sola vez y se escribe con Apache POI o con OpenPDF, así
+que el PDF y el Excel del mismo rango nunca dicen cosas distintas. Los textos
+salen en español, inglés o portugués según `Accept-Language`; sin esa cabecera,
+en español.
+
 ## Los bots
 
 El sistema opera dos bots de **Discord**: uno interno para el personal (stock,
