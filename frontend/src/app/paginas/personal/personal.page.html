@@ -1,425 +1,458 @@
 <section class="personal">
   <header class="cabecera">
     <h1>{{ t('panel.personal') }}</h1>
-    <button
-      type="button"
-      class="secundario"
-      (click)="cargar()"
-      [disabled]="cargando()"
-      [attr.aria-busy]="cargando()"
-    >
-      <app-icono nombre="actualizar" [tamano]="18" />
-      {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
-    </button>
-  </header>
-
-  <div class="seccion">
-    <div class="barra">
+    @if (vista() === 'personas') {
       <button
         type="button"
         class="secundario"
-        (click)="abrirAlta()"
-        [disabled]="cargos().length === 0"
+        (click)="cargar()"
+        [disabled]="cargando()"
+        [attr.aria-busy]="cargando()"
       >
-        {{ t(altaAbierta() ? 'comun.dejarlo' : 'personal.nuevoTrabajador') }}
+        <app-icono nombre="actualizar" [tamano]="18" />
+        {{ t(cargando() ? 'comun.cargando' : 'comun.actualizar') }}
       </button>
-    </div>
-
-    @if (cargos().length === 0 && !cargando()) {
-      <p class="vacio">{{ t('personal.sinCargos') }}</p>
     }
+  </header>
 
-    @if (altaAbierta()) {
-      <div class="formulario bloque">
-        <h2>{{ t('personal.nuevoTrabajador') }}</h2>
-        <p class="vacio">{{ t('personal.avisoCargo') }}</p>
+  <nav class="pestanas" [attr.aria-label]="t('personal.vistas')">
+    @for (v of VISTAS; track v.id) {
+      <button
+        type="button"
+        [class.activa]="vista() === v.id"
+        [attr.aria-current]="vista() === v.id ? 'page' : null"
+        (click)="vista.set(v.id)"
+      >
+        {{ t(v.nombre) }}
+      </button>
+    }
+  </nav>
 
-        <div class="campos">
-          <input
-            type="text"
-            [attr.placeholder]="t('comun.nombres')"
-            autocomplete="off"
-            [value]="nombres()"
-            (input)="anotarNombres($any($event.target).value)"
-            [attr.aria-label]="t('comun.nombres')"
-          />
-          <input
-            type="text"
-            [attr.placeholder]="t('comun.apellidos')"
-            autocomplete="off"
-            [value]="apellidos()"
-            (input)="anotarApellidos($any($event.target).value)"
-            [attr.aria-label]="t('comun.apellidos')"
-          />
-          <input
-            type="text"
-            inputmode="numeric"
-            [attr.placeholder]="t('comun.dni')"
-            autocomplete="off"
-            [value]="dni()"
-            (input)="anotarDni($any($event.target).value)"
-            [attr.aria-label]="t('comun.documentoIdentidad')"
-          />
-          <input
-            type="tel"
-            [attr.placeholder]="t('comun.celular')"
-            autocomplete="off"
-            [value]="celular()"
-            (input)="anotarCelular($any($event.target).value)"
-            [attr.aria-label]="t('comun.celular')"
-          />
-        </div>
-
-        <div class="campos">
-          <!-- Opcional para el servidor, pero sin correo no hay Google ni
-               /vincular de Discord: las dos vias resuelven la identidad por
-               correo. Por eso se pide igual y se avisa si se deja en blanco. -->
-          <input
-            type="email"
-            [attr.placeholder]="t('personal.correoPlaceholder')"
-            autocomplete="off"
-            [value]="correo()"
-            (input)="anotarCorreo($any($event.target).value)"
-            [attr.aria-label]="t('comun.correo')"
-          />
-          <select
-            [value]="cargoId() ?? ''"
-            (change)="elegirCargo($any($event.target).value)"
-            [attr.aria-label]="t('comun.cargo')"
+  @switch (vista()) {
+    @case ('turnos') {
+      <app-turnos-seccion />
+    }
+    @case ('asistencia') {
+      <app-asistencia-seccion />
+    }
+    @default {
+      <div class="seccion">
+        <div class="barra">
+          <button
+            type="button"
+            class="secundario"
+            (click)="abrirAlta()"
+            [disabled]="cargos().length === 0"
           >
-            <option value="">{{ t('personal.cargoPlaceholder') }}</option>
-            @for (c of cargos(); track c.id) {
-              <option [value]="c.id">{{ c.nombre }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="campos">
-          <input
-            type="text"
-            [attr.placeholder]="t('comun.usuario')"
-            autocomplete="off"
-            [value]="username()"
-            (input)="anotarUsername($any($event.target).value)"
-            [attr.aria-label]="t('comun.usuario')"
-          />
-          <input
-            type="password"
-            [attr.placeholder]="t('comun.contrasena')"
-            autocomplete="new-password"
-            [value]="password()"
-            (input)="anotarPassword($any($event.target).value)"
-            [attr.aria-label]="t('comun.contrasena')"
-          />
-          <button type="button" (click)="alta()" [disabled]="guardando()">
-            {{ t(guardando() ? 'comun.guardando' : 'personal.darDeAlta') }}
+            {{ t(altaAbierta() ? 'comun.dejarlo' : 'personal.nuevoTrabajador') }}
           </button>
         </div>
-      </div>
-    }
 
-    <div class="desplazable">
-      <table class="tabla apilable">
-        <thead>
-          <tr>
-            <th>{{ t('comun.persona') }}</th>
-            <th>{{ t('comun.usuario') }}</th>
-            <th>{{ t('comun.documento') }}</th>
-            <th>{{ t('comun.cargo') }}</th>
-            <th>{{ t('personal.abre') }}</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (trabajador of trabajadores(); track trabajador.id) {
-            <tr [class.baja]="!trabajador.activo">
-              <td>
-                {{ trabajador.nombres }} {{ trabajador.apellidos }}
-                <!-- Se marca la falta, no el dato: quien no tiene correo no puede
+        @if (cargos().length === 0 && !cargando()) {
+          <p class="vacio">{{ t('personal.sinCargos') }}</p>
+        }
+
+        @if (altaAbierta()) {
+          <div class="formulario bloque">
+            <h2>{{ t('personal.nuevoTrabajador') }}</h2>
+            <p class="vacio">{{ t('personal.avisoCargo') }}</p>
+
+            <div class="campos">
+              <input
+                type="text"
+                [attr.placeholder]="t('comun.nombres')"
+                autocomplete="off"
+                [value]="nombres()"
+                (input)="anotarNombres($any($event.target).value)"
+                [attr.aria-label]="t('comun.nombres')"
+              />
+              <input
+                type="text"
+                [attr.placeholder]="t('comun.apellidos')"
+                autocomplete="off"
+                [value]="apellidos()"
+                (input)="anotarApellidos($any($event.target).value)"
+                [attr.aria-label]="t('comun.apellidos')"
+              />
+              <input
+                type="text"
+                inputmode="numeric"
+                [attr.placeholder]="t('comun.dni')"
+                autocomplete="off"
+                [value]="dni()"
+                (input)="anotarDni($any($event.target).value)"
+                [attr.aria-label]="t('comun.documentoIdentidad')"
+              />
+              <input
+                type="tel"
+                [attr.placeholder]="t('comun.celular')"
+                autocomplete="off"
+                [value]="celular()"
+                (input)="anotarCelular($any($event.target).value)"
+                [attr.aria-label]="t('comun.celular')"
+              />
+            </div>
+
+            <div class="campos">
+              <!-- Opcional para el servidor, pero sin correo no hay Google ni
+               /vincular de Discord: las dos vias resuelven la identidad por
+               correo. Por eso se pide igual y se avisa si se deja en blanco. -->
+              <input
+                type="email"
+                [attr.placeholder]="t('personal.correoPlaceholder')"
+                autocomplete="off"
+                [value]="correo()"
+                (input)="anotarCorreo($any($event.target).value)"
+                [attr.aria-label]="t('comun.correo')"
+              />
+              <select
+                [value]="cargoId() ?? ''"
+                (change)="elegirCargo($any($event.target).value)"
+                [attr.aria-label]="t('comun.cargo')"
+              >
+                <option value="">{{ t('personal.cargoPlaceholder') }}</option>
+                @for (c of cargos(); track c.id) {
+                  <option [value]="c.id">{{ c.nombre }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="campos">
+              <input
+                type="text"
+                [attr.placeholder]="t('comun.usuario')"
+                autocomplete="off"
+                [value]="username()"
+                (input)="anotarUsername($any($event.target).value)"
+                [attr.aria-label]="t('comun.usuario')"
+              />
+              <input
+                type="password"
+                [attr.placeholder]="t('comun.contrasena')"
+                autocomplete="new-password"
+                [value]="password()"
+                (input)="anotarPassword($any($event.target).value)"
+                [attr.aria-label]="t('comun.contrasena')"
+              />
+              <button type="button" (click)="alta()" [disabled]="guardando()">
+                {{ t(guardando() ? 'comun.guardando' : 'personal.darDeAlta') }}
+              </button>
+            </div>
+          </div>
+        }
+
+        <div class="desplazable">
+          <table class="tabla apilable">
+            <thead>
+              <tr>
+                <th>{{ t('comun.persona') }}</th>
+                <th>{{ t('comun.usuario') }}</th>
+                <th>{{ t('comun.documento') }}</th>
+                <th>{{ t('comun.cargo') }}</th>
+                <th>{{ t('personal.abre') }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (trabajador of trabajadores(); track trabajador.id) {
+                <tr [class.baja]="!trabajador.activo">
+                  <td>
+                    {{ trabajador.nombres }} {{ trabajador.apellidos }}
+                    <!-- Se marca la falta, no el dato: quien no tiene correo no puede
                      entrar con Google ni vincular Discord, y eso se descubre
                      siempre en el peor momento. -->
-                @if (!trabajador.correo) {
-                  <span class="tenue"> · {{ t('comun.sinCorreo') }}</span>
-                }
-              </td>
-              <td [attr.data-etiqueta]="t('comun.usuario')">{{ trabajador.username }}</td>
-              <td class="cifra tenue" [attr.data-etiqueta]="t('comun.documento')">{{ trabajador.dni }}</td>
-              <td [attr.data-etiqueta]="t('comun.cargo')">{{ trabajador.cargoNombre }}</td>
-              <td class="tenue" [attr.data-etiqueta]="t('personal.abre')">{{ rolesDe(trabajador.cargoId) }}</td>
-              <!-- Cuatro iconos y ningun rotulo: la columna se repite en cada
+                    @if (!trabajador.correo) {
+                      <span class="tenue"> · {{ t('comun.sinCorreo') }}</span>
+                    }
+                  </td>
+                  <td [attr.data-etiqueta]="t('comun.usuario')">{{ trabajador.username }}</td>
+                  <td class="cifra tenue" [attr.data-etiqueta]="t('comun.documento')">
+                    {{ trabajador.dni }}
+                  </td>
+                  <td [attr.data-etiqueta]="t('comun.cargo')">{{ trabajador.cargoNombre }}</td>
+                  <td class="tenue" [attr.data-etiqueta]="t('personal.abre')">
+                    {{ rolesDe(trabajador.cargoId) }}
+                  </td>
+                  <!-- Cuatro iconos y ningun rotulo: la columna se repite en cada
                  fila, y con veinte personas cuatro palabras por fila tapan los
                  datos. Cada boton lleva su nombre en `aria-label` y en `title`,
                  asi que el lector de pantalla y el raton dicen lo mismo. -->
-              <td class="acciones">
-                <button
-                  type="button"
-                  class="icono-accion"
-                  [class.abierto]="panelAbierto(trabajador, 'ficha')"
-                  (click)="alternarPanel(trabajador, 'ficha')"
-                  [attr.aria-expanded]="panelAbierto(trabajador, 'ficha')"
-                  [attr.title]="t('personal.verFicha', { nombre: trabajador.nombres ?? '' })"
-                  [attr.aria-label]="t('personal.verFicha', { nombre: nombreCompleto(trabajador) })"
-                >
-                  <app-icono nombre="ojo" [tamano]="18" />
-                </button>
+                  <td class="acciones">
+                    <button
+                      type="button"
+                      class="icono-accion"
+                      [class.abierto]="panelAbierto(trabajador, 'ficha')"
+                      (click)="alternarPanel(trabajador, 'ficha')"
+                      [attr.aria-expanded]="panelAbierto(trabajador, 'ficha')"
+                      [attr.title]="t('personal.verFicha', { nombre: trabajador.nombres ?? '' })"
+                      [attr.aria-label]="
+                        t('personal.verFicha', { nombre: nombreCompleto(trabajador) })
+                      "
+                    >
+                      <app-icono nombre="ojo" [tamano]="18" />
+                    </button>
 
-                <button
-                  type="button"
-                  class="icono-accion"
-                  [class.abierto]="panelAbierto(trabajador, 'edicion')"
-                  (click)="alternarPanel(trabajador, 'edicion')"
-                  [attr.aria-expanded]="panelAbierto(trabajador, 'edicion')"
-                  [attr.title]="t('personal.editarA', { nombre: trabajador.nombres ?? '' })"
-                  [attr.aria-label]="
-                    t('personal.editarDatos', { nombre: nombreCompleto(trabajador) })
-                  "
-                >
-                  <app-icono nombre="lapiz" [tamano]="18" />
-                </button>
+                    <button
+                      type="button"
+                      class="icono-accion"
+                      [class.abierto]="panelAbierto(trabajador, 'edicion')"
+                      (click)="alternarPanel(trabajador, 'edicion')"
+                      [attr.aria-expanded]="panelAbierto(trabajador, 'edicion')"
+                      [attr.title]="t('personal.editarA', { nombre: trabajador.nombres ?? '' })"
+                      [attr.aria-label]="
+                        t('personal.editarDatos', { nombre: nombreCompleto(trabajador) })
+                      "
+                    >
+                      <app-icono nombre="lapiz" [tamano]="18" />
+                    </button>
 
-                <button
-                  type="button"
-                  class="icono-accion"
-                  [class.abierto]="panelAbierto(trabajador, 'password')"
-                  (click)="alternarPanel(trabajador, 'password')"
-                  [attr.aria-expanded]="panelAbierto(trabajador, 'password')"
-                  [attr.title]="t('personal.restablecerA', { usuario: trabajador.username ?? '' })"
-                  [attr.aria-label]="
-                    t('personal.restablecerA', { usuario: trabajador.username ?? '' })
-                  "
-                >
-                  <app-icono nombre="llave" [tamano]="18" />
-                </button>
+                    <button
+                      type="button"
+                      class="icono-accion"
+                      [class.abierto]="panelAbierto(trabajador, 'password')"
+                      (click)="alternarPanel(trabajador, 'password')"
+                      [attr.aria-expanded]="panelAbierto(trabajador, 'password')"
+                      [attr.title]="
+                        t('personal.restablecerA', { usuario: trabajador.username ?? '' })
+                      "
+                      [attr.aria-label]="
+                        t('personal.restablecerA', { usuario: trabajador.username ?? '' })
+                      "
+                    >
+                      <app-icono nombre="llave" [tamano]="18" />
+                    </button>
 
-                <!-- El mismo control para las dos direcciones, pero no el mismo
+                    <!-- El mismo control para las dos direcciones, pero no el mismo
                    trazo: un visto significa «dar de alta» y un circulo tachado
                    «dar de baja». Con un solo icono para ambas, nadie sabe si
                    marca el estado actual o lo que va a pasar al pulsarlo. -->
-                <button
-                  type="button"
-                  class="icono-accion"
-                  [class.destructiva]="trabajador.activo"
-                  [class.afirmativa]="!trabajador.activo"
-                  (click)="cambiarActivo(trabajador)"
-                  [disabled]="guardando()"
-                  [attr.title]="
-                    t(trabajador.activo ? 'personal.darDeBajaA' : 'personal.reactivarA', {
-                      nombre: trabajador.nombres ?? '',
-                    })
-                  "
-                  [attr.aria-label]="
-                    t(trabajador.activo ? 'personal.darDeBajaA' : 'personal.reactivarA', {
-                      nombre: nombreCompleto(trabajador),
-                    })
-                  "
-                >
-                  <app-icono [nombre]="trabajador.activo ? 'baja' : 'alta'" [tamano]="18" />
-                </button>
-              </td>
-            </tr>
+                    <button
+                      type="button"
+                      class="icono-accion"
+                      [class.destructiva]="trabajador.activo"
+                      [class.afirmativa]="!trabajador.activo"
+                      (click)="cambiarActivo(trabajador)"
+                      [disabled]="guardando()"
+                      [attr.title]="
+                        t(trabajador.activo ? 'personal.darDeBajaA' : 'personal.reactivarA', {
+                          nombre: trabajador.nombres ?? '',
+                        })
+                      "
+                      [attr.aria-label]="
+                        t(trabajador.activo ? 'personal.darDeBajaA' : 'personal.reactivarA', {
+                          nombre: nombreCompleto(trabajador),
+                        })
+                      "
+                    >
+                      <app-icono [nombre]="trabajador.activo ? 'baja' : 'alta'" [tamano]="18" />
+                    </button>
+                  </td>
+                </tr>
 
-            <!-- La ficha completa: lo que no cabe en la fila. Se mira, no se toca. -->
-            @if (panelAbierto(trabajador, 'ficha')) {
-              <tr class="expandida">
-                <td colspan="6">
-                  <dl class="detalle">
-                    <div>
-                      <dt>{{ t('personal.nombre') }}</dt>
-                      <dd>{{ trabajador.nombres }} {{ trabajador.apellidos }}</dd>
-                    </div>
-                    <div>
-                      <dt>{{ t('comun.usuario') }}</dt>
-                      <dd class="cifra">{{ trabajador.username }}</dd>
-                    </div>
-                    <div>
-                      <dt>{{ t('comun.documento') }}</dt>
-                      <dd class="cifra">{{ trabajador.dni }}</dd>
-                    </div>
-                    <div>
-                      <dt>{{ t('comun.correo') }}</dt>
-                      <dd>{{ trabajador.correo || t('comun.sinCorreo') }}</dd>
-                    </div>
-                    <div>
-                      <dt>{{ t('comun.celular') }}</dt>
-                      <dd class="cifra">{{ trabajador.celular || t('comun.sinCelular') }}</dd>
-                    </div>
-                    <div>
-                      <dt>{{ t('comun.cargo') }}</dt>
-                      <dd>{{ trabajador.cargoNombre }}</dd>
-                    </div>
-                    <div>
-                      <dt>{{ t('personal.abre') }}</dt>
-                      <dd>{{ rolesDe(trabajador.cargoId) }}</dd>
-                    </div>
-                    <div>
-                      <dt>{{ t('comun.estado') }}</dt>
-                      <dd>{{ t(trabajador.activo ? 'comun.deAlta' : 'comun.deBaja') }}</dd>
-                    </div>
-                  </dl>
+                <!-- La ficha completa: lo que no cabe en la fila. Se mira, no se toca. -->
+                @if (panelAbierto(trabajador, 'ficha')) {
+                  <tr class="expandida">
+                    <td colspan="6">
+                      <dl class="detalle">
+                        <div>
+                          <dt>{{ t('personal.nombre') }}</dt>
+                          <dd>{{ trabajador.nombres }} {{ trabajador.apellidos }}</dd>
+                        </div>
+                        <div>
+                          <dt>{{ t('comun.usuario') }}</dt>
+                          <dd class="cifra">{{ trabajador.username }}</dd>
+                        </div>
+                        <div>
+                          <dt>{{ t('comun.documento') }}</dt>
+                          <dd class="cifra">{{ trabajador.dni }}</dd>
+                        </div>
+                        <div>
+                          <dt>{{ t('comun.correo') }}</dt>
+                          <dd>{{ trabajador.correo || t('comun.sinCorreo') }}</dd>
+                        </div>
+                        <div>
+                          <dt>{{ t('comun.celular') }}</dt>
+                          <dd class="cifra">{{ trabajador.celular || t('comun.sinCelular') }}</dd>
+                        </div>
+                        <div>
+                          <dt>{{ t('comun.cargo') }}</dt>
+                          <dd>{{ trabajador.cargoNombre }}</dd>
+                        </div>
+                        <div>
+                          <dt>{{ t('personal.abre') }}</dt>
+                          <dd>{{ rolesDe(trabajador.cargoId) }}</dd>
+                        </div>
+                        <div>
+                          <dt>{{ t('comun.estado') }}</dt>
+                          <dd>{{ t(trabajador.activo ? 'comun.deAlta' : 'comun.deBaja') }}</dd>
+                        </div>
+                      </dl>
 
-                  @if (!trabajador.correo) {
-                    <p class="vacio">{{ t('personal.sinCorreoAviso') }}</p>
-                  }
+                      @if (!trabajador.correo) {
+                        <p class="vacio">{{ t('personal.sinCorreoAviso') }}</p>
+                      }
 
-                  <app-desempeno-mozo [trabajadorId]="trabajador.id" />
-                </td>
-              </tr>
-            }
+                      <app-desempeno-trabajador [trabajadorId]="trabajador.id" />
+                    </td>
+                  </tr>
+                }
 
-            <!-- Editar. El usuario y el documento no aparecen: son las llaves con
+                <!-- Editar. El usuario y el documento no aparecen: son las llaves con
                las que el resto del sistema identifica a esta persona y el
                servidor no acepta cambiarlas. -->
-            @if (panelAbierto(trabajador, 'edicion')) {
-              <tr class="expandida">
-                <td colspan="6">
-                  <div class="campos">
-                    <input
-                      type="text"
-                      [attr.placeholder]="t('comun.nombres')"
-                      autocomplete="off"
-                      [value]="edicionNombres()"
-                      (input)="anotarEdicionNombres($any($event.target).value)"
-                      [attr.aria-label]="t('comun.nombres')"
-                    />
-                    <input
-                      type="text"
-                      [attr.placeholder]="t('comun.apellidos')"
-                      autocomplete="off"
-                      [value]="edicionApellidos()"
-                      (input)="anotarEdicionApellidos($any($event.target).value)"
-                      [attr.aria-label]="t('comun.apellidos')"
-                    />
-                  </div>
+                @if (panelAbierto(trabajador, 'edicion')) {
+                  <tr class="expandida">
+                    <td colspan="6">
+                      <div class="campos">
+                        <input
+                          type="text"
+                          [attr.placeholder]="t('comun.nombres')"
+                          autocomplete="off"
+                          [value]="edicionNombres()"
+                          (input)="anotarEdicionNombres($any($event.target).value)"
+                          [attr.aria-label]="t('comun.nombres')"
+                        />
+                        <input
+                          type="text"
+                          [attr.placeholder]="t('comun.apellidos')"
+                          autocomplete="off"
+                          [value]="edicionApellidos()"
+                          (input)="anotarEdicionApellidos($any($event.target).value)"
+                          [attr.aria-label]="t('comun.apellidos')"
+                        />
+                      </div>
 
-                  <div class="campos">
-                    <input
-                      type="email"
-                      [attr.placeholder]="t('comun.correo')"
-                      autocomplete="off"
-                      [value]="edicionCorreo()"
-                      (input)="anotarEdicionCorreo($any($event.target).value)"
-                      [attr.aria-label]="t('comun.correo')"
-                    />
-                    <input
-                      type="tel"
-                      [attr.placeholder]="t('comun.celular')"
-                      autocomplete="off"
-                      [value]="edicionCelular()"
-                      (input)="anotarEdicionCelular($any($event.target).value)"
-                      [attr.aria-label]="t('comun.celular')"
-                    />
-                    <select
-                      [value]="edicionCargoId() ?? ''"
-                      (change)="elegirEdicionCargo($any($event.target).value)"
-                      [attr.aria-label]="t('comun.cargo')"
-                    >
-                      <option value="">{{ t('personal.cargoPlaceholder') }}</option>
-                      @for (c of cargos(); track c.id) {
-                        <option [value]="c.id">{{ c.nombre }}</option>
-                      }
-                    </select>
-                    <button
-                      type="button"
-                      (click)="guardarEdicion(trabajador)"
-                      [disabled]="guardando()"
-                    >
-                      {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
-                    </button>
-                  </div>
+                      <div class="campos">
+                        <input
+                          type="email"
+                          [attr.placeholder]="t('comun.correo')"
+                          autocomplete="off"
+                          [value]="edicionCorreo()"
+                          (input)="anotarEdicionCorreo($any($event.target).value)"
+                          [attr.aria-label]="t('comun.correo')"
+                        />
+                        <input
+                          type="tel"
+                          [attr.placeholder]="t('comun.celular')"
+                          autocomplete="off"
+                          [value]="edicionCelular()"
+                          (input)="anotarEdicionCelular($any($event.target).value)"
+                          [attr.aria-label]="t('comun.celular')"
+                        />
+                        <select
+                          [value]="edicionCargoId() ?? ''"
+                          (change)="elegirEdicionCargo($any($event.target).value)"
+                          [attr.aria-label]="t('comun.cargo')"
+                        >
+                          <option value="">{{ t('personal.cargoPlaceholder') }}</option>
+                          @for (c of cargos(); track c.id) {
+                            <option [value]="c.id">{{ c.nombre }}</option>
+                          }
+                        </select>
+                        <button
+                          type="button"
+                          (click)="guardarEdicion(trabajador)"
+                          [disabled]="guardando()"
+                        >
+                          {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+                        </button>
+                      </div>
 
-                  <p class="vacio">{{ t('personal.avisoCambioCargo') }}</p>
-                </td>
-              </tr>
-            }
+                      <p class="vacio">{{ t('personal.avisoCambioCargo') }}</p>
+                    </td>
+                  </tr>
+                }
 
-            <!-- No pide la anterior: quien la usa es administración devolviendo el
+                <!-- No pide la anterior: quien la usa es administración devolviendo el
                acceso a alguien que lo perdió, no la persona cambiando la suya. -->
-            @if (panelAbierto(trabajador, 'password')) {
-              <tr class="expandida">
-                <td colspan="6">
-                  <div class="campos">
-                    <input
-                      type="password"
-                      [attr.placeholder]="t('personal.passwordNueva', { min: MINIMO_PASSWORD })"
-                      autocomplete="new-password"
-                      [value]="passwordNueva()"
-                      (input)="anotarPasswordNueva($any($event.target).value)"
-                      [attr.aria-label]="
-                        t('personal.passwordNuevaAria', { usuario: trabajador.username ?? '' })
-                      "
-                    />
-                    <button
-                      type="button"
-                      (click)="restablecerPassword(trabajador)"
-                      [disabled]="guardando()"
-                    >
-                      {{ t(guardando() ? 'comun.guardando' : 'personal.restablecer') }}
-                    </button>
-                  </div>
-                  <p class="vacio">{{ t('personal.avisoPassword') }}</p>
-                </td>
-              </tr>
-            }
-          } @empty {
-            <tr>
-              <td colspan="6" class="vacio">
-                {{ t(cargando() ? 'personal.cargandoPersonal' : 'personal.sinPersonal') }}
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+                @if (panelAbierto(trabajador, 'password')) {
+                  <tr class="expandida">
+                    <td colspan="6">
+                      <div class="campos">
+                        <input
+                          type="password"
+                          [attr.placeholder]="t('personal.passwordNueva', { min: MINIMO_PASSWORD })"
+                          autocomplete="new-password"
+                          [value]="passwordNueva()"
+                          (input)="anotarPasswordNueva($any($event.target).value)"
+                          [attr.aria-label]="
+                            t('personal.passwordNuevaAria', { usuario: trabajador.username ?? '' })
+                          "
+                        />
+                        <button
+                          type="button"
+                          (click)="restablecerPassword(trabajador)"
+                          [disabled]="guardando()"
+                        >
+                          {{ t(guardando() ? 'comun.guardando' : 'personal.restablecer') }}
+                        </button>
+                      </div>
+                      <p class="vacio">{{ t('personal.avisoPassword') }}</p>
+                    </td>
+                  </tr>
+                }
+              } @empty {
+                <tr>
+                  <td colspan="6" class="vacio">
+                    {{ t(cargando() ? 'personal.cargandoPersonal' : 'personal.sinPersonal') }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
 
-    <!-- Los cargos se componen aqui. Los roles no: un rol es la palabra que
+        <!-- Los cargos se componen aqui. Los roles no: un rol es la palabra que
          aparece dentro de los @PreAuthorize del backend, asi que inventar uno
          nuevo no abriria ninguna puerta, solo lo aparentaria. -->
-    <div class="bloque">
-      <div class="barra">
-        <h2>{{ t('personal.cargos') }}</h2>
-        <button
-          type="button"
-          class="secundario chico"
-          (click)="nuevoCargo()"
-          [disabled]="roles().length === 0"
-        >
-          {{ t(cargoEnEdicion() === 0 ? 'comun.dejarlo' : 'personal.nuevoCargo') }}
-        </button>
-      </div>
-
-      @if (roles().length === 0 && !cargando()) {
-        <p class="vacio">{{ t('personal.sinRoles') }}</p>
-      }
-
-      @if (cargoEnEdicion() === 0) {
-        <ng-container [ngTemplateOutlet]="formularioCargo" />
-      }
-
-      <ul class="listado">
-        @for (c of cargos(); track c.id) {
-          <li>
-            <div class="cargo">
-              <strong>{{ c.nombre }}</strong>
-              <span class="tenue">{{ rolesDeCargo(c) }}</span>
-            </div>
-            <button type="button" class="secundario chico" (click)="editarCargo(c)">
-              {{ t(cargoEnEdicion() === c.id ? 'comun.dejarlo' : 'comun.editar') }}
+        <div class="bloque">
+          <div class="barra">
+            <h2>{{ t('personal.cargos') }}</h2>
+            <button
+              type="button"
+              class="secundario chico"
+              (click)="nuevoCargo()"
+              [disabled]="roles().length === 0"
+            >
+              {{ t(cargoEnEdicion() === 0 ? 'comun.dejarlo' : 'personal.nuevoCargo') }}
             </button>
-          </li>
+          </div>
 
-          @if (cargoEnEdicion() === c.id) {
-            <li class="edicion">
-              <ng-container [ngTemplateOutlet]="formularioCargo" />
-            </li>
+          @if (roles().length === 0 && !cargando()) {
+            <p class="vacio">{{ t('personal.sinRoles') }}</p>
           }
-        } @empty {
-          <li class="vacio">
-            {{ t(cargando() ? 'personal.cargandoCargos' : 'personal.sinCargosDefinidos') }}
-          </li>
-        }
-      </ul>
-    </div>
-  </div>
+
+          @if (cargoEnEdicion() === 0) {
+            <ng-container [ngTemplateOutlet]="formularioCargo" />
+          }
+
+          <ul class="listado">
+            @for (c of cargos(); track c.id) {
+              <li>
+                <div class="cargo">
+                  <strong>{{ c.nombre }}</strong>
+                  <span class="tenue">{{ rolesDeCargo(c) }}</span>
+                </div>
+                <button type="button" class="secundario chico" (click)="editarCargo(c)">
+                  {{ t(cargoEnEdicion() === c.id ? 'comun.dejarlo' : 'comun.editar') }}
+                </button>
+              </li>
+
+              @if (cargoEnEdicion() === c.id) {
+                <li class="edicion">
+                  <ng-container [ngTemplateOutlet]="formularioCargo" />
+                </li>
+              }
+            } @empty {
+              <li class="vacio">
+                {{ t(cargando() ? 'personal.cargandoCargos' : 'personal.sinCargosDefinidos') }}
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+  }
 </section>
 
 <!-- Un solo formulario para crear y para editar: son la misma operacion sobre

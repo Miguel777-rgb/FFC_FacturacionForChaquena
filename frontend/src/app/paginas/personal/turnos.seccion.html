@@ -1,0 +1,172 @@
+<div class="seccion">
+  <div class="barra">
+    <div class="navegacion-semana">
+      <button
+        type="button"
+        class="secundario"
+        (click)="moverSemana(-1)"
+        [attr.aria-label]="t('turnos.semanaAnterior')"
+        [attr.title]="t('turnos.semanaAnterior')"
+      >
+        <app-icono nombre="anterior" [tamano]="18" />
+      </button>
+      <strong>{{ tituloSemana() }}</strong>
+      <button
+        type="button"
+        class="secundario"
+        (click)="moverSemana(1)"
+        [attr.aria-label]="t('turnos.semanaSiguiente')"
+        [attr.title]="t('turnos.semanaSiguiente')"
+      >
+        <app-icono nombre="siguiente" [tamano]="18" />
+      </button>
+      <button type="button" class="secundario chico" (click)="estaSemana()">
+        {{ t('turnos.estaSemana') }}
+      </button>
+    </div>
+    <button
+      type="button"
+      class="secundario"
+      (click)="abrirNuevo()"
+      [disabled]="personas().length === 0"
+    >
+      <app-icono nombre="alta" [tamano]="18" />
+      {{ t('turnos.nuevo') }}
+    </button>
+  </div>
+
+  <p class="tenue">{{ t('turnos.ayuda') }}</p>
+
+  <div class="desplazable">
+    <table class="tabla horario">
+      <thead>
+        <tr>
+          <th>{{ t('comun.persona') }}</th>
+          @for (d of dias(); track d.campo) {
+            <th [class.hoy]="d.hoy">{{ tEnum('dia', d.nombre) }} {{ d.numero }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of personas(); track p.id) {
+          <tr>
+            <th scope="row">
+              {{ nombreDe(p) }}
+              <small class="tenue bajada">{{ p.cargoNombre }}</small>
+            </th>
+            @for (d of dias(); track d.campo) {
+              <td [class.hoy]="d.hoy">
+                <div class="celda">
+                  @for (turno of turnosDe(p, d.campo); track turno.id) {
+                    <button
+                      type="button"
+                      class="turno cifra"
+                      (click)="abrirEdicion(turno)"
+                      [attr.aria-label]="
+                        t('turnos.editarAria', { nombre: nombreDe(p), rango: rango(turno) })
+                      "
+                    >
+                      {{ rango(turno) }}
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="icono-accion agregar"
+                    (click)="abrirNuevo(p, d.campo)"
+                    [attr.aria-label]="
+                      t('turnos.agregarA', {
+                        nombre: nombreDe(p),
+                        dia: tEnum('dia', d.nombre) + ' ' + d.numero,
+                      })
+                    "
+                    [attr.title]="t('turnos.nuevo')"
+                  >
+                    <span aria-hidden="true">+</span>
+                  </button>
+                </div>
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="vacio">
+              {{ t(cargando() ? 'comun.cargando' : 'turnos.sinPersonal') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-dialogo class="dialogo-turno" [titulo]="tituloFormulario()" [(abierto)]="formularioAbierto">
+  <div class="formulario">
+    <label class="campo">
+      <span>{{ t('comun.persona') }}</span>
+      <select (change)="trabajadorId.set($any($event.target).value)">
+        @for (p of personas(); track p.id) {
+          <option [value]="p.id" [selected]="trabajadorId() === p.id">
+            {{ nombreDe(p) }} · {{ p.cargoNombre }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="campo">
+      <span>{{ t('turnos.dia') }}</span>
+      <input type="date" [value]="dia()" (input)="dia.set($any($event.target).value)" />
+    </label>
+    <div class="campos">
+      <label class="campo">
+        <span>{{ t('turnos.inicio') }}</span>
+        <input
+          class="inicio"
+          type="time"
+          step="900"
+          [value]="inicio()"
+          (input)="inicio.set($any($event.target).value)"
+        />
+      </label>
+      <label class="campo">
+        <span>{{ t('turnos.fin') }}</span>
+        <input
+          class="fin"
+          type="time"
+          step="900"
+          [value]="fin()"
+          (input)="fin.set($any($event.target).value)"
+        />
+      </label>
+    </div>
+    @if (terminaAlDiaSiguiente()) {
+      <p class="tenue al-dia-siguiente">{{ t('turnos.alDiaSiguiente') }}</p>
+    }
+    <label class="campo">
+      <span>{{ t('turnos.nota') }}</span>
+      <input
+        type="text"
+        autocomplete="off"
+        maxlength="200"
+        [value]="nota()"
+        (input)="nota.set($any($event.target).value)"
+      />
+    </label>
+  </div>
+  <div pie>
+    @if (editando()) {
+      <button type="button" class="secundario" (click)="eliminar()" [disabled]="guardando()">
+        <app-icono nombre="papelera" [tamano]="18" />
+        {{ t('turnos.eliminar') }}
+      </button>
+    }
+    <button type="button" class="secundario" (click)="formularioAbierto.set(false)">
+      {{ t('comun.dejarlo') }}
+    </button>
+    <button
+      type="button"
+      (click)="guardar()"
+      [disabled]="!trabajadorId() || !dia() || !inicio() || !fin() || guardando()"
+    >
+      {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+    </button>
+  </div>
+</app-dialogo>

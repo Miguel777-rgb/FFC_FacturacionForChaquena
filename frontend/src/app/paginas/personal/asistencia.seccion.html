@@ -1,0 +1,79 @@
+<div class="seccion">
+  <div class="barra">
+    <label class="campo">
+      <span>{{ t('asistencia.dia') }}</span>
+      <input type="date" [value]="dia()" (change)="cambiarDia($any($event.target).value)" />
+    </label>
+    <p class="tenue">{{ t('asistencia.ayuda') }}</p>
+  </div>
+
+  @if ((filas() ?? []).length > 0) {
+    <ul class="kpis">
+      @for (e of ESTADOS; track e) {
+        <li [class.alerta]="alarma(e) && (conteo()[e] ?? 0) > 0">
+          <span class="cifra dato">{{ conteo()[e] ?? 0 }}</span>
+          <span class="rotulo">{{ tEnum('estadoAsistencia', e) }}</span>
+        </li>
+      }
+    </ul>
+  }
+
+  <div class="desplazable">
+    <table class="tabla apilable">
+      <thead>
+        <tr>
+          <th>{{ t('comun.persona') }}</th>
+          <th>{{ t('asistencia.turno') }}</th>
+          <th>{{ t('asistencia.entrada') }}</th>
+          <th>{{ t('asistencia.salida') }}</th>
+          <th>{{ t('comun.estado') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (f of filas() ?? []; track $index) {
+          <tr>
+            <td>
+              {{ f.nombre }}
+              <small class="tenue bajada">{{ f.cargo }}</small>
+            </td>
+            <td class="cifra" [attr.data-etiqueta]="t('asistencia.turno')">
+              @if (f.turnoInicio) {
+                {{ hora(f.turnoInicio) }} – {{ hora(f.turnoFin) }}
+              } @else {
+                <span class="tenue">{{ t('asistencia.sinTurno') }}</span>
+              }
+            </td>
+            <td [attr.data-etiqueta]="t('asistencia.entrada')">
+              <span class="cifra">{{ hora(f.entrada) }}</span>
+              @if ((f.minutosTarde ?? 0) > 0) {
+                <small class="bajada tarde">{{
+                  t('asistencia.tarde', { n: f.minutosTarde ?? 0 })
+                }}</small>
+              }
+            </td>
+            <td class="cifra" [attr.data-etiqueta]="t('asistencia.salida')">
+              {{ hora(f.salida) }}
+            </td>
+            <td [attr.data-etiqueta]="t('comun.estado')">
+              <span
+                class="chip"
+                [class.ok]="f.estado === ESTADO.DENTRO"
+                [class.info]="f.estado === ESTADO.SALIO"
+                [class.aviso]="f.estado === ESTADO.NO_LLEGA"
+                [class.peligro]="f.estado === ESTADO.FALTO"
+              >
+                {{ tEnum('estadoAsistencia', f.estado) }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="vacio">
+              {{ t(filas() === null ? 'comun.cargando' : 'asistencia.ninguna') }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

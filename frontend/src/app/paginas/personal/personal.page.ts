@@ -2,7 +2,9 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { NgTemplateOutlet } from '@angular/common';
 
 import { Icono } from '../../disenio/icono';
-import { DesempenoMozo } from './desempeno-mozo';
+import { AsistenciaSeccion } from './asistencia.seccion';
+import { DesempenoTrabajador } from './desempeno-trabajador';
+import { TurnosSeccion } from './turnos.seccion';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -17,6 +19,7 @@ import {
 } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 
 /** Longitud minima que exige el servidor al restablecer una contrasena. */
 const MINIMO_PASSWORD = 8;
@@ -27,6 +30,19 @@ const MINIMO_PASSWORD = 8;
  * estaba tocando.
  */
 type PanelFila = 'ficha' | 'edicion' | 'password';
+
+type Vista = 'personas' | 'turnos' | 'asistencia';
+
+/**
+ * Quien trabaja aqui, cuando le toca y si vino. Van en pestañas porque se miran
+ * en momentos distintos: el horario se arma una vez por semana y la asistencia
+ * se revisa cada dia.
+ */
+const VISTAS: ReadonlyArray<{ id: Vista; nombre: ClaveI18n }> = [
+  { id: 'personas', nombre: 'personal.personas' },
+  { id: 'turnos', nombre: 'personal.turnos' },
+  { id: 'asistencia', nombre: 'personal.asistencia' },
+];
 
 /**
  * Personal: quien trabaja aqui, con que cargo, y que abre cada cargo.
@@ -51,7 +67,7 @@ type PanelFila = 'ficha' | 'edicion' | 'password';
   selector: 'app-personal',
   // El formulario de cargo se escribe una vez y se proyecta donde toque:
   // crear y editar son la misma operacion sobre el mismo objeto.
-  imports: [NgTemplateOutlet, Icono, DesempenoMozo],
+  imports: [NgTemplateOutlet, Icono, DesempenoTrabajador, TurnosSeccion, AsistenciaSeccion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './personal.page.html',
   styleUrls: ['../../disenio/secciones.scss', './personal.page.scss'],
@@ -67,6 +83,9 @@ export class PersonalPage implements OnInit {
 
   /** La plantilla lo escribe dentro del aviso de la contrasena nueva. */
   protected readonly MINIMO_PASSWORD = MINIMO_PASSWORD;
+
+  protected readonly VISTAS = VISTAS;
+  protected readonly vista = signal<Vista>('personas');
 
   protected readonly cargando = signal(true);
   protected readonly guardando = signal(false);

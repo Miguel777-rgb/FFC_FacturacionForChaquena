@@ -668,8 +668,74 @@ export const ES = {
   'personal.avisoCargoAbre': '«{cargo}» abre: {roles}.',
   'personal.avisoSesionAbierta':
     'Quien ya tenga la sesión abierta conserva sus permisos hasta volver a entrar.',
-  'personal.desempeno': 'Como mozo, últimos 30 días',
-  'personal.sinVentas': 'No registró comandas como mozo en los últimos 30 días.',
+  'personal.vistas': 'Partes de personal',
+  'personal.personas': 'Personas',
+  'personal.turnos': 'Turnos',
+  'personal.asistencia': 'Asistencia',
+
+  // --- turnos ---------------------------------------------------------------
+  'turnos.nuevo': 'Nuevo turno',
+  'turnos.editar': 'Editar turno',
+  'turnos.semanaDel': 'Semana del {desde} al {hasta}',
+  'turnos.semanaAnterior': 'Semana anterior',
+  'turnos.semanaSiguiente': 'Semana siguiente',
+  'turnos.estaSemana': 'Esta semana',
+  'turnos.ayuda': 'Pulsa + en un día para asignar un turno, o un turno para cambiarlo.',
+  'turnos.editarAria': 'Editar el turno de {nombre}: {rango}',
+  'turnos.agregarA': 'Agregar un turno a {nombre} el {dia}',
+  'turnos.sinPersonal': 'No hay personal activo.',
+  'turnos.dia': 'Día',
+  'turnos.inicio': 'Entra',
+  'turnos.fin': 'Sale',
+  'turnos.alDiaSiguiente': 'Termina al día siguiente.',
+  'turnos.nota': 'Nota (opcional)',
+  'turnos.eliminar': 'Quitar turno',
+  'turnos.eliminarTitulo': '¿Quitar el turno de {nombre}?',
+  'turnos.eliminarMensaje': 'El turno del {dia}, de {rango}, deja de figurar en el horario. Las entradas que ya marcó no se borran.',
+  'turnos.avisoGuardado': 'Turno de {nombre} guardado.',
+  'turnos.avisoEliminado': 'Turno de {nombre} quitado.',
+  'turnos.avisoCeroHoras': 'Un turno no puede empezar y terminar a la misma hora.',
+
+  // --- asistencia -----------------------------------------------------------
+  'asistencia.titulo': 'Asistencia',
+  'asistencia.dentro': 'Dentro',
+  'asistencia.fuera': 'Fuera',
+  'asistencia.desde': 'desde las {hora}',
+  'asistencia.marcarEntrada': 'Marcar entrada',
+  'asistencia.marcarSalida': 'Marcar salida',
+  'asistencia.misTurnos': 'Mis turnos de los próximos días',
+  'asistencia.alDiaSiguiente': 'hasta el día siguiente',
+  'asistencia.sinTurnos': 'No tienes turnos asignados en los próximos días.',
+  'asistencia.avisoEntrada': 'Entrada marcada a las {hora}.',
+  'asistencia.avisoSalida': 'Salida marcada a las {hora}.',
+  'asistencia.dia': 'Día',
+  'asistencia.ayuda': 'La tardanza cuenta pasados 10 minutos de la hora del turno. Alguien falta cuando su turno ya terminó sin entrada.',
+  'asistencia.turno': 'Turno',
+  'asistencia.entrada': 'Entrada',
+  'asistencia.salida': 'Salida',
+  'asistencia.sinTurno': 'Sin turno',
+  'asistencia.tarde': 'tarde {n} min',
+  'asistencia.ninguna': 'Nadie tenía turno ni marcó entrada este día.',
+
+  // --- desempeño ------------------------------------------------------------
+  'desempeno.titulo': 'Desempeño de los últimos 30 días',
+  'desempeno.comandas': 'Comandas',
+  'desempeno.vendido': 'Vendido',
+  'desempeno.ticket': 'Ticket promedio',
+  'desempeno.atencion': 'Atención',
+  'desempeno.atencionValor': '{puntaje} de 5',
+  'desempeno.calificaciones.uno': '{n} calificación',
+  'desempeno.calificaciones.otros': '{n} calificaciones',
+  'desempeno.sinCalificaciones': 'Sin calificaciones',
+  'desempeno.turnos': 'Turnos cumplidos',
+  'desempeno.turnosValor': '{asistidos} de {turnos}',
+  'desempeno.tardanzas': 'Tardanzas',
+  'desempeno.minutosTarde': '{n} min en total',
+  'desempeno.inasistencias': 'Inasistencias',
+  'desempeno.horas': 'Horas trabajadas',
+  'desempeno.salidasSinMarcar.uno': 'Tiene {n} entrada sin salida marcada: esas horas no se cuentan.',
+  'desempeno.salidasSinMarcar.otros': 'Tiene {n} entradas sin salida marcada: esas horas no se cuentan.',
+  'desempeno.sinDatos': 'No se pudo calcular el desempeño.',
 
   // --- KPIs ------------------------------------------------------------------
   'kpis.hoy': 'Hoy',
@@ -1084,6 +1150,12 @@ export const ES = {
   'reserva.CANCELADA': 'Cancelada',
   'reserva.NO_ASISTIO': 'No asistió',
 
+  'estadoAsistencia.POR_LLEGAR': 'Por llegar',
+  'estadoAsistencia.DENTRO': 'Dentro',
+  'estadoAsistencia.SALIO': 'Salió',
+  'estadoAsistencia.NO_LLEGA': 'No llega',
+  'estadoAsistencia.FALTO': 'Faltó',
+
   'metodo.EFECTIVO': 'Efectivo',
   'metodo.TARJETA': 'Tarjeta',
   'metodo.E_WALLET': 'Billetera',
@@ -1179,4 +1251,5 @@ export type GrupoEnum =
   | 'tipoComplemento'
   | 'dia'
   | 'vencimiento'
-  | 'reserva';
+  | 'reserva'
+  | 'estadoAsistencia';

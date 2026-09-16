@@ -1,0 +1,80 @@
+.navegacion-semana {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e2);
+
+  strong {
+    color: var(--tinta);
+  }
+}
+
+/* Siete dias no se apilan: la tabla se desplaza dentro de su caja en el celular. */
+.horario {
+  min-width: 56rem;
+
+  th[scope='row'] {
+    font-weight: 500;
+    color: var(--tinta);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th.hoy,
+  td.hoy {
+    background: var(--acento-suave);
+  }
+
+  td {
+    vertical-align: top;
+  }
+}
+
+.celda {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--e1);
+}
+
+.turno {
+  justify-content: center;
+  min-height: 2.25rem;
+  padding: 0 var(--e2);
+  font-size: var(--t-chico);
+  font-weight: 500;
+  color: var(--tinta);
+  white-space: nowrap;
+  background: var(--hundido);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-chico);
+
+  &:hover:not(:disabled) {
+    color: var(--tinta);
+    background: var(--acento-suave);
+    border-color: var(--acento);
+  }
+}
+
+.agregar {
+  align-self: center;
+}
+
+.al-dia-siguiente {
+  margin: 0;
+}
+
+/* Con el dedo, cada turno es un blanco de 44 px como cualquier otro boton. */
+@media (pointer: coarse) {
+  .turno {
+    min-height: var(--toque);
+  }
+}
+
+/* Un mas y no el visto de "dar de alta": en una celda vacia, un visto se lee
+   como turno cumplido. */
+.agregar {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--tenue);
+}
