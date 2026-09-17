@@ -7338,6 +7338,93 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "32 · Catalogo · Lectura de la carta",
+      "item": [
+        {
+          "name": "Si el servidor puede leer cartas (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/carta/lector",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "carta",
+                "lector"
+              ]
+            },
+            "description": "Dice si el servidor tiene Tesseract con el idioma espanol; si no, el motivo."
+          },
+          "response": []
+        },
+        {
+          "name": "Leer una foto de la carta (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/carta/lecturas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "carta",
+                "lecturas"
+              ]
+            },
+            "description": "JPEG o PNG de hasta 3 MB. Devuelve secciones, platillos, precios y adicionales sin guardar nada; las filas dudosas traen el recorte de la foto de donde salieron.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "imagen",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Importar lo revisado (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/carta/importaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "carta",
+                "importaciones"
+              ]
+            },
+            "description": "Crea o actualiza lo que se marco en la pantalla de revision. Lo que ya existe con el mismo nombre (sin tildes ni mayusculas) se actualiza; una seccion se elige por id o se crea con nombreNueva.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"secciones\": [\n    {\n      \"categoriaId\": 1,\n      \"platillos\": [\n        {\n          \"nombre\": \"Parrilla de Res\",\n          \"precio\": 21.0,\n          \"descripcion\": \"Corte de res con salchicha, mote y papa.\",\n          \"vegetariano\": false\n        }\n      ]\n    },\n    {\n      \"nombreNueva\": \"Broaster\",\n      \"platillos\": [\n        {\n          \"nombre\": \"Pollo Broaster (Mega 1)\",\n          \"precio\": 12.0,\n          \"vegetariano\": false\n        }\n      ]\n    }\n  ],\n  \"complementos\": [\n    {\n      \"nombre\": \"Con chaufa\",\n      \"precio\": 5.0,\n      \"tipo\": \"OTROS\"\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [

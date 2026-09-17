@@ -33,7 +33,7 @@ pnpm dlx newman run end_points.json \
 ## Lo que se agregó con el reajuste de la interfaz
 
 Todas las rutas cuelgan de `/api/v1`; el contrato completo está en `/v3/api-docs`
-y cada una tiene su petición de ejemplo en `end_points.json` (carpetas 25 a 31).
+y cada una tiene su petición de ejemplo en `end_points.json` (carpetas 25 a 32).
 Leer los catálogos (local, niveles, proveedores, alérgenos) es de cualquier
 sesión; la columna «Quién» dice quién puede cambiarlos.
 
@@ -48,6 +48,7 @@ sesión; la columna «Quién» dice quién puede cambiarlos.
 | Turnos, asistencia y desempeño (`asistencia`) | `/turnos` · `POST /asistencia/entrada` y `/salida` · `GET /asistencia/mia` · `GET /asistencia/dia` · `GET /trabajadores/{id}/desempeno` | marcar: cada sesión sobre sí misma; lo demás: ADMIN | La tardanza y la falta no se escriben: se calculan comparando turnos y marcaciones, con diez minutos de tolerancia |
 | Tiempo real (`tiemporeal`) | `GET /eventos/stream` | cualquier sesión, filtrado por cargo | Ver abajo |
 | Reportes (`reportes`) | `GET /reportes/ventas-por-metodo-pago` · `GET /reportes/{ventas,productos,inventario,asistencia}/exportar` | los cargos de cada pantalla | Ver abajo |
+| Lectura de la carta (`inventario`) | `GET /carta/lector` · `POST /carta/lecturas` · `POST /carta/importaciones` | ADMIN | Ver abajo |
 
 ### Tiempo real
 
@@ -79,6 +80,35 @@ Cada reporte se arma una sola vez y se escribe con Apache POI o con OpenPDF, as�
 que el PDF y el Excel del mismo rango nunca dicen cosas distintas. Los textos
 salen en español, inglés o portugués según `Accept-Language`; sin esa cabecera,
 en español.
+
+### Leer la carta desde fotos
+
+La carta del local existe impresa antes que en el sistema, y cargarla a mano son
+decenas de platillos con su precio y su descripción. `POST /carta/lecturas`
+recibe una foto y devuelve lo que reconoció —secciones, platillos, precios,
+descripciones, el icono vegetariano y los adicionales del tipo «+5 con chaufa»—
+**sin guardar nada**. Se revisa en pantalla y después `POST /carta/importaciones`
+crea o actualiza solo las filas que quedaron marcadas.
+
+El reconocimiento es Tesseract, que corre como programa en la propia imagen del
+servidor: la foto se agranda y se pasa a grises, se parte en columnas por donde
+no hay tinta, y las reglas de `inventario/service/lectura/` leen la caja de cada
+palabra para decidir qué es un título, qué un nombre, qué una descripción y qué
+un precio. Los precios se vuelven a leer en una segunda pasada solo con dígitos,
+porque una cifra suelta al borde de la página se confunde con letras. Lo que la
+foto no dejó claro viaja marcado como dudoso y con el recorte de donde salió,
+para que quien revisa lo compare sin volver a la carta de papel.
+
+Dos cosas no cambian nunca al importar: un platillo que ya existe conserva su
+nombre y su sección —solo se le actualizan el precio y la descripción—, y nada se
+borra. El reconocimiento por nombre ignora tildes y mayúsculas, así que «PARRILLA
+DE RES» y «Parrilla de Res» son el mismo plato.
+
+La imagen del backend trae `tesseract-ocr` y el modelo de español fijado a un
+commit y comprobado por hash, porque las reglas se calibraron con ese modelo.
+Fuera de Docker hacen falta `app.carta.tesseract` (el programa) y
+`app.carta.tessdata` (la carpeta del modelo); si falta cualquiera de los dos,
+`GET /carta/lector` lo dice y la pantalla no ofrece subir fotos.
 
 ## Los bots
 
