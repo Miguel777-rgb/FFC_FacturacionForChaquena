@@ -25,14 +25,29 @@ RUN mvn -B clean package -DskipTests
 RUN cp target/*.jar /construccion/aplicacion.jar
 
 # --- Etapa 2: ejecucion ----------------------------------------------------
-FROM eclipse-temurin:21-jre-alpine AS ejecucion
+# Debian y no Alpine: la lectura de la carta llama al programa tesseract, que en
+# Alpine solo esta en la rama de comunidad y compilado contra musl.
+FROM eclipse-temurin:21-jre AS ejecucion
 
 # curl lo usa el healthcheck del compose para saber cuando la aplicacion esta
-# lista de verdad, no solo cuando el proceso arranco.
-RUN apk add --no-cache curl
+# lista de verdad, no solo cuando el proceso arranco. tesseract-ocr trae el
+# programa; el modelo del idioma se baja aparte.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates tesseract-ocr \
+    && rm -rf /var/lib/apt/lists/*
+
+# El modelo de espanol va fijado a un commit y comprobado por hash: es el mismo
+# con el que se calibraron las reglas de lectura, y "latest" cambiaria lo que
+# lee la carta sin tocar una linea de codigo.
+ARG TESSDATA_COMMIT=c2b2e0df86272ce11be323f23f96cf656565ed41
+ARG TESSDATA_SHA256=0b0fcbb4665189e01ab8019e591f014dd7260460de072543edd4b2cb4ede7c96
+RUN mkdir -p /aplicacion/tessdata \
+    && curl -fsSL -o /aplicacion/tessdata/spa.traineddata \
+        "https://raw.githubusercontent.com/tesseract-ocr/tessdata/${TESSDATA_COMMIT}/spa.traineddata" \
+    && echo "${TESSDATA_SHA256}  /aplicacion/tessdata/spa.traineddata" | sha256sum -c -
 
 # Usuario sin privilegios: si algo se cuela por un endpoint, no lo hace como root.
-RUN addgroup -S chaquena && adduser -S chaquena -G chaquena
+RUN groupadd -r chaquena && useradd -r -g chaquena chaquena
 
 WORKDIR /aplicacion
 COPY --from=compilacion --chown=chaquena:chaquena /construccion/aplicacion.jar ./aplicacion.jar
@@ -41,6 +56,9 @@ COPY --from=compilacion --chown=chaquena:chaquena /construccion/aplicacion.jar .
 # aplicacion: un volumen nuevo hereda ese propietario al montarse, y sin esto
 # la primera foto fallaria por permisos.
 RUN mkdir -p /aplicacion/archivos && chown chaquena:chaquena /aplicacion/archivos
+
+# Donde quedo el modelo de espanol de la etapa anterior.
+ENV CARTA_TESSDATA=/aplicacion/tessdata
 
 USER chaquena
 EXPOSE 8080
