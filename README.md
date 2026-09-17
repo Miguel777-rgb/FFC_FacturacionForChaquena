@@ -1,15 +1,19 @@
 # FFC_FacturacionForChaquena
 
+**DEPLOY**
+
+[ffc.miguelangel.ing/entrar](https://ffc.miguelangel.ing/entrar) 
+
 Sistema de logística, POS y facturación electrónica (SUNAT, Perú) para
 restaurante. Este repositorio versiona el servidor, la cara web y el esquema de
 la base de datos:
 
-| Carpeta | Qué es |
-|---|---|
-| `backend/` | `backend-logistica` — Spring Boot 4 sobre Java 21. 124 endpoints en 24 controladores. |
-| `frontend/` | `frontend-logistica` — Angular 22 sin zonas, con el cliente HTTP generado del contrato OpenAPI. Las siete superficies en pie, en español, inglés y portugués. |
-| `bd/` | Volcado del esquema de PostgreSQL, sincronizado con `bd/watch_schema.sh`, más las migraciones aplicadas. |
-| `legal-discord/` | Submódulo con las Condiciones del Servicio y la Política de Privacidad de los dos bots de Discord (repositorio `discord-legal-`). Se despliega aparte y no depende de nada de lo anterior. |
+| Carpeta            | Qué es                                                                                                                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backend/`       | `backend-logistica` — Spring Boot 4 sobre Java 21. 124 endpoints en 24 controladores.                                                                                                      |
+| `frontend/`      | `frontend-logistica` — Angular 22 sin zonas, con el cliente HTTP generado del contrato OpenAPI. Las siete superficies en pie, en español, inglés y portugués.                           |
+| `bd/`            | Volcado del esquema de PostgreSQL, sincronizado con`bd/watch_schema.sh`, más las migraciones aplicadas.                                                                                    |
+| `legal-discord/` | Submódulo con las Condiciones del Servicio y la Política de Privacidad de los dos bots de Discord (repositorio`discord-legal-`). Se despliega aparte y no depende de nada de lo anterior. |
 
 `legal-discord/` es un submódulo: clona con `git clone --recurse-submodules`, o
 tras un clon normal ejecuta `git submodule update --init`.
@@ -135,14 +139,14 @@ con `app.outbox.enabled=false` hasta que exista un destino al que enviarlo.
 Todos comparten la contraseña `Chaquena2001`. Se entra por
 `POST /api/v1/auth/login` con `usernameOrEmail` y `password`.
 
-| Usuario | Correo | Cargo | Rol efectivo | Qué superficie abre |
-|---|---|---|---|---|
-| `admin` | admin@chaquena.pe | ADMINISTRADOR | `ADMIN` | Las siete; aterriza en `/pos`, que es donde empieza |
-| `mozo1` | mozo@chaquena.pe | MOZO | `MOZO` | `/pos` y `/despacho` |
-| `chef1` | cocina@chaquena.pe | JEFE DE COCINA | `COCINA` | `/kds` |
-| `caja1` | caja@chaquena.pe | CAJERO | `CAJA` | `/caja` y `/kpis` |
-| `almacen1` | almacen@chaquena.pe | ALMACENERO | `ALMACEN` | `/trastienda` (inventario y carta; local, bots y eventos son de ADMIN) |
-| `repartidor1` | reparto@chaquena.pe | REPARTIDOR | `DELIVERY` | `/despacho` |
+| Usuario         | Correo              | Cargo          | Rol efectivo | Qué superficie abre                                                     |
+| --------------- | ------------------- | -------------- | ------------ | ------------------------------------------------------------------------ |
+| `admin`       | admin@chaquena.pe   | ADMINISTRADOR  | `ADMIN`    | Las siete; aterriza en`/pos`, que es donde empieza                     |
+| `mozo1`       | mozo@chaquena.pe    | MOZO           | `MOZO`     | `/pos` y `/despacho`                                                 |
+| `chef1`       | cocina@chaquena.pe  | JEFE DE COCINA | `COCINA`   | `/kds`                                                                 |
+| `caja1`       | caja@chaquena.pe    | CAJERO         | `CAJA`     | `/caja` y `/kpis`                                                    |
+| `almacen1`    | almacen@chaquena.pe | ALMACENERO     | `ALMACEN`  | `/trastienda` (inventario y carta; local, bots y eventos son de ADMIN) |
+| `repartidor1` | reparto@chaquena.pe | REPARTIDOR     | `DELIVERY` | `/despacho`                                                            |
 
 Para comprobar el control de acceso, entra con `chef1` e intenta crear una
 promoción: responde `403`.

@@ -50,12 +50,15 @@ $gris-600: #4b5563;
 $gris-700: #374151;
 $gris-900: #111827;
 
-$noche-fondo: #0f1419;
-$noche-superficie: #1a1f2e;
-$noche-hundido: #242a3d;
-$noche-linea: #2d3542;
-$noche-linea-fuerte: #3d4556;
-$noche-tinta: #e8e9eb;
+/* Grises neutros, sin tinte: en una pantalla llena de superficies oscuras un
+   azulado de 20 puntos de saturacion se lee como "azul", y el unico color que
+   debe destacar es el borgona de la marca. */
+$noche-fondo: #0c0c0d;
+$noche-superficie: #151516;
+$noche-hundido: #1d1d1f;
+$noche-linea: #2b2b2e;
+$noche-linea-fuerte: #3b3b3f;
+$noche-tinta: #ececed;
 
 // --- semantica: claro ------------------------------------------------------------
 :root {
@@ -159,11 +162,12 @@ $noche-tinta: #e8e9eb;
   --linea-fuerte: #{$noche-linea-fuerte};
 
   --tinta: #{$noche-tinta};
-  --texto: #c9cdd4;
-  --tenue: #9ca3af;
+  --texto: #cfcfd1;
+  --tenue: #a2a2a5;
 
   /* El relleno se queda en el borgona del logo (7,5:1 con blanco); como texto
-     sube a #F04A66, porque #A41E34 sobre la superficie oscura no se lee. */
+     sube a #F04A66, que sobre la superficie neutra da 5,3:1, porque #A41E34 en
+     oscuro no se lee. */
   --acento: #{$borgona-400};
   --acento-relleno: #{$borgona-700};
   --acento-fuerte: #{$borgona-600};
