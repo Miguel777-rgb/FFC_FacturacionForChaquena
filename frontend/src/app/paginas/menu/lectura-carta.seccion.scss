@@ -1,0 +1,112 @@
+/* Lectura de la carta desde fotos.
+
+   La tabla de revision es un formulario disfrazado de tabla: cada celda lleva su
+   campo, porque lo que sale de la foto casi siempre necesita un retoque antes de
+   entrar en la carta. */
+
+.lectura {
+  .alerta {
+    padding: var(--e3);
+    color: var(--aviso);
+    background: var(--aviso-suave);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio-chico);
+  }
+
+  .carga {
+    display: grid;
+    gap: var(--e3);
+  }
+
+  .fotos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: var(--e2);
+      max-width: 100%;
+      padding: var(--e1) var(--e2);
+      background: var(--hundido);
+      border: 1px solid var(--linea);
+      border-radius: var(--radio-chico);
+
+      span {
+        overflow: hidden;
+        font-size: var(--t-chico);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .progreso {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .cabecera-seccion {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e3);
+    align-items: end;
+    margin-bottom: var(--e3);
+
+    h3 {
+      flex: 1 1 100%;
+      margin: 0;
+    }
+
+    .campo {
+      min-width: 12rem;
+    }
+  }
+
+  /* El nombre y la descripcion se llevan el ancho: son lo que mas se corrige. */
+  .filas-carta {
+    input[type='text'] {
+      width: 100%;
+      min-width: 8rem;
+    }
+
+    .precio {
+      width: 6rem;
+      text-align: right;
+    }
+
+    td.acciones {
+      text-align: right;
+    }
+  }
+
+  /* El recorte de la foto va bajo el nombre que hay que comprobar, no en una
+     columna aparte: asi se mira sin apartar la vista de lo que se corrige. */
+  .recorte {
+    display: block;
+    max-width: 100%;
+    margin-top: var(--e1);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio-chico);
+  }
+
+  /* Una fila dudosa se distingue por el filete lateral y por su rotulo, no por
+     el color de la letra: el texto sigue siendo el que hay que leer y corregir. */
+  tr.dudosa > td:first-child {
+    border-inline-start: 3px solid var(--aviso-base);
+  }
+
+  .barra.final {
+    justify-content: flex-end;
+  }
+}
+
+@media (width <= 768px) {
+  .lectura .cabecera-seccion .campo {
+    flex: 1 1 100%;
+  }
+}

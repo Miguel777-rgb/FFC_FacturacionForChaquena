@@ -69,4 +69,17 @@ describe('MenuPage', () => {
     expect(pagina.textContent).not.toContain('Nueva promoción');
     expect(pagina.querySelector('app-carta-seccion')).toBeNull();
   });
+
+  it('leer la carta desde fotos solo se le ofrece al administrador', () => {
+    TestBed.inject(SesionService).abrir(tokenDe('ALMACENERO', ['ALMACEN']));
+    const almacen: HTMLElement = crear().nativeElement;
+    expect(almacen.textContent).not.toContain('Leer carta');
+
+    TestBed.inject(SesionService).abrir(tokenDe('ADMINISTRADOR', ['ADMIN']));
+    const admin: HTMLElement = crear().nativeElement;
+    const pestanas = Array.from(admin.querySelectorAll('.pestanas button')).map((b) =>
+      b.textContent!.trim(),
+    );
+    expect(pestanas).toContain('Leer carta');
+  });
 });

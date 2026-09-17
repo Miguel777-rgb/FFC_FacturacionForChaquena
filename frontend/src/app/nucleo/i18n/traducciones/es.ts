@@ -87,12 +87,16 @@ export const ES = {
   'tema.claro': 'claro',
   'tema.oscuro': 'oscuro',
   'despacho.bajaTitulo': 'Dar de baja a {nombre}',
-  'despacho.bajaMensaje': 'Deja de aparecer al asignar comandas. Las que ya se llevó conservan su nombre y su placa, y se le puede reactivar después.',
-  'personal.bajaMensaje': 'No podrá entrar al sistema, ni con usuario y contraseña ni con Google, hasta que se le reactive. Todo lo que registró sigue a su nombre.',
+  'despacho.bajaMensaje':
+    'Deja de aparecer al asignar comandas. Las que ya se llevó conservan su nombre y su placa, y se le puede reactivar después.',
+  'personal.bajaMensaje':
+    'No podrá entrar al sistema, ni con usuario y contraseña ni con Google, hasta que se le reactive. Todo lo que registró sigue a su nombre.',
   'bots.liberarTitulo': 'Liberar la cuenta de {usuario}',
-  'bots.liberarMensaje': 'El bot deja de reconocer esa cuenta de Discord. Sigue entrando al sistema con su usuario; para volver a usar el bot tendrá que escribir /vincular otra vez.',
+  'bots.liberarMensaje':
+    'El bot deja de reconocer esa cuenta de Discord. Sigue entrando al sistema con su usuario; para volver a usar el bot tendrá que escribir /vincular otra vez.',
   'pos.quitarDetalleTitulo': 'Quitar {platillo} de la comanda',
-  'pos.quitarDetalleMensaje': 'La comanda ya está en cocina. La línea desaparece de la comanda y de la cola de cocina.',
+  'pos.quitarDetalleMensaje':
+    'La comanda ya está en cocina. La línea desaparece de la comanda y de la cola de cocina.',
   'pos.quitarDetalleConfirmar': 'Quitar de la comanda',
 
   // --- panel lateral ---------------------------------------------------------
@@ -379,7 +383,6 @@ export const ES = {
   'despacho.avisoConductorAnotado': '{nombre} anotado. Ahora su vehículo.',
   'despacho.avisoVehiculoAnotado': 'Vehículo {placa} anotado.',
 
-
   // --- trastienda · inventario -----------------------------------------------
   'inventario.insumos': 'Insumos',
   'inventario.bajoMinimo': 'Bajo mínimo',
@@ -444,7 +447,8 @@ export const ES = {
   'inventario.sinProveedor': 'Sin proveedor registrado',
   'inventario.costoPor': 'Costo por {unidad} (S/)',
   'inventario.fechaVencimiento': 'Vence el',
-  'inventario.loteAyuda': 'Los tres son opcionales. Sin costo, este lote no suma al valor del stock; sin fecha, se usa al final.',
+  'inventario.loteAyuda':
+    'Los tres son opcionales. Sin costo, este lote no suma al valor del stock; sin fecha, se usa al final.',
   'inventario.lotes': 'Lotes',
   'inventario.lotesAyuda': 'En el orden en que se usan: primero lo que vence antes.',
   'inventario.sinLotes': 'No queda nada en lotes.',
@@ -506,15 +510,64 @@ export const ES = {
   'carta.tiempoAyuda': 'Lo que el mozo puede prometer en la mesa. Vacío si nadie lo midió.',
   'carta.alergenos': 'Alérgenos',
   'carta.sinAlergenos': 'El catálogo de alérgenos está vacío.',
-  'carta.alergenosAyuda': 'Lo que el comensal pregunta antes de pedir. Se muestra en el POS y en cocina.',
+  'carta.alergenosAyuda':
+    'Lo que el comensal pregunta antes de pedir. Se muestra en el POS y en cocina.',
   'carta.costoYMargen': 'Costo y margen',
   'carta.costoDetalle': 'Costo S/ {costo} · margen S/ {margen}',
   'carta.costoSinReceta': 'Sin receta no hay costo: carga los insumos que lleva.',
-  'carta.costoAyuda': 'La receta por el costo de la última compra de cada insumo. El margen usa el precio que estás escribiendo.',
+  'carta.costoAyuda':
+    'La receta por el costo de la última compra de cada insumo. El margen usa el precio que estás escribiendo.',
   'carta.avisoEditado': '{nombre} guardado.',
 
+  // --- lectura de la carta desde fotos --------------------------------------
+  'lectura.ayuda':
+    'Sube hasta {max} fotos de la carta. Se leen una por una, y lo leído se revisa aquí antes de guardar nada.',
+  'lectura.elegirFotos': 'Elegir fotos',
+  'lectura.fotosElegidas': '{n} de {max} fotos',
+  'lectura.quitarFoto': 'Quitar {nombre}',
+  'lectura.leerFotos': 'Leer las fotos',
+  'lectura.leyendo': 'Leyendo la foto {n} de {total}…',
+  'lectura.sobranFotos': 'Solo se leen las primeras {max} fotos.',
+  'lectura.formatoFoto': 'Solo se leen fotos JPG, PNG o WebP.',
+  'lectura.sinLector': 'Este servidor no puede leer cartas: {motivo}',
+  'lectura.nadaLeido': 'No se reconoció ningún platillo en esa foto.',
+  'lectura.dudosos': '{n} filas dudosas: míralas contra el recorte de la foto.',
+  'lectura.revision': 'Revisión de lo leído',
+  'lectura.seccionLeida': 'Sección leída: {nombre}',
+  'lectura.sinSeccion': 'Sin sección en la foto',
+  'lectura.seccionDestino': 'Sección de la carta',
+  'lectura.crearSeccion': 'Crear sección nueva',
+  'lectura.nombreSeccionNueva': 'Nombre de la sección nueva',
+  'lectura.marcar': 'Importar esta fila',
+  'lectura.marcarSeccion': 'Marcar toda la sección',
+  'lectura.nombrePlatillo': 'Nombre del platillo',
+  'lectura.precio': 'Precio',
+  'lectura.descripcion': 'Descripción',
+  'lectura.vegetariano': 'Vegetariano',
+  'lectura.vegetarianoAria': 'Marcar {nombre} como vegetariano',
+  'lectura.estado': 'Qué va a pasar',
+  'lectura.estadoNuevo': 'Se crea',
+  'lectura.estadoIgual': 'Ya está igual',
+  'lectura.estadoPrecio': 'S/ {antes} → S/ {ahora}',
+  'lectura.estadoDescripcion': 'Cambia la descripción',
+  'lectura.dudosa': 'Dudosa',
+  'lectura.recorteDe': 'Recorte de la foto de {nombre}',
+  'lectura.agregarFila': 'Agregar fila',
+  'lectura.quitarFila': 'Quitar {nombre}',
+  'lectura.adicionales': 'Adicionales',
+  'lectura.tipoAdicional': 'Tipo de adicional',
+  'lectura.importar': 'Importar lo marcado',
+  'lectura.nadaMarcado': 'Marca al menos una fila para importar.',
+  'lectura.faltaSeccion':
+    'Hay filas marcadas sin sección: elige una o escribe el nombre de la nueva.',
+  'lectura.faltaNombre': 'Hay filas marcadas sin nombre o sin precio.',
+  'lectura.importado':
+    '{creados} platillos creados, {actualizados} actualizados y {seccionesCreadas} secciones nuevas.',
+  'lectura.empezarDeNuevo': 'Empezar de nuevo',
+
   // --- alérgenos ------------------------------------------------------------
-  'alergenos.ayuda': 'Se marcan en cada platillo. Uno dado de baja deja de ofrecerse, pero sigue en los platillos que ya lo tenían.',
+  'alergenos.ayuda':
+    'Se marcan en cada platillo. Uno dado de baja deja de ofrecerse, pero sigue en los platillos que ya lo tenían.',
   'alergenos.nuevo': 'Nuevo alérgeno',
   'alergenos.editar': 'Renombrar alérgeno',
   'alergenos.nombre': 'Nombre',
@@ -692,7 +745,8 @@ export const ES = {
   'turnos.nota': 'Nota (opcional)',
   'turnos.eliminar': 'Quitar turno',
   'turnos.eliminarTitulo': '¿Quitar el turno de {nombre}?',
-  'turnos.eliminarMensaje': 'El turno del {dia}, de {rango}, deja de figurar en el horario. Las entradas que ya marcó no se borran.',
+  'turnos.eliminarMensaje':
+    'El turno del {dia}, de {rango}, deja de figurar en el horario. Las entradas que ya marcó no se borran.',
   'turnos.avisoGuardado': 'Turno de {nombre} guardado.',
   'turnos.avisoEliminado': 'Turno de {nombre} quitado.',
   'turnos.avisoCeroHoras': 'Un turno no puede empezar y terminar a la misma hora.',
@@ -710,7 +764,8 @@ export const ES = {
   'asistencia.avisoEntrada': 'Entrada marcada a las {hora}.',
   'asistencia.avisoSalida': 'Salida marcada a las {hora}.',
   'asistencia.dia': 'Día',
-  'asistencia.ayuda': 'La tardanza cuenta pasados 10 minutos de la hora del turno. Alguien falta cuando su turno ya terminó sin entrada.',
+  'asistencia.ayuda':
+    'La tardanza cuenta pasados 10 minutos de la hora del turno. Alguien falta cuando su turno ya terminó sin entrada.',
   'asistencia.turno': 'Turno',
   'asistencia.entrada': 'Entrada',
   'asistencia.salida': 'Salida',
@@ -734,8 +789,10 @@ export const ES = {
   'desempeno.minutosTarde': '{n} min en total',
   'desempeno.inasistencias': 'Inasistencias',
   'desempeno.horas': 'Horas trabajadas',
-  'desempeno.salidasSinMarcar.uno': 'Tiene {n} entrada sin salida marcada: esas horas no se cuentan.',
-  'desempeno.salidasSinMarcar.otros': 'Tiene {n} entradas sin salida marcada: esas horas no se cuentan.',
+  'desempeno.salidasSinMarcar.uno':
+    'Tiene {n} entrada sin salida marcada: esas horas no se cuentan.',
+  'desempeno.salidasSinMarcar.otros':
+    'Tiene {n} entradas sin salida marcada: esas horas no se cuentan.',
   'desempeno.sinDatos': 'No se pudo calcular el desempeño.',
 
   // --- KPIs ------------------------------------------------------------------
@@ -873,7 +930,8 @@ export const ES = {
   'mesas.guardarPlano': 'Guardar plano',
   'mesas.descartarPlano': 'Descartar cambios',
   'mesas.herramientasPlano': 'Tamaño y forma de la mesa',
-  'mesas.ayudaPlano': 'Arrastra una mesa, o elígela y muévela con las flechas. Elegida, puedes cambiar su tamaño y su forma.',
+  'mesas.ayudaPlano':
+    'Arrastra una mesa, o elígela y muévela con las flechas. Elegida, puedes cambiar su tamaño y su forma.',
   'mesas.ancho': 'Ancho',
   'mesas.alto': 'Alto',
   'mesas.menosAncho': 'Menos ancha',
@@ -900,7 +958,8 @@ export const ES = {
   'reservas.noVino': 'No vino',
   'reservas.cancelar': 'Cancelar reserva',
   'reservas.cancelarTitulo': '¿Cancelar la reserva de {nombre}?',
-  'reservas.cancelarMensaje': 'La mesa {mesa} deja de estar apartada para las {hora}. La reserva queda en la agenda como cancelada.',
+  'reservas.cancelarMensaje':
+    'La mesa {mesa} deja de estar apartada para las {hora}. La reserva queda en la agenda como cancelada.',
   'reservas.avisoEstado': '{nombre}: {estado}.',
   'reservas.avisoCapacidad': 'La mesa {numero} es para {n} personas.',
 
@@ -952,13 +1011,17 @@ export const ES = {
   'perfil.idioma': 'Idioma',
   'perfil.tema': 'Tema',
   'perfil.contrasena': 'Contraseña',
-  'perfil.contrasenaAdmin': 'Como administrador, restableces contraseñas desde la pantalla de personal, también la tuya.',
+  'perfil.contrasenaAdmin':
+    'Como administrador, restableces contraseñas desde la pantalla de personal, también la tuya.',
   'perfil.irAPersonal': 'Ir a personal',
-  'perfil.contrasenaOtros': 'Para cambiar tu contraseña, pídeselo a un administrador: la restablece desde la pantalla de personal.',
+  'perfil.contrasenaOtros':
+    'Para cambiar tu contraseña, pídeselo a un administrador: la restablece desde la pantalla de personal.',
   'perfil.discord': 'Bot de Discord',
-  'perfil.discordTexto': 'Para usar el bot del personal, escribe este comando en el servidor de Discord del local:',
+  'perfil.discordTexto':
+    'Para usar el bot del personal, escribe este comando en el servidor de Discord del local:',
   'perfil.discordAdmin': 'Las cuentas de administrador no se vinculan con los bots.',
-  'perfil.discordSinCorreo': 'Para vincularte con el bot necesitas un correo registrado. Pídeselo a un administrador.',
+  'perfil.discordSinCorreo':
+    'Para vincularte con el bot necesitas un correo registrado. Pídeselo a un administrador.',
 
   // --- menu: pestanas y complementos ----------------------------------------
   'menu.secciones': 'Partes del menú',
@@ -975,6 +1038,7 @@ export const ES = {
   'menu.avisoSeOfrece': '{nombre} vuelve a ofrecerse en el POS.',
   'menu.avisoNoSeOfrece': '{nombre} ya no se ofrece en el POS.',
   'menu.alergenos': 'Alérgenos',
+  'menu.lectura': 'Leer carta',
   'complementos.filtroTipo': 'Filtrar por tipo',
   'complementos.todosTipos': 'Todos los tipos',
   'complementos.nuevo': 'Nuevo complemento',
@@ -1045,9 +1109,11 @@ export const ES = {
   'datosLocal.telefono': 'Teléfono',
   'datosLocal.igv': 'IGV',
   'datosLocal.porcentajeIgv': 'Porcentaje de IGV',
-  'datosLocal.igvAyuda': 'Los precios de la carta ya lo incluyen: la caja y las órdenes lo desglosan. Cada comanda guarda la tasa con la que se vendió, así que cambiarla no toca las ventas pasadas.',
+  'datosLocal.igvAyuda':
+    'Los precios de la carta ya lo incluyen: la caja y las órdenes lo desglosan. Cada comanda guarda la tasa con la que se vendió, así que cambiarla no toca las ventas pasadas.',
   'datosLocal.horario': 'Horario de atención',
-  'datosLocal.horarioAyuda': 'Un día sin horas queda sin definir; márcalo como cerrado si no se abre. Si cierra después de medianoche, la hora de cierre va antes que la de apertura.',
+  'datosLocal.horarioAyuda':
+    'Un día sin horas queda sin definir; márcalo como cerrado si no se abre. Si cierra después de medianoche, la hora de cierre va antes que la de apertura.',
   'datosLocal.dia': 'Día',
   'datosLocal.cerrado': 'Cerrado',
   'datosLocal.abre': 'Abre',
@@ -1066,7 +1132,8 @@ export const ES = {
   'niveles.titulo': 'Niveles de lealtad',
   'niveles.nuevo': 'Nuevo nivel',
   'niveles.editar': 'Editar nivel',
-  'niveles.ayuda': 'Cada calificación suma un punto al cliente. Su nivel se calcula con esos puntos, y el descuento del nivel se aplica en el POS: no se suma a un cupón, se aplica el que rebaje más.',
+  'niveles.ayuda':
+    'Cada calificación suma un punto al cliente. Su nivel se calcula con esos puntos, y el descuento del nivel se aplica en el POS: no se suma a un cupón, se aplica el que rebaje más.',
   'niveles.nivel': 'Nivel',
   'niveles.puntos': 'Puntos',
   'niveles.descuento': 'Descuento',
@@ -1081,16 +1148,19 @@ export const ES = {
   'niveles.eliminarAria': 'Eliminar el nivel {nombre}',
   'niveles.eliminar': 'Eliminar nivel',
   'niveles.eliminarTitulo': '¿Eliminar el nivel {nombre}?',
-  'niveles.eliminarMensaje': 'Los clientes de este nivel pasan al que les toque por sus puntos. Las órdenes ya cobradas conservan su descuento.',
+  'niveles.eliminarMensaje':
+    'Los clientes de este nivel pasan al que les toque por sus puntos. Las órdenes ya cobradas conservan su descuento.',
   'niveles.avisoAlta': 'Nivel {nombre} creado.',
   'niveles.avisoGuardado': 'Nivel {nombre} guardado.',
   'niveles.avisoEliminado': 'Nivel {nombre} eliminado.',
-  'niveles.avisoDatos': 'Revisa el nivel: necesita nombre, puntos desde 0 y un descuento de 0 a 100.',
+  'niveles.avisoDatos':
+    'Revisa el nivel: necesita nombre, puntos desde 0 y un descuento de 0 a 100.',
   'niveles.avisoPuntosRepetidos': 'Ya hay un nivel que empieza en {puntos} puntos.',
   // --- proveedores ----------------------------------------------------------
   'proveedores.nuevo': 'Nuevo proveedor',
   'proveedores.editar': 'Editar proveedor',
-  'proveedores.ayuda': 'Un proveedor dado de baja no se ofrece en las compras, pero sus lotes siguen diciendo de dónde vinieron.',
+  'proveedores.ayuda':
+    'Un proveedor dado de baja no se ofrece en las compras, pero sus lotes siguen diciendo de dónde vinieron.',
   'proveedores.nombre': 'Nombre',
   'proveedores.ruc': 'RUC',
   'proveedores.contacto': 'Contacto',
@@ -1106,9 +1176,6 @@ export const ES = {
   'proveedores.avisoBaja': '{nombre} dado de baja.',
   'proveedores.avisoReactivado': '{nombre} reactivado.',
   'proveedores.avisoRuc': 'El RUC tiene 11 dígitos.',
-
-
-
 
   // --- errores del servidor (los del interceptor) ----------------------------
   'errores.sinConexion': 'Sin conexión con el servidor. Revisa la red y vuelve a intentar.',

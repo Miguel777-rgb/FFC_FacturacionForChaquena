@@ -75,12 +75,16 @@ export const EN: Record<ClaveI18n, string> = {
   'tema.claro': 'light',
   'tema.oscuro': 'dark',
   'despacho.bajaTitulo': 'Deactivate {nombre}',
-  'despacho.bajaMensaje': 'They stop showing up when assigning orders. The orders they already took keep their name and plate, and they can be reactivated later.',
-  'personal.bajaMensaje': 'They will not be able to sign in, neither with username and password nor with Google, until reactivated. Everything they recorded stays under their name.',
+  'despacho.bajaMensaje':
+    'They stop showing up when assigning orders. The orders they already took keep their name and plate, and they can be reactivated later.',
+  'personal.bajaMensaje':
+    'They will not be able to sign in, neither with username and password nor with Google, until reactivated. Everything they recorded stays under their name.',
   'bots.liberarTitulo': 'Release the account of {usuario}',
-  'bots.liberarMensaje': 'The bot stops recognizing that Discord account. They can still sign in with their username; to use the bot again they will have to type /vincular again.',
+  'bots.liberarMensaje':
+    'The bot stops recognizing that Discord account. They can still sign in with their username; to use the bot again they will have to type /vincular again.',
   'pos.quitarDetalleTitulo': 'Remove {platillo} from the order',
-  'pos.quitarDetalleMensaje': 'The order is already in the kitchen. The line disappears from the order and from the kitchen queue.',
+  'pos.quitarDetalleMensaje':
+    'The order is already in the kitchen. The line disappears from the order and from the kitchen queue.',
   'pos.quitarDetalleConfirmar': 'Remove from order',
 
   'panel.superficies': 'Screens',
@@ -358,7 +362,6 @@ export const EN: Record<ClaveI18n, string> = {
   'despacho.avisoConductorAnotado': '{nombre} added. Now their vehicle.',
   'despacho.avisoVehiculoAnotado': 'Vehicle {placa} added.',
 
-
   'inventario.insumos': 'Ingredients',
   'inventario.bajoMinimo': 'Below minimum',
   'inventario.buscar': 'Search ingredient',
@@ -422,7 +425,8 @@ export const EN: Record<ClaveI18n, string> = {
   'inventario.sinProveedor': 'No registered supplier',
   'inventario.costoPor': 'Cost per {unidad} (S/)',
   'inventario.fechaVencimiento': 'Expires on',
-  'inventario.loteAyuda': 'All three are optional. Without a cost, this lot does not count towards stock value; without a date, it is used last.',
+  'inventario.loteAyuda':
+    'All three are optional. Without a cost, this lot does not count towards stock value; without a date, it is used last.',
   'inventario.lotes': 'Lots',
   'inventario.lotesAyuda': 'In the order they are used: what expires first goes first.',
   'inventario.sinLotes': 'Nothing left in lots.',
@@ -480,18 +484,67 @@ export const EN: Record<ClaveI18n, string> = {
   'carta.quitarFoto': 'Remove photo',
   'carta.fotoAyuda': 'WebP, PNG or JPG up to 2 MB. Shown on the menu and at the POS.',
   'carta.tiempoPreparacion': 'Preparation time (min)',
-  'carta.tiempoAyuda': 'What the waiter can promise at the table. Leave it empty if nobody has timed it.',
+  'carta.tiempoAyuda':
+    'What the waiter can promise at the table. Leave it empty if nobody has timed it.',
   'carta.alergenos': 'Allergens',
   'carta.sinAlergenos': 'The allergen catalogue is empty.',
   'carta.alergenosAyuda': 'What diners ask before ordering. Shown at the POS and in the kitchen.',
   'carta.costoYMargen': 'Cost and margin',
   'carta.costoDetalle': 'Cost S/ {costo} · margin S/ {margen}',
   'carta.costoSinReceta': 'No recipe, no cost: add the ingredients it uses.',
-  'carta.costoAyuda': 'The recipe at the last purchase cost of each ingredient. The margin uses the price you are typing.',
+  'carta.costoAyuda':
+    'The recipe at the last purchase cost of each ingredient. The margin uses the price you are typing.',
   'carta.avisoEditado': '{nombre} saved.',
 
+  // --- reading the menu from photos -----------------------------------------
+  'lectura.ayuda':
+    'Upload up to {max} photos of the menu. They are read one by one, and what was read is reviewed here before anything is saved.',
+  'lectura.elegirFotos': 'Choose photos',
+  'lectura.fotosElegidas': '{n} of {max} photos',
+  'lectura.quitarFoto': 'Remove {nombre}',
+  'lectura.leerFotos': 'Read the photos',
+  'lectura.leyendo': 'Reading photo {n} of {total}…',
+  'lectura.sobranFotos': 'Only the first {max} photos are read.',
+  'lectura.formatoFoto': 'Only JPG, PNG or WebP photos can be read.',
+  'lectura.sinLector': 'This server cannot read menus: {motivo}',
+  'lectura.nadaLeido': 'No dish was recognised in that photo.',
+  'lectura.dudosos': '{n} doubtful rows: check them against the photo crop.',
+  'lectura.revision': 'Review what was read',
+  'lectura.seccionLeida': 'Section read: {nombre}',
+  'lectura.sinSeccion': 'No section in the photo',
+  'lectura.seccionDestino': 'Menu section',
+  'lectura.crearSeccion': 'Create a new section',
+  'lectura.nombreSeccionNueva': 'Name of the new section',
+  'lectura.marcar': 'Import this row',
+  'lectura.marcarSeccion': 'Select the whole section',
+  'lectura.nombrePlatillo': 'Dish name',
+  'lectura.precio': 'Price',
+  'lectura.descripcion': 'Description',
+  'lectura.vegetariano': 'Vegetarian',
+  'lectura.vegetarianoAria': 'Mark {nombre} as vegetarian',
+  'lectura.estado': 'What will happen',
+  'lectura.estadoNuevo': 'Will be created',
+  'lectura.estadoIgual': 'Already the same',
+  'lectura.estadoPrecio': 'S/ {antes} → S/ {ahora}',
+  'lectura.estadoDescripcion': 'Description changes',
+  'lectura.dudosa': 'Doubtful',
+  'lectura.recorteDe': 'Photo crop of {nombre}',
+  'lectura.agregarFila': 'Add row',
+  'lectura.quitarFila': 'Remove {nombre}',
+  'lectura.adicionales': 'Add-ons',
+  'lectura.tipoAdicional': 'Add-on type',
+  'lectura.importar': 'Import the selected rows',
+  'lectura.nadaMarcado': 'Select at least one row to import.',
+  'lectura.faltaSeccion':
+    'Some selected rows have no section: choose one or type the name of the new one.',
+  'lectura.faltaNombre': 'Some selected rows have no name or no price.',
+  'lectura.importado':
+    '{creados} dishes created, {actualizados} updated and {seccionesCreadas} new sections.',
+  'lectura.empezarDeNuevo': 'Start over',
+
   // --- allergens ------------------------------------------------------------
-  'alergenos.ayuda': 'They are marked on each dish. A deactivated one is no longer offered, but stays on the dishes that already had it.',
+  'alergenos.ayuda':
+    'They are marked on each dish. A deactivated one is no longer offered, but stays on the dishes that already had it.',
   'alergenos.nuevo': 'New allergen',
   'alergenos.editar': 'Rename allergen',
   'alergenos.nombre': 'Name',
@@ -663,7 +716,8 @@ export const EN: Record<ClaveI18n, string> = {
   'turnos.nota': 'Note (optional)',
   'turnos.eliminar': 'Remove shift',
   'turnos.eliminarTitulo': 'Remove the shift for {nombre}?',
-  'turnos.eliminarMensaje': 'The shift on {dia}, {rango}, is removed from the schedule. Entries already recorded are kept.',
+  'turnos.eliminarMensaje':
+    'The shift on {dia}, {rango}, is removed from the schedule. Entries already recorded are kept.',
   'turnos.avisoGuardado': 'Shift for {nombre} saved.',
   'turnos.avisoEliminado': 'Shift for {nombre} removed.',
   'turnos.avisoCeroHoras': 'A shift cannot start and end at the same time.',
@@ -681,7 +735,8 @@ export const EN: Record<ClaveI18n, string> = {
   'asistencia.avisoEntrada': 'Clocked in at {hora}.',
   'asistencia.avisoSalida': 'Clocked out at {hora}.',
   'asistencia.dia': 'Day',
-  'asistencia.ayuda': 'Lateness counts after 10 minutes past the shift start. Someone is absent once their shift has ended with no entry.',
+  'asistencia.ayuda':
+    'Lateness counts after 10 minutes past the shift start. Someone is absent once their shift has ended with no entry.',
   'asistencia.turno': 'Shift',
   'asistencia.entrada': 'In',
   'asistencia.salida': 'Out',
@@ -705,8 +760,10 @@ export const EN: Record<ClaveI18n, string> = {
   'desempeno.minutosTarde': '{n} min in total',
   'desempeno.inasistencias': 'Absences',
   'desempeno.horas': 'Hours worked',
-  'desempeno.salidasSinMarcar.uno': 'Has {n} entry with no exit recorded: those hours are not counted.',
-  'desempeno.salidasSinMarcar.otros': 'Has {n} entries with no exit recorded: those hours are not counted.',
+  'desempeno.salidasSinMarcar.uno':
+    'Has {n} entry with no exit recorded: those hours are not counted.',
+  'desempeno.salidasSinMarcar.otros':
+    'Has {n} entries with no exit recorded: those hours are not counted.',
   'desempeno.sinDatos': 'Performance could not be calculated.',
 
   'kpis.hoy': 'Today',
@@ -761,7 +818,7 @@ export const EN: Record<ClaveI18n, string> = {
   'tablero.unidades.uno': '{n} unit',
   'tablero.unidades.otros': '{n} units',
   'tablero.sinTopHoy': 'No dishes sold yet today.',
-  'tablero.sinDatos': 'Couldn\'t load today\'s figures. Check the connection and refresh.',
+  'tablero.sinDatos': "Couldn't load today's figures. Check the connection and refresh.",
 
   // --- orders ---------------------------------------------------------------
   'ordenes.buscar': 'Search by table, customer or code',
@@ -843,7 +900,8 @@ export const EN: Record<ClaveI18n, string> = {
   'mesas.guardarPlano': 'Save floor plan',
   'mesas.descartarPlano': 'Discard changes',
   'mesas.herramientasPlano': 'Table size and shape',
-  'mesas.ayudaPlano': 'Drag a table, or select it and move it with the arrow keys. Once selected, you can change its size and shape.',
+  'mesas.ayudaPlano':
+    'Drag a table, or select it and move it with the arrow keys. Once selected, you can change its size and shape.',
   'mesas.ancho': 'Width',
   'mesas.alto': 'Height',
   'mesas.menosAncho': 'Narrower',
@@ -870,7 +928,8 @@ export const EN: Record<ClaveI18n, string> = {
   'reservas.noVino': 'No-show',
   'reservas.cancelar': 'Cancel reservation',
   'reservas.cancelarTitulo': 'Cancel the reservation for {nombre}?',
-  'reservas.cancelarMensaje': 'Table {mesa} is no longer held for {hora}. The reservation stays on the agenda as cancelled.',
+  'reservas.cancelarMensaje':
+    'Table {mesa} is no longer held for {hora}. The reservation stays on the agenda as cancelled.',
   'reservas.avisoEstado': '{nombre}: {estado}.',
   'reservas.avisoCapacidad': 'Table {numero} seats {n}.',
 
@@ -922,13 +981,17 @@ export const EN: Record<ClaveI18n, string> = {
   'perfil.idioma': 'Language',
   'perfil.tema': 'Theme',
   'perfil.contrasena': 'Password',
-  'perfil.contrasenaAdmin': 'As an administrator, you reset passwords from the staff screen, including your own.',
+  'perfil.contrasenaAdmin':
+    'As an administrator, you reset passwords from the staff screen, including your own.',
   'perfil.irAPersonal': 'Go to staff',
-  'perfil.contrasenaOtros': 'To change your password, ask an administrator: they reset it from the staff screen.',
+  'perfil.contrasenaOtros':
+    'To change your password, ask an administrator: they reset it from the staff screen.',
   'perfil.discord': 'Discord bot',
-  'perfil.discordTexto': 'To use the staff bot, type this command in the restaurant\'s Discord server:',
+  'perfil.discordTexto':
+    "To use the staff bot, type this command in the restaurant's Discord server:",
   'perfil.discordAdmin': 'Administrator accounts are not linked to the bots.',
-  'perfil.discordSinCorreo': 'You need a registered email to link with the bot. Ask an administrator.',
+  'perfil.discordSinCorreo':
+    'You need a registered email to link with the bot. Ask an administrator.',
 
   // --- menu: tabs and add-ons -----------------------------------------------
   'menu.secciones': 'Menu sections',
@@ -945,6 +1008,7 @@ export const EN: Record<ClaveI18n, string> = {
   'menu.avisoSeOfrece': '{nombre} is available again in the POS.',
   'menu.avisoNoSeOfrece': '{nombre} is no longer offered in the POS.',
   'menu.alergenos': 'Allergens',
+  'menu.lectura': 'Read menu',
   'complementos.filtroTipo': 'Filter by type',
   'complementos.todosTipos': 'All types',
   'complementos.nuevo': 'New add-on',
@@ -1015,9 +1079,11 @@ export const EN: Record<ClaveI18n, string> = {
   'datosLocal.telefono': 'Phone',
   'datosLocal.igv': 'IGV',
   'datosLocal.porcentajeIgv': 'IGV rate (%)',
-  'datosLocal.igvAyuda': 'Menu prices already include it: the cash desk and orders break it down. Each order keeps the rate it was sold with, so changing it does not touch past sales.',
+  'datosLocal.igvAyuda':
+    'Menu prices already include it: the cash desk and orders break it down. Each order keeps the rate it was sold with, so changing it does not touch past sales.',
   'datosLocal.horario': 'Opening hours',
-  'datosLocal.horarioAyuda': 'A day without hours stays undefined; mark it closed if you do not open. If you close after midnight, the closing time is earlier than the opening time.',
+  'datosLocal.horarioAyuda':
+    'A day without hours stays undefined; mark it closed if you do not open. If you close after midnight, the closing time is earlier than the opening time.',
   'datosLocal.dia': 'Day',
   'datosLocal.cerrado': 'Closed',
   'datosLocal.abre': 'Opens',
@@ -1030,13 +1096,14 @@ export const EN: Record<ClaveI18n, string> = {
   'datosLocal.avisoRuc': 'Check the RUC: it has 11 digits.',
   'datosLocal.avisoHorario': 'Some days have an opening or a closing time, but not both.',
   'datosLocal.avisoIgv': 'IGV must be between 0 and 100.',
-  'datosLocal.sinDatos': 'Couldn\'t load the restaurant details.',
+  'datosLocal.sinDatos': "Couldn't load the restaurant details.",
 
   // --- loyalty tiers --------------------------------------------------------
   'niveles.titulo': 'Loyalty tiers',
   'niveles.nuevo': 'New tier',
   'niveles.editar': 'Edit tier',
-  'niveles.ayuda': 'Each rating adds one point to the customer. Their tier comes from those points, and the tier discount applies in the POS: it does not stack with a coupon, the larger one applies.',
+  'niveles.ayuda':
+    'Each rating adds one point to the customer. Their tier comes from those points, and the tier discount applies in the POS: it does not stack with a coupon, the larger one applies.',
   'niveles.nivel': 'Tier',
   'niveles.puntos': 'Points',
   'niveles.descuento': 'Discount',
@@ -1051,16 +1118,19 @@ export const EN: Record<ClaveI18n, string> = {
   'niveles.eliminarAria': 'Delete the {nombre} tier',
   'niveles.eliminar': 'Delete tier',
   'niveles.eliminarTitulo': 'Delete the {nombre} tier?',
-  'niveles.eliminarMensaje': 'Customers in this tier move to whichever tier their points reach. Orders already paid keep their discount.',
+  'niveles.eliminarMensaje':
+    'Customers in this tier move to whichever tier their points reach. Orders already paid keep their discount.',
   'niveles.avisoAlta': '{nombre} tier created.',
   'niveles.avisoGuardado': '{nombre} tier saved.',
   'niveles.avisoEliminado': '{nombre} tier deleted.',
-  'niveles.avisoDatos': 'Check the tier: it needs a name, points from 0 and a discount from 0 to 100.',
+  'niveles.avisoDatos':
+    'Check the tier: it needs a name, points from 0 and a discount from 0 to 100.',
   'niveles.avisoPuntosRepetidos': 'A tier already starts at {puntos} points.',
   // --- suppliers ------------------------------------------------------------
   'proveedores.nuevo': 'New supplier',
   'proveedores.editar': 'Edit supplier',
-  'proveedores.ayuda': 'A deactivated supplier is not offered for purchases, but its lots still show where they came from.',
+  'proveedores.ayuda':
+    'A deactivated supplier is not offered for purchases, but its lots still show where they came from.',
   'proveedores.nombre': 'Name',
   'proveedores.ruc': 'RUC',
   'proveedores.contacto': 'Contact',
@@ -1076,9 +1146,6 @@ export const EN: Record<ClaveI18n, string> = {
   'proveedores.avisoBaja': '{nombre} deactivated.',
   'proveedores.avisoReactivado': '{nombre} reactivated.',
   'proveedores.avisoRuc': 'The RUC has 11 digits.',
-
-
-
 
   'errores.sinConexion': 'No connection to the server. Check the network and try again.',
   'errores.sesionVencida': 'Your session expired. Sign in again.',

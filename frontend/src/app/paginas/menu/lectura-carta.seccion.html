@@ -1,0 +1,341 @@
+<div class="seccion lectura">
+  @if (!lectorDisponible()) {
+    <p class="alerta">{{ t('lectura.sinLector', { motivo: motivoLector() }) }}</p>
+  }
+
+  <div class="bloque carga">
+    <p class="tenue">{{ t('lectura.ayuda', { max: MAX_FOTOS }) }}</p>
+
+    <div class="barra">
+      <input
+        #selectorFotos
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        hidden
+        (change)="elegirFotos($event)"
+      />
+      <button
+        type="button"
+        class="secundario"
+        (click)="selectorFotos.click()"
+        [disabled]="!lectorDisponible() || leyendo() > 0"
+      >
+        <app-icono nombre="imagen" [tamano]="18" />
+        {{ t('lectura.elegirFotos') }}
+      </button>
+      <span class="tenue">{{
+        t('lectura.fotosElegidas', { n: fotos().length, max: MAX_FOTOS })
+      }}</span>
+      <button
+        type="button"
+        (click)="leerFotos()"
+        [disabled]="fotos().length === 0 || leyendo() > 0"
+        [attr.aria-busy]="leyendo() > 0"
+      >
+        {{ t('lectura.leerFotos') }}
+      </button>
+    </div>
+
+    @if (fotos().length > 0) {
+      <ul class="fotos">
+        @for (f of fotos(); track f.name + f.lastModified) {
+          <li>
+            <span>{{ f.name }}</span>
+            <button
+              type="button"
+              class="icono-accion destructiva"
+              [attr.aria-label]="t('lectura.quitarFoto', { nombre: f.name })"
+              [disabled]="leyendo() > 0"
+              (click)="quitarFoto(f)"
+            >
+              <app-icono nombre="papelera" [tamano]="16" />
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (leyendo() > 0) {
+      <p class="progreso" role="status">
+        {{ t('lectura.leyendo', { n: leyendo(), total: fotos().length }) }}
+      </p>
+    }
+  </div>
+
+  @if (hayRevision()) {
+    <h2>{{ t('lectura.revision') }}</h2>
+    @if (dudosas() > 0) {
+      <p class="tenue">{{ t('lectura.dudosos', { n: dudosas() }) }}</p>
+    }
+
+    @for (s of secciones(); track s.id) {
+      <div class="bloque">
+        <div class="cabecera-seccion">
+          <h3>
+            {{ s.leida ? t('lectura.seccionLeida', { nombre: s.leida }) : t('lectura.sinSeccion') }}
+          </h3>
+          <label class="campo">
+            <span>{{ t('lectura.seccionDestino') }}</span>
+            <!-- La opcion marcada con [selected] y no el select con [value]: las
+                 opciones se pintan despues, y el valor se perderia. -->
+            <select (change)="cambiarSeccion(s, $any($event.target).value)">
+              <option value="" [selected]="s.categoriaId === null">
+                {{ t('lectura.crearSeccion') }}
+              </option>
+              @for (c of categorias(); track c.id) {
+                <option [value]="c.id" [selected]="c.id === s.categoriaId">{{ c.nombre }}</option>
+              }
+            </select>
+          </label>
+          @if (s.categoriaId === null) {
+            <label class="campo">
+              <span>{{ t('lectura.nombreSeccionNueva') }}</span>
+              <input
+                type="text"
+                [value]="s.nombreNueva"
+                (input)="anotarSeccionNueva(s, $any($event.target).value)"
+              />
+            </label>
+          }
+          <label class="casilla">
+            <input
+              type="checkbox"
+              [checked]="todasMarcadas(s)"
+              (change)="marcarSeccion(s, $any($event.target).checked)"
+            />
+            <span>{{ t('lectura.marcarSeccion') }}</span>
+          </label>
+        </div>
+
+        <div class="desplazable">
+          <table class="tabla apilable filas-carta">
+            <thead>
+              <tr>
+                <th>
+                  <span class="visualmente-oculto">{{ t('lectura.marcar') }}</span>
+                </th>
+                <th>{{ t('lectura.nombrePlatillo') }}</th>
+                <th class="num">{{ t('lectura.precio') }}</th>
+                <th>{{ t('lectura.descripcion') }}</th>
+                <th>{{ t('lectura.vegetariano') }}</th>
+                <th>{{ t('lectura.estado') }}</th>
+                <th>
+                  <span class="visualmente-oculto">{{ t('comun.acciones') }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of s.filas; track f.id) {
+                @let estado = estadoDe(f);
+                <tr [class.dudosa]="f.dudosa">
+                  <td [attr.data-etiqueta]="t('lectura.marcar')">
+                    <input
+                      type="checkbox"
+                      [checked]="f.marcada"
+                      [attr.aria-label]="t('lectura.marcar')"
+                      (change)="marcarFila(s, f, $any($event.target).checked)"
+                    />
+                  </td>
+                  <td [attr.data-etiqueta]="t('lectura.nombrePlatillo')">
+                    <input
+                      type="text"
+                      [value]="f.nombre"
+                      [attr.aria-label]="t('lectura.nombrePlatillo')"
+                      (input)="anotarNombre(s, f, $any($event.target).value)"
+                    />
+                    @if (f.recorte) {
+                      <img
+                        class="recorte"
+                        [src]="f.recorte"
+                        [attr.alt]="t('lectura.recorteDe', { nombre: f.nombre })"
+                      />
+                    }
+                  </td>
+                  <td class="num" [attr.data-etiqueta]="t('lectura.precio')">
+                    <input
+                      class="precio cifra"
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      [value]="f.precio"
+                      [attr.aria-label]="t('lectura.precio')"
+                      (input)="anotarPrecio(s, f, $any($event.target).value)"
+                    />
+                  </td>
+                  <td [attr.data-etiqueta]="t('lectura.descripcion')">
+                    <input
+                      type="text"
+                      [value]="f.descripcion"
+                      [attr.aria-label]="t('lectura.descripcion')"
+                      (input)="anotarDescripcion(s, f, $any($event.target).value)"
+                    />
+                  </td>
+                  <td [attr.data-etiqueta]="t('lectura.vegetariano')">
+                    <input
+                      type="checkbox"
+                      [checked]="f.vegetariano"
+                      [attr.aria-label]="t('lectura.vegetarianoAria', { nombre: f.nombre })"
+                      (change)="marcarVegetariano(s, f, $any($event.target).checked)"
+                    />
+                  </td>
+                  <td [attr.data-etiqueta]="t('lectura.estado')">
+                    @switch (estado.tipo) {
+                      @case ('nuevo') {
+                        <span class="chip info">{{ t('lectura.estadoNuevo') }}</span>
+                      }
+                      @case ('precio') {
+                        <span class="chip aviso">
+                          {{
+                            t('lectura.estadoPrecio', {
+                              antes: estado.antes ?? 0,
+                              ahora: f.precio ?? 0,
+                            })
+                          }}
+                        </span>
+                      }
+                      @case ('descripcion') {
+                        <span class="chip aviso">
+                          {{ t('lectura.estadoDescripcion') }}
+                        </span>
+                      }
+                      @default {
+                        <span class="tenue">{{ t('lectura.estadoIgual') }}</span>
+                      }
+                    }
+                    @if (f.dudosa) {
+                      <small class="tenue bajada">{{ t('lectura.dudosa') }}</small>
+                    }
+                  </td>
+                  <td class="acciones">
+                    <button
+                      type="button"
+                      class="icono-accion destructiva"
+                      [attr.aria-label]="t('lectura.quitarFila', { nombre: f.nombre })"
+                      (click)="quitarFila(s, f)"
+                    >
+                      <app-icono nombre="papelera" [tamano]="16" />
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <button type="button" class="secundario" (click)="agregarFila(s)">
+          <app-icono nombre="alta" [tamano]="18" />
+          {{ t('lectura.agregarFila') }}
+        </button>
+      </div>
+    }
+
+    @if (adicionales().length > 0) {
+      <div class="bloque">
+        <div class="cabecera-seccion">
+          <h3>{{ t('lectura.adicionales') }}</h3>
+        </div>
+
+        <div class="desplazable">
+          <table class="tabla apilable filas-carta">
+            <thead>
+              <tr>
+                <th>
+                  <span class="visualmente-oculto">{{ t('lectura.marcar') }}</span>
+                </th>
+                <th>{{ t('lectura.nombrePlatillo') }}</th>
+                <th class="num">{{ t('lectura.precio') }}</th>
+                <th>{{ t('lectura.tipoAdicional') }}</th>
+                <th>
+                  <span class="visualmente-oculto">{{ t('comun.acciones') }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (a of adicionales(); track a.id) {
+                <tr [class.dudosa]="a.dudosa">
+                  <td [attr.data-etiqueta]="t('lectura.marcar')">
+                    <input
+                      type="checkbox"
+                      [checked]="a.marcada"
+                      [attr.aria-label]="t('lectura.marcar')"
+                      (change)="marcarAdicional(a, $any($event.target).checked)"
+                    />
+                  </td>
+                  <td [attr.data-etiqueta]="t('lectura.nombrePlatillo')">
+                    <input
+                      type="text"
+                      [value]="a.nombre"
+                      [attr.aria-label]="t('lectura.nombrePlatillo')"
+                      (input)="anotarNombreAdicional(a, $any($event.target).value)"
+                    />
+                    @if (a.recorte) {
+                      <img
+                        class="recorte"
+                        [src]="a.recorte"
+                        [attr.alt]="t('lectura.recorteDe', { nombre: a.nombre })"
+                      />
+                    }
+                  </td>
+                  <td class="num" [attr.data-etiqueta]="t('lectura.precio')">
+                    <input
+                      class="precio cifra"
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      [value]="a.precio"
+                      [attr.aria-label]="t('lectura.precio')"
+                      (input)="anotarPrecioAdicional(a, $any($event.target).value)"
+                    />
+                  </td>
+                  <td [attr.data-etiqueta]="t('lectura.tipoAdicional')">
+                    <select
+                      [attr.aria-label]="t('lectura.tipoAdicional')"
+                      (change)="elegirTipoAdicional(a, $any($event.target).value)"
+                    >
+                      @for (tipo of TIPOS_ADICIONAL; track tipo) {
+                        <option [value]="tipo" [selected]="tipo === a.tipo">
+                          {{ tEnum('tipoComplemento', tipo) }}
+                        </option>
+                      }
+                    </select>
+                  </td>
+                  <td class="acciones">
+                    <button
+                      type="button"
+                      class="icono-accion destructiva"
+                      [attr.aria-label]="t('lectura.quitarFila', { nombre: a.nombre })"
+                      (click)="quitarAdicional(a)"
+                    >
+                      <app-icono nombre="papelera" [tamano]="16" />
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <button type="button" class="secundario" (click)="agregarAdicional()">
+          <app-icono nombre="alta" [tamano]="18" />
+          {{ t('lectura.agregarFila') }}
+        </button>
+      </div>
+    }
+
+    <div class="barra final">
+      <button
+        type="button"
+        (click)="importar()"
+        [disabled]="marcadas() === 0 || importando() || leyendo() > 0"
+        [attr.aria-busy]="importando()"
+      >
+        <app-icono nombre="confirmar" [tamano]="18" />
+        {{ t('lectura.importar') }}
+      </button>
+      <button type="button" class="contorno" (click)="empezarDeNuevo()" [disabled]="importando()">
+        {{ t('lectura.empezarDeNuevo') }}
+      </button>
+    </div>
+  }
+</div>

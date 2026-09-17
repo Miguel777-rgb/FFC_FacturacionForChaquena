@@ -73,12 +73,16 @@ export const PT: Record<ClaveI18n, string> = {
   'tema.claro': 'claro',
   'tema.oscuro': 'escuro',
   'despacho.bajaTitulo': 'Desativar {nombre}',
-  'despacho.bajaMensaje': 'Deixa de aparecer ao atribuir comandas. As que já levou mantêm o nome e a placa, e pode ser reativado depois.',
-  'personal.bajaMensaje': 'Não poderá entrar no sistema, nem com usuário e senha nem com o Google, até ser reativado. Tudo o que registrou continua em seu nome.',
+  'despacho.bajaMensaje':
+    'Deixa de aparecer ao atribuir comandas. As que já levou mantêm o nome e a placa, e pode ser reativado depois.',
+  'personal.bajaMensaje':
+    'Não poderá entrar no sistema, nem com usuário e senha nem com o Google, até ser reativado. Tudo o que registrou continua em seu nome.',
   'bots.liberarTitulo': 'Liberar a conta de {usuario}',
-  'bots.liberarMensaje': 'O bot deixa de reconhecer essa conta do Discord. Continua entrando no sistema com seu usuário; para voltar a usar o bot, terá que escrever /vincular de novo.',
+  'bots.liberarMensaje':
+    'O bot deixa de reconhecer essa conta do Discord. Continua entrando no sistema com seu usuário; para voltar a usar o bot, terá que escrever /vincular de novo.',
   'pos.quitarDetalleTitulo': 'Tirar {platillo} da comanda',
-  'pos.quitarDetalleMensaje': 'A comanda já está na cozinha. A linha some da comanda e da fila da cozinha.',
+  'pos.quitarDetalleMensaje':
+    'A comanda já está na cozinha. A linha some da comanda e da fila da cozinha.',
   'pos.quitarDetalleConfirmar': 'Tirar da comanda',
 
   'panel.superficies': 'Telas',
@@ -357,7 +361,6 @@ export const PT: Record<ClaveI18n, string> = {
   'despacho.avisoConductorAnotado': '{nombre} cadastrado. Agora o veículo.',
   'despacho.avisoVehiculoAnotado': 'Veículo {placa} cadastrado.',
 
-
   'inventario.insumos': 'Insumos',
   'inventario.bajoMinimo': 'Abaixo do mínimo',
   'inventario.buscar': 'Buscar insumo',
@@ -421,7 +424,8 @@ export const PT: Record<ClaveI18n, string> = {
   'inventario.sinProveedor': 'Sem fornecedor cadastrado',
   'inventario.costoPor': 'Custo por {unidad} (S/)',
   'inventario.fechaVencimiento': 'Vence em',
-  'inventario.loteAyuda': 'Os três são opcionais. Sem custo, este lote não entra no valor do estoque; sem data, é usado por último.',
+  'inventario.loteAyuda':
+    'Os três são opcionais. Sem custo, este lote não entra no valor do estoque; sem data, é usado por último.',
   'inventario.lotes': 'Lotes',
   'inventario.lotesAyuda': 'Na ordem em que são usados: primeiro o que vence antes.',
   'inventario.sinLotes': 'Não resta nada em lotes.',
@@ -486,11 +490,58 @@ export const PT: Record<ClaveI18n, string> = {
   'carta.costoYMargen': 'Custo e margem',
   'carta.costoDetalle': 'Custo S/ {costo} · margem S/ {margen}',
   'carta.costoSinReceta': 'Sem receita não há custo: cadastre os insumos que leva.',
-  'carta.costoAyuda': 'A receita pelo custo da última compra de cada insumo. A margem usa o preço que você está digitando.',
+  'carta.costoAyuda':
+    'A receita pelo custo da última compra de cada insumo. A margem usa o preço que você está digitando.',
   'carta.avisoEditado': '{nombre} salvo.',
 
+  // --- leitura do cardápio a partir de fotos --------------------------------
+  'lectura.ayuda':
+    'Envie até {max} fotos do cardápio. São lidas uma a uma, e o que foi lido se revisa aqui antes de salvar qualquer coisa.',
+  'lectura.elegirFotos': 'Escolher fotos',
+  'lectura.fotosElegidas': '{n} de {max} fotos',
+  'lectura.quitarFoto': 'Tirar {nombre}',
+  'lectura.leerFotos': 'Ler as fotos',
+  'lectura.leyendo': 'Lendo a foto {n} de {total}…',
+  'lectura.sobranFotos': 'Só são lidas as primeiras {max} fotos.',
+  'lectura.formatoFoto': 'Só se leem fotos JPG, PNG ou WebP.',
+  'lectura.sinLector': 'Este servidor não consegue ler cardápios: {motivo}',
+  'lectura.nadaLeido': 'Nenhum prato foi reconhecido nessa foto.',
+  'lectura.dudosos': '{n} linhas duvidosas: confira com o recorte da foto.',
+  'lectura.revision': 'Revisão do que foi lido',
+  'lectura.seccionLeida': 'Seção lida: {nombre}',
+  'lectura.sinSeccion': 'Sem seção na foto',
+  'lectura.seccionDestino': 'Seção do cardápio',
+  'lectura.crearSeccion': 'Criar seção nova',
+  'lectura.nombreSeccionNueva': 'Nome da seção nova',
+  'lectura.marcar': 'Importar esta linha',
+  'lectura.marcarSeccion': 'Marcar a seção inteira',
+  'lectura.nombrePlatillo': 'Nome do prato',
+  'lectura.precio': 'Preço',
+  'lectura.descripcion': 'Descrição',
+  'lectura.vegetariano': 'Vegetariano',
+  'lectura.vegetarianoAria': 'Marcar {nombre} como vegetariano',
+  'lectura.estado': 'O que vai acontecer',
+  'lectura.estadoNuevo': 'Será criado',
+  'lectura.estadoIgual': 'Já está igual',
+  'lectura.estadoPrecio': 'S/ {antes} → S/ {ahora}',
+  'lectura.estadoDescripcion': 'Muda a descrição',
+  'lectura.dudosa': 'Duvidosa',
+  'lectura.recorteDe': 'Recorte da foto de {nombre}',
+  'lectura.agregarFila': 'Adicionar linha',
+  'lectura.quitarFila': 'Tirar {nombre}',
+  'lectura.adicionales': 'Adicionais',
+  'lectura.tipoAdicional': 'Tipo de adicional',
+  'lectura.importar': 'Importar o que está marcado',
+  'lectura.nadaMarcado': 'Marque ao menos uma linha para importar.',
+  'lectura.faltaSeccion': 'Há linhas marcadas sem seção: escolha uma ou escreva o nome da nova.',
+  'lectura.faltaNombre': 'Há linhas marcadas sem nome ou sem preço.',
+  'lectura.importado':
+    '{creados} pratos criados, {actualizados} atualizados e {seccionesCreadas} seções novas.',
+  'lectura.empezarDeNuevo': 'Começar de novo',
+
   // --- alérgenos ------------------------------------------------------------
-  'alergenos.ayuda': 'São marcados em cada prato. Um desativado deixa de ser oferecido, mas continua nos pratos que já o tinham.',
+  'alergenos.ayuda':
+    'São marcados em cada prato. Um desativado deixa de ser oferecido, mas continua nos pratos que já o tinham.',
   'alergenos.nuevo': 'Novo alérgeno',
   'alergenos.editar': 'Renomear alérgeno',
   'alergenos.nombre': 'Nome',
@@ -662,7 +713,8 @@ export const PT: Record<ClaveI18n, string> = {
   'turnos.nota': 'Observação (opcional)',
   'turnos.eliminar': 'Remover turno',
   'turnos.eliminarTitulo': 'Remover o turno de {nombre}?',
-  'turnos.eliminarMensaje': 'O turno de {dia}, {rango}, sai do horário. As entradas já registradas são mantidas.',
+  'turnos.eliminarMensaje':
+    'O turno de {dia}, {rango}, sai do horário. As entradas já registradas são mantidas.',
   'turnos.avisoGuardado': 'Turno de {nombre} salvo.',
   'turnos.avisoEliminado': 'Turno de {nombre} removido.',
   'turnos.avisoCeroHoras': 'Um turno não pode começar e terminar no mesmo horário.',
@@ -680,7 +732,8 @@ export const PT: Record<ClaveI18n, string> = {
   'asistencia.avisoEntrada': 'Entrada registrada às {hora}.',
   'asistencia.avisoSalida': 'Saída registrada às {hora}.',
   'asistencia.dia': 'Dia',
-  'asistencia.ayuda': 'O atraso conta após 10 minutos do início do turno. Alguém falta quando o turno termina sem entrada.',
+  'asistencia.ayuda':
+    'O atraso conta após 10 minutos do início do turno. Alguém falta quando o turno termina sem entrada.',
   'asistencia.turno': 'Turno',
   'asistencia.entrada': 'Entrada',
   'asistencia.salida': 'Saída',
@@ -704,8 +757,10 @@ export const PT: Record<ClaveI18n, string> = {
   'desempeno.minutosTarde': '{n} min no total',
   'desempeno.inasistencias': 'Faltas',
   'desempeno.horas': 'Horas trabalhadas',
-  'desempeno.salidasSinMarcar.uno': 'Tem {n} entrada sem saída registrada: essas horas não são contadas.',
-  'desempeno.salidasSinMarcar.otros': 'Tem {n} entradas sem saída registrada: essas horas não são contadas.',
+  'desempeno.salidasSinMarcar.uno':
+    'Tem {n} entrada sem saída registrada: essas horas não são contadas.',
+  'desempeno.salidasSinMarcar.otros':
+    'Tem {n} entradas sem saída registrada: essas horas não são contadas.',
   'desempeno.sinDatos': 'Não foi possível calcular o desempenho.',
 
   'kpis.hoy': 'Hoje',
@@ -842,7 +897,8 @@ export const PT: Record<ClaveI18n, string> = {
   'mesas.guardarPlano': 'Salvar planta',
   'mesas.descartarPlano': 'Descartar alterações',
   'mesas.herramientasPlano': 'Tamanho e formato da mesa',
-  'mesas.ayudaPlano': 'Arraste uma mesa, ou selecione-a e mova com as setas. Selecionada, você pode mudar o tamanho e o formato.',
+  'mesas.ayudaPlano':
+    'Arraste uma mesa, ou selecione-a e mova com as setas. Selecionada, você pode mudar o tamanho e o formato.',
   'mesas.ancho': 'Largura',
   'mesas.alto': 'Altura',
   'mesas.menosAncho': 'Mais estreita',
@@ -869,7 +925,8 @@ export const PT: Record<ClaveI18n, string> = {
   'reservas.noVino': 'Não veio',
   'reservas.cancelar': 'Cancelar reserva',
   'reservas.cancelarTitulo': 'Cancelar a reserva de {nombre}?',
-  'reservas.cancelarMensaje': 'A mesa {mesa} deixa de estar reservada para as {hora}. A reserva fica na agenda como cancelada.',
+  'reservas.cancelarMensaje':
+    'A mesa {mesa} deixa de estar reservada para as {hora}. A reserva fica na agenda como cancelada.',
   'reservas.avisoEstado': '{nombre}: {estado}.',
   'reservas.avisoCapacidad': 'A mesa {numero} é para {n} pessoas.',
 
@@ -921,13 +978,17 @@ export const PT: Record<ClaveI18n, string> = {
   'perfil.idioma': 'Idioma',
   'perfil.tema': 'Tema',
   'perfil.contrasena': 'Senha',
-  'perfil.contrasenaAdmin': 'Como administrador, você redefine senhas na tela da equipe, inclusive a sua.',
+  'perfil.contrasenaAdmin':
+    'Como administrador, você redefine senhas na tela da equipe, inclusive a sua.',
   'perfil.irAPersonal': 'Ir para a equipe',
-  'perfil.contrasenaOtros': 'Para trocar sua senha, peça a um administrador: ele a redefine na tela da equipe.',
+  'perfil.contrasenaOtros':
+    'Para trocar sua senha, peça a um administrador: ele a redefine na tela da equipe.',
   'perfil.discord': 'Bot do Discord',
-  'perfil.discordTexto': 'Para usar o bot da equipe, digite este comando no servidor do Discord do restaurante:',
+  'perfil.discordTexto':
+    'Para usar o bot da equipe, digite este comando no servidor do Discord do restaurante:',
   'perfil.discordAdmin': 'Contas de administrador não são vinculadas aos bots.',
-  'perfil.discordSinCorreo': 'Você precisa de um e-mail cadastrado para se vincular ao bot. Peça a um administrador.',
+  'perfil.discordSinCorreo':
+    'Você precisa de um e-mail cadastrado para se vincular ao bot. Peça a um administrador.',
 
   // --- cardapio: abas e complementos ----------------------------------------
   'menu.secciones': 'Seções do cardápio',
@@ -944,6 +1005,7 @@ export const PT: Record<ClaveI18n, string> = {
   'menu.avisoSeOfrece': '{nombre} volta a ser oferecido no PDV.',
   'menu.avisoNoSeOfrece': '{nombre} não é mais oferecido no PDV.',
   'menu.alergenos': 'Alérgenos',
+  'menu.lectura': 'Ler cardápio',
   'complementos.filtroTipo': 'Filtrar por tipo',
   'complementos.todosTipos': 'Todos os tipos',
   'complementos.nuevo': 'Novo complemento',
@@ -1014,9 +1076,11 @@ export const PT: Record<ClaveI18n, string> = {
   'datosLocal.telefono': 'Telefone',
   'datosLocal.igv': 'IGV',
   'datosLocal.porcentajeIgv': 'Alíquota do IGV (%)',
-  'datosLocal.igvAyuda': 'Os preços do cardápio já o incluem: o caixa e os pedidos o discriminam. Cada comanda guarda a alíquota com que foi vendida, então mudá-la não altera vendas passadas.',
+  'datosLocal.igvAyuda':
+    'Os preços do cardápio já o incluem: o caixa e os pedidos o discriminam. Cada comanda guarda a alíquota com que foi vendida, então mudá-la não altera vendas passadas.',
   'datosLocal.horario': 'Horário de funcionamento',
-  'datosLocal.horarioAyuda': 'Um dia sem horário fica indefinido; marque-o como fechado se não abrir. Se fechar depois da meia-noite, o horário de fechamento fica antes do de abertura.',
+  'datosLocal.horarioAyuda':
+    'Um dia sem horário fica indefinido; marque-o como fechado se não abrir. Se fechar depois da meia-noite, o horário de fechamento fica antes do de abertura.',
   'datosLocal.dia': 'Dia',
   'datosLocal.cerrado': 'Fechado',
   'datosLocal.abre': 'Abre',
@@ -1035,7 +1099,8 @@ export const PT: Record<ClaveI18n, string> = {
   'niveles.titulo': 'Níveis de fidelidade',
   'niveles.nuevo': 'Novo nível',
   'niveles.editar': 'Editar nível',
-  'niveles.ayuda': 'Cada avaliação soma um ponto ao cliente. O nível é calculado com esses pontos, e o desconto do nível vale no PDV: não se soma a um cupom, vale o maior.',
+  'niveles.ayuda':
+    'Cada avaliação soma um ponto ao cliente. O nível é calculado com esses pontos, e o desconto do nível vale no PDV: não se soma a um cupom, vale o maior.',
   'niveles.nivel': 'Nível',
   'niveles.puntos': 'Pontos',
   'niveles.descuento': 'Desconto',
@@ -1050,16 +1115,19 @@ export const PT: Record<ClaveI18n, string> = {
   'niveles.eliminarAria': 'Excluir o nível {nombre}',
   'niveles.eliminar': 'Excluir nível',
   'niveles.eliminarTitulo': 'Excluir o nível {nombre}?',
-  'niveles.eliminarMensaje': 'Os clientes deste nível passam para o que os pontos alcançarem. Pedidos já pagos mantêm o desconto.',
+  'niveles.eliminarMensaje':
+    'Os clientes deste nível passam para o que os pontos alcançarem. Pedidos já pagos mantêm o desconto.',
   'niveles.avisoAlta': 'Nível {nombre} criado.',
   'niveles.avisoGuardado': 'Nível {nombre} salvo.',
   'niveles.avisoEliminado': 'Nível {nombre} excluído.',
-  'niveles.avisoDatos': 'Confira o nível: precisa de nome, pontos a partir de 0 e desconto de 0 a 100.',
+  'niveles.avisoDatos':
+    'Confira o nível: precisa de nome, pontos a partir de 0 e desconto de 0 a 100.',
   'niveles.avisoPuntosRepetidos': 'Já existe um nível que começa em {puntos} pontos.',
   // --- fornecedores ---------------------------------------------------------
   'proveedores.nuevo': 'Novo fornecedor',
   'proveedores.editar': 'Editar fornecedor',
-  'proveedores.ayuda': 'Um fornecedor desativado não aparece nas compras, mas seus lotes continuam mostrando de onde vieram.',
+  'proveedores.ayuda':
+    'Um fornecedor desativado não aparece nas compras, mas seus lotes continuam mostrando de onde vieram.',
   'proveedores.nombre': 'Nome',
   'proveedores.ruc': 'RUC',
   'proveedores.contacto': 'Contato',
@@ -1075,9 +1143,6 @@ export const PT: Record<ClaveI18n, string> = {
   'proveedores.avisoBaja': '{nombre} desativado.',
   'proveedores.avisoReactivado': '{nombre} reativado.',
   'proveedores.avisoRuc': 'O RUC tem 11 dígitos.',
-
-
-
 
   'errores.sinConexion': 'Sem conexão com o servidor. Verifique a rede e tente de novo.',
   'errores.sesionVencida': 'A sua sessão venceu. Entre de novo.',
