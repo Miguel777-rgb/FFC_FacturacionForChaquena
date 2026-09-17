@@ -94,9 +94,14 @@ services:
       # inicio con Google.
       GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
 
-      # Fijo y no configurable: la siembra de demostracion crea usuarios con
-      # una contrasena publicada en el README.
-      SEED_DEMO: "false"
+      # La siembra de produccion (SEED_ENABLED, encendida por defecto) es otra
+      # cosa: roles, permisos, cargos, las secciones de la carta y los
+      # alergenos. Esta es la de demostracion, que ademas crea los usuarios
+      # admin, mozo1, chef1, caja1, almacen1 y repartidor1 con una contrasena
+      # que esta escrita en el repositorio, que es publico. Encenderla en un
+      # dominio abierto es dejar entrar como ADMIN a quien lea el README, asi
+      # que se decide en el .env del servidor y por defecto esta apagada.
+      SEED_DEMO: ${SEED_DEMO:-false}
 
       # En local el SQL y las peticiones van en DEBUG. En produccion llenarian
       # el log; LOG_NIVEL=DEBUG en el .env los vuelve a encender.
@@ -107,8 +112,11 @@ services:
       # Fotos de la carta y logo del local, en su propio volumen.
       ARCHIVOS_DIRECTORIO: /aplicacion/archivos
 
-      # CORS no se configura: el navegador habla solo con Nginx, en el mismo
-      # origen, y nunca llega a cruzar hacia el backend.
+      # Aunque el navegador hable solo con Nginx, manda la cabecera Origin en
+      # todo POST, tambien del mismo origen, y Spring la valida contra esta
+      # lista: sin el dominio aqui, entrar devuelve "Invalid CORS request".
+      # Con `:?` el contenedor no arranca en vez de fallar recien en el login.
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:?Falta CORS_ALLOWED_ORIGINS en el .env, con el dominio publico y su esquema}"
     volumes:
       - archivos_logistica:/aplicacion/archivos
     expose:
