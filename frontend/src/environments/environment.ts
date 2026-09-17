@@ -1,6 +1,7 @@
 /**
  * Produccion. La base vacia hace que las peticiones salgan al mismo origen que
- * sirve la app: Nginx en el puerto 81 hace de proxy hacia el backend, asi que
+ * sirve la app: Nginx, en el 80 del contenedor, hace de proxy hacia el backend
+ * —el 81 es solo el puerto del host en compose.local.yml—, asi que
  * la imagen de Docker no necesita reconstruirse por entorno.
  */
 export const environment = {
