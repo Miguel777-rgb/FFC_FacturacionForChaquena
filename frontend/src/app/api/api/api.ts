@@ -16,6 +16,8 @@ export * from './catalogo-categorias.api';
 import { CatalogoCategoriasApi } from './catalogo-categorias.api';
 export * from './catalogo-complementos.api';
 import { CatalogoComplementosApi } from './catalogo-complementos.api';
+export * from './catalogo-lectura-de-carta.api';
+import { CatalogoLecturaDeCartaApi } from './catalogo-lectura-de-carta.api';
 export * from './catalogo-platillos.api';
 import { CatalogoPlatillosApi } from './catalogo-platillos.api';
 export * from './catalogo-promociones.api';
@@ -76,6 +78,7 @@ export const APIS = [
   CatalogoAlergenosApi,
   CatalogoCategoriasApi,
   CatalogoComplementosApi,
+  CatalogoLecturaDeCartaApi,
   CatalogoPlatillosApi,
   CatalogoPromocionesApi,
   ClientesApi,

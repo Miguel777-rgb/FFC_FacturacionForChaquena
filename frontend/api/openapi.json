@@ -645,6 +645,37 @@
         },
         "type": "object"
       },
+      "ComplementoImportacionDto": {
+        "properties": {
+          "nombre": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "precio": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          },
+          "tipo": {
+            "enum": [
+              "BEBIDA",
+              "HELADO",
+              "CERVEZA",
+              "JUGO",
+              "SALSAS",
+              "OTROS"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre",
+          "precio",
+          "tipo"
+        ],
+        "type": "object"
+      },
       "ComplementoItemDto": {
         "properties": {
           "cantidad": {
@@ -660,6 +691,35 @@
         "required": [
           "complementoId"
         ],
+        "type": "object"
+      },
+      "ComplementoLeidoDto": {
+        "properties": {
+          "dudoso": {
+            "type": "boolean"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "recorte": {
+            "description": "Recorte de la foto de donde salio, como data URL JPEG. Solo si es dudoso.",
+            "type": "string"
+          },
+          "tipo": {
+            "enum": [
+              "BEBIDA",
+              "HELADO",
+              "CERVEZA",
+              "JUGO",
+              "SALSAS",
+              "OTROS"
+            ],
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "ComplementoRequestDto": {
@@ -1278,6 +1338,17 @@
         },
         "type": "object"
       },
+      "EstadoLectorCartaDto": {
+        "properties": {
+          "disponible": {
+            "type": "boolean"
+          },
+          "motivo": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "EstimarTiempoRequestDto": {
         "properties": {
           "minutos": {
@@ -1476,6 +1547,23 @@
         "required": [
           "dia"
         ],
+        "type": "object"
+      },
+      "ImportacionCartaDto": {
+        "properties": {
+          "complementos": {
+            "items": {
+              "$ref": "#/components/schemas/ComplementoImportacionDto"
+            },
+            "type": "array"
+          },
+          "secciones": {
+            "items": {
+              "$ref": "#/components/schemas/SeccionImportacionDto"
+            },
+            "type": "array"
+          }
+        },
         "type": "object"
       },
       "InsumoRequestDto": {
@@ -1705,6 +1793,27 @@
           "minutosPromedioTotal": {
             "format": "double",
             "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "LecturaCartaDto": {
+        "properties": {
+          "complementos": {
+            "items": {
+              "$ref": "#/components/schemas/ComplementoLeidoDto"
+            },
+            "type": "array"
+          },
+          "dudosos": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "secciones": {
+            "items": {
+              "$ref": "#/components/schemas/SeccionLeidaDto"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -2898,6 +3007,55 @@
         },
         "type": "object"
       },
+      "PlatilloImportacionDto": {
+        "properties": {
+          "descripcion": {
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "precio": {
+            "exclusiveMinimum": false,
+            "minimum": 0,
+            "type": "number"
+          },
+          "vegetariano": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "nombre",
+          "precio"
+        ],
+        "type": "object"
+      },
+      "PlatilloLeidoDto": {
+        "properties": {
+          "descripcion": {
+            "type": "string"
+          },
+          "dudoso": {
+            "type": "boolean"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "recorte": {
+            "description": "Recorte de la foto de donde salio, como data URL JPEG. Solo en las filas dudosas.",
+            "type": "string"
+          },
+          "vegetariano": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
       "PlatilloRequestDto": {
         "properties": {
           "activo": {
@@ -3626,6 +3784,35 @@
         ],
         "type": "object"
       },
+      "ResultadoImportacionCartaDto": {
+        "properties": {
+          "complementosActualizados": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "complementosCreados": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "platillosActualizados": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "platillosCreados": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "platillosSinCambios": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "seccionesCreadas": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
       "ResumenInventarioDto": {
         "properties": {
           "alertas": {
@@ -3673,6 +3860,40 @@
           },
           "nombre": {
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SeccionImportacionDto": {
+        "properties": {
+          "categoriaId": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "nombreNueva": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "platillos": {
+            "items": {
+              "$ref": "#/components/schemas/PlatilloImportacionDto"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "SeccionLeidaDto": {
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "platillos": {
+            "items": {
+              "$ref": "#/components/schemas/PlatilloLeidoDto"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -4901,6 +5122,99 @@
         "summary": "Cambiar el nombre y el conjunto de roles del cargo",
         "tags": [
           "Cargos"
+        ]
+      }
+    },
+    "/api/v1/carta/importaciones": {
+      "post": {
+        "description": "Lo que ya existe con el mismo nombre (sin tildes ni mayusculas) se actualiza; lo demas se crea.",
+        "operationId": "importarCarta",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportacionCartaDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoImportacionCartaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Crear o actualizar los platillos y complementos revisados",
+        "tags": [
+          "Catalogo - Lectura de carta"
+        ]
+      }
+    },
+    "/api/v1/carta/lector": {
+      "get": {
+        "operationId": "estadoLectorCarta",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoLectorCartaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Si el servidor tiene Tesseract en espanol para leer cartas",
+        "tags": [
+          "Catalogo - Lectura de carta"
+        ]
+      }
+    },
+    "/api/v1/carta/lecturas": {
+      "post": {
+        "description": "JPEG o PNG de hasta 3 MB. Las filas dudosas traen el recorte de la foto de donde salieron.",
+        "operationId": "leerCarta",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "imagen": {
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "imagen"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LecturaCartaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Leer una foto de la carta: secciones, platillos, precios y adicionales, sin guardar",
+        "tags": [
+          "Catalogo - Lectura de carta"
         ]
       }
     },
@@ -10121,6 +10435,10 @@
     {
       "description": "Personal del local; el alta requiere cargo administrativo",
       "name": "Trabajadores"
+    },
+    {
+      "description": "Leer la carta desde fotos e importar lo revisado",
+      "name": "Catalogo - Lectura de carta"
     },
     {
       "description": "Categorias de la carta",

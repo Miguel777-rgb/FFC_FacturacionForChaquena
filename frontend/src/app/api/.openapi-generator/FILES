@@ -10,6 +10,7 @@ api/cargos.api.ts
 api/catalogo-alergenos.api.ts
 api/catalogo-categorias.api.ts
 api/catalogo-complementos.api.ts
+api/catalogo-lectura-de-carta.api.ts
 api/catalogo-platillos.api.ts
 api/catalogo-promociones.api.ts
 api/clientes-empresas.api.ts
@@ -62,7 +63,9 @@ model/cliente-request-dto.ts
 model/cliente-response-dto.ts
 model/comanda-kds-dto.ts
 model/complemento-detalle-dto.ts
+model/complemento-importacion-dto.ts
 model/complemento-item-dto.ts
+model/complemento-leido-dto.ts
 model/complemento-request-dto.ts
 model/complemento-response-dto.ts
 model/configuracion-local-dto.ts
@@ -81,6 +84,7 @@ model/empresa-request-dto.ts
 model/empresa-response-dto.ts
 model/estado-bots-dto.ts
 model/estado-canal-bot.ts
+model/estado-lector-carta-dto.ts
 model/estimar-tiempo-request-dto.ts
 model/faltante.ts
 model/feedback-request-dto.ts
@@ -88,6 +92,7 @@ model/feedback-response-dto.ts
 model/fidelizacion-dto.ts
 model/flags-request-dto.ts
 model/horario-local-dto.ts
+model/importacion-carta-dto.ts
 model/insumo-request-dto.ts
 model/insumo-response-dto.ts
 model/insumo-valorizado.ts
@@ -96,6 +101,7 @@ model/item-conteo.ts
 model/item-disponibilidad.ts
 model/item-orden-request-dto.ts
 model/kpis-cocina-dto.ts
+model/lectura-carta-dto.ts
 model/linea-kds.ts
 model/linea-ticket.ts
 model/login-request-dto.ts
@@ -127,6 +133,8 @@ model/pageable.ts
 model/pago-response-dto.ts
 model/plano-request-dto.ts
 model/platillo-disponible-dto.ts
+model/platillo-importacion-dto.ts
+model/platillo-leido-dto.ts
 model/platillo-request-dto.ts
 model/platillo-response-dto.ts
 model/por-canal.ts
@@ -149,8 +157,11 @@ model/reporte-ventas-dto.ts
 model/reserva-request-dto.ts
 model/reserva-response-dto.ts
 model/reservar-mesa-request-dto.ts
+model/resultado-importacion-carta-dto.ts
 model/resumen-inventario-dto.ts
 model/rol-response-dto.ts
+model/seccion-importacion-dto.ts
+model/seccion-leida-dto.ts
 model/serie-ventas-dto.ts
 model/tablero-dto.ts
 model/ticket-cocina-dto.ts
