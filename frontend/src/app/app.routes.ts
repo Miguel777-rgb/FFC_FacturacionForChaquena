@@ -1,6 +1,6 @@
 import type { Routes } from '@angular/router';
 
-import { sesionAbierta, exigeRol } from './nucleo/sesion/guardas';
+import { sesionAbierta, sinSesion, exigeRol } from './nucleo/sesion/guardas';
 
 /**
  * Un arbol de rutas, una superficie por destino del panel. Cada una carga en
@@ -19,6 +19,7 @@ export const routes: Routes = [
   {
     path: 'entrar',
     title: 'titulo.entrar',
+    canActivate: [sinSesion],
     loadComponent: () => import('./paginas/login/login.page').then((m) => m.LoginPage),
   },
 

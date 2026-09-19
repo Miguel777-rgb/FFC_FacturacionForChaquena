@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { Router, type CanActivateFn } from '@angular/router';
 
 import { SesionService } from './sesion.service';
-import type { Rol } from './rol';
+import { INICIO_POR_ROL, type Rol } from './rol';
 
 /**
  * Exige sesion abierta y no vencida. Guarda a donde queria ir el usuario para
@@ -16,6 +16,24 @@ export const sesionAbierta: CanActivateFn = (_ruta, estado) => {
 
   sesion.cerrar();
   return router.createUrlTree(['/entrar'], { queryParams: { volverA: estado.url } });
+};
+
+/**
+ * Lo contrario: con la sesion abierta, la pantalla de entrar no se ve y se va
+ * al puesto del rol.
+ *
+ * Sin esto, retroceder con el navegador hasta /entrar dibujaba el formulario
+ * dentro del cascaron de la sesion: el panel con el nombre y el cargo de quien
+ * ya entro, y al lado un login pidiendo usuario y contrasena.
+ */
+export const sinSesion: CanActivateFn = () => {
+  const sesion = inject(SesionService);
+  const router = inject(Router);
+
+  if (!sesion.autenticado() || sesion.expirada()) return true;
+
+  const primerRol = sesion.roles()[0];
+  return router.parseUrl(primerRol ? INICIO_POR_ROL[primerRol] : '/inicio');
 };
 
 /**

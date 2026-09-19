@@ -359,11 +359,19 @@ Dos consecuencias prácticas:
 5. `sesionAbierta` + `exigeRol(...)` filtran cada ruta y el panel lateral filtra
    los enlaces. **Las dos listas están copiadas de los `@PreAuthorize` y tienen
    que seguir coincidiendo.**
+6. `sinSesion` hace lo contrario en `/entrar`: con la sesión abierta lleva al
+   puesto del rol. Sin esa guarda, retroceder con el navegador hasta el login lo
+   dibujaba **dentro** del cascarón de la sesión —el panel con el nombre y el
+   cargo de quien ya había entrado, y al lado un formulario pidiendo usuario y
+   contraseña—, porque el cascarón mira `autenticado()` y el `router-outlet`
+   mira la ruta. Por lo mismo, salir navega con `replaceUrl`: Atrás no vuelve a
+   la pantalla de quien acaba de irse.
 
-Doce pruebas cubren exactamente esa cadena, incluidos los dos casos que más
-duelen: el cargo que no mapea a ningún rol y la sesión vencida que no debe
-restaurarse al recargar
-([sesion.service.spec.ts](src/app/nucleo/sesion/sesion.service.spec.ts)).
+Dieciséis pruebas cubren esa cadena, incluidos los casos que más duelen: el
+cargo que no mapea a ningún rol, la sesión vencida que no debe restaurarse al
+recargar ([sesion.service.spec.ts](src/app/nucleo/sesion/sesion.service.spec.ts))
+y el login que no debe verse con la sesión abierta
+([guardas.spec.ts](src/app/nucleo/sesion/guardas.spec.ts)).
 
 ---
 
