@@ -87,6 +87,7 @@ export class PerfilPage implements OnInit {
 
   protected salir(): void {
     this.sesion.cerrar();
-    void this.router.navigateByUrl('/entrar');
+    // Igual que en el panel: Atras no debe volver a la pantalla de quien salio.
+    void this.router.navigateByUrl('/entrar', { replaceUrl: true });
   }
 }

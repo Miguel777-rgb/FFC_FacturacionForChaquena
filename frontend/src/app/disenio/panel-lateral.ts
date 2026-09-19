@@ -624,7 +624,9 @@ export class PanelLateral {
   protected salir(): void {
     this.navego.emit();
     this.sesion.cerrar();
-    void this.router.navigateByUrl('/entrar');
+    // Reemplaza la entrada del historial: sin esto, Atras vuelve a la pantalla
+    // anterior y se ve el rebote de la guarda hasta /entrar.
+    void this.router.navigateByUrl('/entrar', { replaceUrl: true });
   }
 
   private leerPlegado(): boolean {
