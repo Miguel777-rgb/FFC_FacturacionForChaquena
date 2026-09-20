@@ -14,7 +14,7 @@ import { filter } from 'rxjs/operators';
 import { AsistenciaService } from '../nucleo/asistencia/asistencia.service';
 import { I18nService } from '../nucleo/i18n/i18n.service';
 import { LogoService } from '../nucleo/marca/logo.service';
-import { BarraIdiomas } from './barra-idiomas';
+import { SelectorIdioma } from './selector-idioma';
 import { Icono } from './icono';
 import { PanelLateral } from './panel-lateral';
 import { SelectorTema } from './selector-tema';
@@ -33,7 +33,7 @@ import { SelectorTema } from './selector-tema';
  */
 @Component({
   selector: 'app-barra-superior',
-  imports: [PanelLateral, BarraIdiomas, SelectorTema, Icono],
+  imports: [PanelLateral, SelectorIdioma, SelectorTema, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="barra">
@@ -76,7 +76,7 @@ import { SelectorTema } from './selector-tema';
         </button>
       }
 
-      <app-barra-idiomas variante="integrada" />
+      <app-selector-idioma variante="integrada" />
       <app-selector-tema />
     </header>
 

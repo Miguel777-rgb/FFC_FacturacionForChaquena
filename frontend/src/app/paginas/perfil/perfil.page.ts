@@ -11,7 +11,7 @@ import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { TrabajadoresApi, type TrabajadorResponseDto, type TurnoDto } from '../../api';
-import { BarraIdiomas } from '../../disenio/barra-idiomas';
+import { SelectorIdioma } from '../../disenio/selector-idioma';
 import { Icono } from '../../disenio/icono';
 import { SelectorTema } from '../../disenio/selector-tema';
 import { AsistenciaService } from '../../nucleo/asistencia/asistencia.service';
@@ -46,7 +46,7 @@ const DIAS = [
  */
 @Component({
   selector: 'app-perfil',
-  imports: [RouterLink, Icono, BarraIdiomas, SelectorTema],
+  imports: [RouterLink, Icono, SelectorIdioma, SelectorTema],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './perfil.page.html',
   styleUrls: ['../../disenio/secciones.scss', './perfil.page.scss'],

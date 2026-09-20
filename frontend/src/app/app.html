@@ -13,11 +13,12 @@
     </div>
   </div>
 } @else {
-  <!-- Sin sesion no hay panel: en la pantalla de entrar el idioma flota. Va
-       dentro de <main> para que nada quede fuera de una region. -->
+  <!-- Sin sesion no hay panel: en la pantalla de entrar el desplegable de
+       idioma flota. Va dentro de <main> para que nada quede fuera de una
+       region. -->
   <main>
     <router-outlet />
-    <app-barra-idiomas />
+    <app-selector-idioma />
   </main>
 }
 

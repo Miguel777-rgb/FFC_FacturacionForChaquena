@@ -15,7 +15,7 @@ import { LogoService } from '../nucleo/marca/logo.service';
 import { I18nService } from '../nucleo/i18n/i18n.service';
 import type { ClaveI18n } from '../nucleo/i18n/traducciones/es';
 import type { Rol } from '../nucleo/sesion/rol';
-import { BarraIdiomas } from './barra-idiomas';
+import { SelectorIdioma } from './selector-idioma';
 import { Icono } from './icono';
 import { SelectorTema } from './selector-tema';
 import type { NombreIcono } from './iconos';
@@ -163,7 +163,7 @@ let siguientePanel = 0;
  */
 @Component({
   selector: 'app-panel-lateral',
-  imports: [RouterLink, RouterLinkActive, Icono, SelectorTema, BarraIdiomas],
+  imports: [RouterLink, RouterLinkActive, Icono, SelectorTema, SelectorIdioma],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <aside [class.plegado]="regleta()" [class.cajon]="cajon()">
@@ -253,7 +253,7 @@ let siguientePanel = 0;
         </a>
 
         <div class="controles">
-          <app-barra-idiomas variante="integrada" [vertical]="regleta()" />
+          <app-selector-idioma variante="integrada" />
           <app-selector-tema />
           <button
             type="button"
@@ -490,7 +490,7 @@ let siguientePanel = 0;
       gap: var(--e1);
     }
 
-    .controles app-barra-idiomas {
+    .controles app-selector-idioma {
       margin-right: auto;
     }
 
@@ -560,7 +560,7 @@ let siguientePanel = 0;
       flex-direction: column;
     }
 
-    aside.plegado .controles app-barra-idiomas {
+    aside.plegado .controles app-selector-idioma {
       margin-right: 0;
     }
   `,

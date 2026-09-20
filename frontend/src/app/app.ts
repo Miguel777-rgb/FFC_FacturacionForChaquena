@@ -8,11 +8,18 @@ import { AvisoInactividad } from './disenio/aviso-inactividad';
 import { PanelLateral } from './disenio/panel-lateral';
 import { BarraSuperior } from './disenio/barra-superior';
 import { PilaAvisos } from './disenio/pila-avisos';
-import { BarraIdiomas } from './disenio/barra-idiomas';
+import { SelectorIdioma } from './disenio/selector-idioma';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AvisoInactividad, PanelLateral, BarraSuperior, PilaAvisos, BarraIdiomas],
+  imports: [
+    RouterOutlet,
+    AvisoInactividad,
+    PanelLateral,
+    BarraSuperior,
+    PilaAvisos,
+    SelectorIdioma,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
   styleUrl: './app.scss',
