@@ -5,6 +5,10 @@
       <p class="subtitulo">{{ t('login.subtitulo') }}</p>
     </header>
 
+    @if (motivo(); as texto) {
+      <p class="nota" role="status">{{ texto }}</p>
+    }
+
     <label>
       <span>{{ t('login.usuario') }}</span>
       <input

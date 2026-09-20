@@ -136,6 +136,9 @@ export const EN: Record<ClaveI18n, string> = {
   'login.o': 'or',
   'login.google': 'Sign in with Google',
   'login.errorGenerico': 'Could not sign in. Try again.',
+  'inactividad.aviso': 'Nobody has touched this screen for a while. The session closes in',
+  'inactividad.sigoAqui': "I'm still here",
+  'inactividad.cerrada': 'Your session closed after half an hour without activity. Sign in again.',
   'login.errorGoogle': 'Could not sign in with Google.',
   'login.errorSinToken': 'The server returned no token. Tell the administrator.',
 

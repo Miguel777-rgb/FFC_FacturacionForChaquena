@@ -90,6 +90,18 @@ label {
   border-radius: var(--radio);
 }
 
+/* Explica por que se cerro la sesion. No es un fallo de quien entra, asi que no
+   lleva el rojo del error. */
+.nota {
+  margin: 0;
+  padding: var(--e3);
+  color: var(--aviso);
+  background: var(--aviso-suave);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  font-size: var(--t-chico);
+}
+
 button[type='submit'] {
   margin-top: var(--e1);
   width: 100%;

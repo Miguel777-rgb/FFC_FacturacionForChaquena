@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { SesionService } from './nucleo/sesion/sesion.service';
 import { AvisosService } from './nucleo/http/avisos.service';
 import { TemaService } from './nucleo/tema/tema.service';
+import { AvisoInactividad } from './disenio/aviso-inactividad';
 import { PanelLateral } from './disenio/panel-lateral';
 import { BarraSuperior } from './disenio/barra-superior';
 import { PilaAvisos } from './disenio/pila-avisos';
@@ -11,7 +12,7 @@ import { BarraIdiomas } from './disenio/barra-idiomas';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, PanelLateral, BarraSuperior, PilaAvisos, BarraIdiomas],
+  imports: [RouterOutlet, AvisoInactividad, PanelLateral, BarraSuperior, PilaAvisos, BarraIdiomas],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
   styleUrl: './app.scss',

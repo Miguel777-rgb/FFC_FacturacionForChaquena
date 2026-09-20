@@ -134,6 +134,9 @@ export const PT: Record<ClaveI18n, string> = {
   'login.o': 'ou',
   'login.google': 'Entrar com o Google',
   'login.errorGenerico': 'Não foi possível entrar. Tente de novo.',
+  'inactividad.aviso': 'Ninguém mexe nesta tela há um tempo. A sessão será encerrada em',
+  'inactividad.sigoAqui': 'Continuo aqui',
+  'inactividad.cerrada': 'Sua sessão foi encerrada após meia hora sem atividade. Entre de novo.',
   'login.errorGoogle': 'Não foi possível entrar com o Google.',
   'login.errorSinToken': 'O servidor não devolveu um token. Avise o administrador.',
 

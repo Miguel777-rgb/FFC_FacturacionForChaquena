@@ -150,6 +150,9 @@ export const ES = {
   'login.o': 'o',
   'login.google': 'Ingresar con Google',
   'login.errorGenerico': 'No se pudo iniciar sesión. Inténtalo de nuevo.',
+  'inactividad.aviso': 'Nadie toca esta pantalla hace rato. La sesión se cerrará en',
+  'inactividad.sigoAqui': 'Sigo aquí',
+  'inactividad.cerrada': 'Se cerró tu sesión por media hora sin actividad. Vuelve a entrar.',
   'login.errorGoogle': 'No se pudo entrar con Google.',
   'login.errorSinToken': 'El servidor no devolvió un token. Avisa al administrador.',
 

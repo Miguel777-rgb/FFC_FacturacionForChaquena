@@ -359,7 +359,18 @@ Dos consecuencias prácticas:
 5. `sesionAbierta` + `exigeRol(...)` filtran cada ruta y el panel lateral filtra
    los enlaces. **Las dos listas están copiadas de los `@PreAuthorize` y tienen
    que seguir coincidiendo.**
-6. `sinSesion` hace lo contrario en `/entrar`: con la sesión abierta lleva al
+6. `InactividadService` cierra la sesión tras **media hora sin actividad**, con
+   la cuenta atrás a la vista los últimos cinco minutos
+   ([aviso-inactividad.ts](src/app/disenio/aviso-inactividad.ts)) y un botón
+   «Sigo aquí». Es para el terminal compartido: la caja y el POS se quedan
+   abiertos entre cliente y cliente. **Cocina (`/kds`) y Despacho quedan
+   exentas**, porque son paneles de pared que nadie toca en todo el turno y
+   cerrarles la sesión dejaría la cocina sin comandas. La cuenta se lleva con la
+   marca de tiempo del último gesto y no con un temporizador que se reinicia: un
+   navegador en segundo plano estrangula los intervalos, y una pestaña dormida
+   nunca llegaría al límite. Al cerrarse, el login explica por qué
+   (`?motivo=inactividad`).
+7. `sinSesion` hace lo contrario en `/entrar`: con la sesión abierta lleva al
    puesto del rol. Sin esa guarda, retroceder con el navegador hasta el login lo
    dibujaba **dentro** del cascarón de la sesión —el panel con el nombre y el
    cargo de quien ya había entrado, y al lado un formulario pidiendo usuario y
@@ -367,11 +378,13 @@ Dos consecuencias prácticas:
    mira la ruta. Por lo mismo, salir navega con `replaceUrl`: Atrás no vuelve a
    la pantalla de quien acaba de irse.
 
-Dieciséis pruebas cubren esa cadena, incluidos los casos que más duelen: el
+Veintiuna pruebas cubren esa cadena, incluidos los casos que más duelen: el
 cargo que no mapea a ningún rol, la sesión vencida que no debe restaurarse al
-recargar ([sesion.service.spec.ts](src/app/nucleo/sesion/sesion.service.spec.ts))
-y el login que no debe verse con la sesión abierta
-([guardas.spec.ts](src/app/nucleo/sesion/guardas.spec.ts)).
+recargar ([sesion.service.spec.ts](src/app/nucleo/sesion/sesion.service.spec.ts)),
+el login que no debe verse con la sesión abierta
+([guardas.spec.ts](src/app/nucleo/sesion/guardas.spec.ts)) y la cola de cocina
+que no debe cerrarse sola
+([inactividad.service.spec.ts](src/app/nucleo/sesion/inactividad.service.spec.ts)).
 
 ---
 

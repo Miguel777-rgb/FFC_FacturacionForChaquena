@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { computed, Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { Icono } from '../../disenio/icono';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -31,6 +31,17 @@ export class LoginPage {
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly contrasenaVisible = signal(false);
+
+  /**
+   * Por que se llego aqui, cuando no fue por voluntad propia. Hoy solo el
+   * cierre por inactividad: sin esto, quien vuelve del almacen encuentra el
+   * login sin saber si se cayo el sistema o le cerraron la sesion.
+   */
+  protected readonly motivo = computed(() =>
+    this.ruta.snapshot.queryParamMap.get('motivo') === 'inactividad'
+      ? this.t('inactividad.cerrada')
+      : null,
+  );
 
   protected readonly formulario = this.fb.nonNullable.group({
     usernameOrEmail: ['', [Validators.required]],
