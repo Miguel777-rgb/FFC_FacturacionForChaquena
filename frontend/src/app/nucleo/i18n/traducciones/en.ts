@@ -139,6 +139,15 @@ export const EN: Record<ClaveI18n, string> = {
   'inactividad.aviso': 'Nobody has touched this screen for a while. The session closes in',
   'inactividad.sigoAqui': "I'm still here",
   'inactividad.cerrada': 'Your session closed after half an hour without activity. Sign in again.',
+
+  // --- form validation (regular expressions) --------------------------------
+  'validacion.dni': 'The ID number is eight digits, with no dots or spaces.',
+  'validacion.celular': 'A Peruvian mobile is nine digits starting with 9; the 51 prefix is allowed.',
+  'validacion.correo': 'Type an address with an at sign and a domain, such as name@chaquena.pe.',
+  'validacion.nombre': 'Letters only, accents included; no digits.',
+  'validacion.usuario': 'Between 3 and 20 lowercase characters, starting with a letter.',
+  'validacion.contrasena': 'At least eight characters, with one uppercase, one lowercase and one digit.',
+  'validacion.revisa': 'Check the marked fields before saving.',
   'login.errorGoogle': 'Could not sign in with Google.',
   'login.errorSinToken': 'The server returned no token. Tell the administrator.',
 

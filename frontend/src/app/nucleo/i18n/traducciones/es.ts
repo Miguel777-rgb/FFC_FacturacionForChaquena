@@ -153,6 +153,15 @@ export const ES = {
   'inactividad.aviso': 'Nadie toca esta pantalla hace rato. La sesión se cerrará en',
   'inactividad.sigoAqui': 'Sigo aquí',
   'inactividad.cerrada': 'Se cerró tu sesión por media hora sin actividad. Vuelve a entrar.',
+
+  // --- validación de formularios (expresiones regulares) --------------------
+  'validacion.dni': 'El DNI son ocho dígitos, sin puntos ni espacios.',
+  'validacion.celular': 'El celular peruano son nueve dígitos y empieza en 9; se admite el 51 delante.',
+  'validacion.correo': 'Escribe un correo con arroba y dominio, como nombre@chaquena.pe.',
+  'validacion.nombre': 'Solo letras, tildes y ñ; sin cifras.',
+  'validacion.usuario': 'Entre 3 y 20 caracteres en minúscula, empezando por letra.',
+  'validacion.contrasena': 'Mínimo ocho caracteres, con una mayúscula, una minúscula y un número.',
+  'validacion.revisa': 'Revisa los campos marcados antes de guardar.',
   'login.errorGoogle': 'No se pudo entrar con Google.',
   'login.errorSinToken': 'El servidor no devolvió un token. Avisa al administrador.',
 

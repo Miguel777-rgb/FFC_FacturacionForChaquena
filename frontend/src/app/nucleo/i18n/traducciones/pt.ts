@@ -137,6 +137,15 @@ export const PT: Record<ClaveI18n, string> = {
   'inactividad.aviso': 'Ninguém mexe nesta tela há um tempo. A sessão será encerrada em',
   'inactividad.sigoAqui': 'Continuo aqui',
   'inactividad.cerrada': 'Sua sessão foi encerrada após meia hora sem atividade. Entre de novo.',
+
+  // --- validação de formulários (expressões regulares) ----------------------
+  'validacion.dni': 'O documento tem oito dígitos, sem pontos nem espaços.',
+  'validacion.celular': 'O celular peruano tem nove dígitos e começa com 9; o 51 na frente é aceito.',
+  'validacion.correo': 'Escreva um e-mail com arroba e domínio, como nome@chaquena.pe.',
+  'validacion.nombre': 'Somente letras, com acentos; sem números.',
+  'validacion.usuario': 'Entre 3 e 20 caracteres minúsculos, começando por letra.',
+  'validacion.contrasena': 'No mínimo oito caracteres, com uma maiúscula, uma minúscula e um número.',
+  'validacion.revisa': 'Revise os campos marcados antes de salvar.',
   'login.errorGoogle': 'Não foi possível entrar com o Google.',
   'login.errorSinToken': 'O servidor não devolveu um token. Avise o administrador.',
 

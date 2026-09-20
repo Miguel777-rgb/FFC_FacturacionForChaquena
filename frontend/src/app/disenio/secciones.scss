@@ -127,9 +127,27 @@
     flex: 1 1 12rem;
   }
 
+  /* Un campo que valida ocupa el sitio del input y guarda debajo su mensaje;
+     sin esto, el mensaje empujaria a los campos vecinos hacia abajo. */
+  > .campo-validado {
+    display: flex;
+    flex: 1 1 10rem;
+    flex-direction: column;
+    gap: var(--e1);
+    min-width: 0;
+  }
+
   > button {
     flex: 0 0 auto;
   }
+}
+
+/* El texto del error va debajo de su campo y en el rojo de peligro, nunca solo
+   en color: lleva tambien el borde del input marcado por aria-invalid. */
+.error-campo {
+  color: var(--critico);
+  font-size: var(--t-chico);
+  line-height: 1.35;
 }
 
 /* --- listas simples --------------------------------------------------------- */

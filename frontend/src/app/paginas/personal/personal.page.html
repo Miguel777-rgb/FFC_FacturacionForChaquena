@@ -58,53 +58,93 @@
             <p class="vacio">{{ t('personal.avisoCargo') }}</p>
 
             <div class="campos">
-              <input
-                type="text"
-                [attr.placeholder]="t('comun.nombres')"
-                autocomplete="off"
-                [value]="nombres()"
-                (input)="anotarNombres($any($event.target).value)"
-                [attr.aria-label]="t('comun.nombres')"
-              />
-              <input
-                type="text"
-                [attr.placeholder]="t('comun.apellidos')"
-                autocomplete="off"
-                [value]="apellidos()"
-                (input)="anotarApellidos($any($event.target).value)"
-                [attr.aria-label]="t('comun.apellidos')"
-              />
-              <input
-                type="text"
-                inputmode="numeric"
-                [attr.placeholder]="t('comun.dni')"
-                autocomplete="off"
-                [value]="dni()"
-                (input)="anotarDni($any($event.target).value)"
-                [attr.aria-label]="t('comun.documentoIdentidad')"
-              />
-              <input
-                type="tel"
-                [attr.placeholder]="t('comun.celular')"
-                autocomplete="off"
-                [value]="celular()"
-                (input)="anotarCelular($any($event.target).value)"
-                [attr.aria-label]="t('comun.celular')"
-              />
+              <div class="campo-validado">
+                <input
+                  type="text"
+                  [attr.placeholder]="t('comun.nombres')"
+                  autocomplete="off"
+                  [value]="nombres()"
+                  (input)="anotarNombres($any($event.target).value)"
+                  [attr.aria-label]="t('comun.nombres')"
+                  (blur)="marcarTocado('nombres')"
+                  [attr.aria-invalid]="errorDe('nombres') !== null"
+                  [attr.aria-describedby]="errorDe('nombres') ? 'error-nombres' : null"
+                />
+                @if (errorDe('nombres'); as problema) {
+                  <small class="error-campo" id="error-nombres">{{ problema }}</small>
+                }
+              </div>
+              <div class="campo-validado">
+                <input
+                  type="text"
+                  [attr.placeholder]="t('comun.apellidos')"
+                  autocomplete="off"
+                  [value]="apellidos()"
+                  (input)="anotarApellidos($any($event.target).value)"
+                  [attr.aria-label]="t('comun.apellidos')"
+                  (blur)="marcarTocado('apellidos')"
+                  [attr.aria-invalid]="errorDe('apellidos') !== null"
+                  [attr.aria-describedby]="errorDe('apellidos') ? 'error-apellidos' : null"
+                />
+                @if (errorDe('apellidos'); as problema) {
+                  <small class="error-campo" id="error-apellidos">{{ problema }}</small>
+                }
+              </div>
+              <div class="campo-validado">
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  [attr.placeholder]="t('comun.dni')"
+                  autocomplete="off"
+                  [value]="dni()"
+                  (input)="anotarDni($any($event.target).value)"
+                  [attr.aria-label]="t('comun.documentoIdentidad')"
+                  (blur)="marcarTocado('dni')"
+                  [attr.aria-invalid]="errorDe('dni') !== null"
+                  [attr.aria-describedby]="errorDe('dni') ? 'error-dni' : null"
+                />
+                @if (errorDe('dni'); as problema) {
+                  <small class="error-campo" id="error-dni">{{ problema }}</small>
+                }
+              </div>
+              <div class="campo-validado">
+                <input
+                  type="tel"
+                  [attr.placeholder]="t('comun.celular')"
+                  autocomplete="off"
+                  [value]="celular()"
+                  (input)="anotarCelular($any($event.target).value)"
+                  [attr.aria-label]="t('comun.celular')"
+                  (blur)="marcarTocado('celular')"
+                  [attr.aria-invalid]="errorDe('celular') !== null"
+                  [attr.aria-describedby]="errorDe('celular') ? 'error-celular' : null"
+                />
+                @if (errorDe('celular'); as problema) {
+                  <small class="error-campo" id="error-celular">{{ problema }}</small>
+                }
+              </div>
             </div>
 
             <div class="campos">
               <!-- Opcional para el servidor, pero sin correo no hay Google ni
                /vincular de Discord: las dos vias resuelven la identidad por
                correo. Por eso se pide igual y se avisa si se deja en blanco. -->
-              <input
-                type="email"
-                [attr.placeholder]="t('personal.correoPlaceholder')"
-                autocomplete="off"
-                [value]="correo()"
-                (input)="anotarCorreo($any($event.target).value)"
-                [attr.aria-label]="t('comun.correo')"
-              />
+              <div class="campo-validado">
+                <input
+                  type="email"
+                  [attr.placeholder]="t('personal.correoPlaceholder')"
+                  autocomplete="off"
+                  [value]="correo()"
+                  (input)="anotarCorreo($any($event.target).value)"
+                  [attr.aria-label]="t('comun.correo')"
+                  (blur)="marcarTocado('correo')"
+                  [attr.aria-invalid]="errorDe('correo') !== null"
+                  [attr.aria-describedby]="errorDe('correo') ? 'error-correo' : null"
+                />
+                @if (errorDe('correo'); as problema) {
+                  <small class="error-campo" id="error-correo">{{ problema }}</small>
+                }
+              </div>
               <select
                 [value]="cargoId() ?? ''"
                 (change)="elegirCargo($any($event.target).value)"
@@ -118,22 +158,38 @@
             </div>
 
             <div class="campos">
-              <input
-                type="text"
-                [attr.placeholder]="t('comun.usuario')"
-                autocomplete="off"
-                [value]="username()"
-                (input)="anotarUsername($any($event.target).value)"
-                [attr.aria-label]="t('comun.usuario')"
-              />
-              <input
-                type="password"
-                [attr.placeholder]="t('comun.contrasena')"
-                autocomplete="new-password"
-                [value]="password()"
-                (input)="anotarPassword($any($event.target).value)"
-                [attr.aria-label]="t('comun.contrasena')"
-              />
+              <div class="campo-validado">
+                <input
+                  type="text"
+                  [attr.placeholder]="t('comun.usuario')"
+                  autocomplete="off"
+                  [value]="username()"
+                  (input)="anotarUsername($any($event.target).value)"
+                  [attr.aria-label]="t('comun.usuario')"
+                  (blur)="marcarTocado('username')"
+                  [attr.aria-invalid]="errorDe('username') !== null"
+                  [attr.aria-describedby]="errorDe('username') ? 'error-username' : null"
+                />
+                @if (errorDe('username'); as problema) {
+                  <small class="error-campo" id="error-username">{{ problema }}</small>
+                }
+              </div>
+              <div class="campo-validado">
+                <input
+                  type="password"
+                  [attr.placeholder]="t('comun.contrasena')"
+                  autocomplete="new-password"
+                  [value]="password()"
+                  (input)="anotarPassword($any($event.target).value)"
+                  [attr.aria-label]="t('comun.contrasena')"
+                  (blur)="marcarTocado('password')"
+                  [attr.aria-invalid]="errorDe('password') !== null"
+                  [attr.aria-describedby]="errorDe('password') ? 'error-password' : null"
+                />
+                @if (errorDe('password'); as problema) {
+                  <small class="error-campo" id="error-password">{{ problema }}</small>
+                }
+              </div>
               <button type="button" (click)="alta()" [disabled]="guardando()">
                 {{ t(guardando() ? 'comun.guardando' : 'personal.darDeAlta') }}
               </button>
@@ -150,7 +206,9 @@
                 <th>{{ t('comun.documento') }}</th>
                 <th>{{ t('comun.cargo') }}</th>
                 <th>{{ t('personal.abre') }}</th>
-                <th><span class="visualmente-oculto">{{ t('comun.acciones') }}</span></th>
+                <th>
+                  <span class="visualmente-oculto">{{ t('comun.acciones') }}</span>
+                </th>
               </tr>
             </thead>
             <tbody>

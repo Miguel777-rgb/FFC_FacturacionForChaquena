@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 
 import { Icono } from '../../disenio/icono';
@@ -19,6 +26,7 @@ import {
 } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { problemaDe } from '../../nucleo/validacion/patrones';
 import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 
 /** Longitud minima que exige el servidor al restablecer una contrasena. */
@@ -104,6 +112,38 @@ export class PersonalPage implements OnInit {
   protected readonly correo = signal('');
   protected readonly username = signal('');
   protected readonly password = signal('');
+
+  /**
+   * Lo que cada campo tiene mal, por campo. Se calcula mientras se escribe,
+   * pero el mensaje solo se pinta cuando el campo ya se toco: marcar en rojo lo
+   * que todavia no se ha terminado de escribir es hostigar, no ayudar.
+   */
+  protected readonly tocados = signal<ReadonlySet<string>>(new Set());
+
+  protected readonly errores = computed<Record<string, ClaveI18n | null>>(() => ({
+    nombres: problemaDe('nombre', this.nombres()),
+    apellidos: problemaDe('nombre', this.apellidos()),
+    dni: problemaDe('dni', this.dni()),
+    celular: problemaDe('celular', this.celular()),
+    correo: problemaDe('correo', this.correo()),
+    username: problemaDe('usuario', this.username()),
+    password: problemaDe('contrasena', this.password()),
+  }));
+
+  /** El mensaje de un campo, solo si ya se toco. */
+  protected errorDe(campo: string): string | null {
+    const clave = this.errores()[campo];
+    return clave && this.tocados().has(campo) ? this.t(clave) : null;
+  }
+
+  protected marcarTocado(campo: string): void {
+    this.tocados.update((antes) => new Set(antes).add(campo));
+  }
+
+  private get hayErrores(): boolean {
+    return Object.values(this.errores()).some((e) => e !== null);
+  }
+
   protected readonly cargoId = signal<number | null>(null);
 
   // --- cargos ---------------------------------------------------------------
@@ -235,6 +275,13 @@ export class PersonalPage implements OnInit {
       this.avisos.info(this.t('personal.avisoFaltanDatos'));
       return;
     }
+    // El formato se comprueba aqui otra vez y no solo campo a campo: se puede
+    // llegar al boton sin haber salido de un campo mal escrito.
+    if (this.hayErrores) {
+      this.tocados.set(new Set(Object.keys(this.errores())));
+      this.avisos.error(this.t('validacion.revisa'));
+      return;
+    }
 
     this.guardando.set(true);
     this.trabajadoresApi
@@ -256,6 +303,7 @@ export class PersonalPage implements OnInit {
           this.correo.set('');
           this.username.set('');
           this.password.set('');
+          this.tocados.set(new Set());
           this.avisos.exito(
             this.t('personal.avisoAlta', {
               nombre: this.nombreCompleto(nuevo),
