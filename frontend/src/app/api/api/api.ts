@@ -2,6 +2,8 @@ export * from './archivos.api';
 import { ArchivosApi } from './archivos.api';
 export * from './autenticacion.api';
 import { AutenticacionApi } from './autenticacion.api';
+export * from './autenticacion-recuperacion.api';
+import { AutenticacionRecuperacionApi } from './autenticacion-recuperacion.api';
 export * from './bots.api';
 import { BotsApi } from './bots.api';
 export * from './caja-arqueo-y-fraude.api';
@@ -71,6 +73,7 @@ import { TrabajadoresApi } from './trabajadores.api';
 export const APIS = [
   ArchivosApi,
   AutenticacionApi,
+  AutenticacionRecuperacionApi,
   BotsApi,
   CajaArqueoYFraudeApi,
   CajaPagosApi,

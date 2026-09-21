@@ -3541,6 +3541,7 @@
         "properties": {
           "apellidos": {
             "minLength": 1,
+            "pattern": "\\p{L}+([ '’-]\\p{L}+)*",
             "type": "string"
           },
           "cargoId": {
@@ -3549,6 +3550,7 @@
           },
           "celular": {
             "minLength": 1,
+            "pattern": "(\\+?51 ?)?9\\d{8}",
             "type": "string"
           },
           "correo": {
@@ -3557,18 +3559,22 @@
           },
           "dni": {
             "minLength": 1,
+            "pattern": "\\d{8}",
             "type": "string"
           },
           "nombres": {
             "minLength": 1,
+            "pattern": "\\p{L}+([ '’-]\\p{L}+)*",
             "type": "string"
           },
           "password": {
             "minLength": 1,
+            "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}",
             "type": "string"
           },
           "username": {
             "minLength": 1,
+            "pattern": "[a-z][a-z0-9._-]{2,19}",
             "type": "string"
           }
         },
@@ -3784,6 +3790,24 @@
         ],
         "type": "object"
       },
+      "RestablecerPasswordRequestDto": {
+        "properties": {
+          "password": {
+            "minLength": 1,
+            "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}",
+            "type": "string"
+          },
+          "token": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "password",
+          "token"
+        ],
+        "type": "object"
+      },
       "ResultadoImportacionCartaDto": {
         "properties": {
           "complementosActualizados": {
@@ -3922,6 +3946,19 @@
             "type": "array"
           }
         },
+        "type": "object"
+      },
+      "SolicitarRecuperacionRequestDto": {
+        "properties": {
+          "correo": {
+            "format": "email",
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "correo"
+        ],
         "type": "object"
       },
       "TableroDto": {
@@ -4778,6 +4815,66 @@
         },
         "tags": [
           "Autenticacion"
+        ]
+      }
+    },
+    "/api/v1/auth/recuperacion": {
+      "post": {
+        "description": "Contesta siempre lo mismo, exista o no el correo. El enlace caduca y solo sirve una vez; pedir otro anula el anterior.",
+        "operationId": "solicitarRecuperacion",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Accept-Language",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitarRecuperacionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Pedir el enlace para restablecer la contrasena",
+        "tags": [
+          "Autenticacion - Recuperacion"
+        ]
+      }
+    },
+    "/api/v1/auth/recuperacion/confirmacion": {
+      "post": {
+        "description": "409 si el enlace caduco, ya se uso o no existe.",
+        "operationId": "restablecerPasswordConToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestablecerPasswordRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Poner la contrasena nueva con el token del enlace",
+        "tags": [
+          "Autenticacion - Recuperacion"
         ]
       }
     },
@@ -10559,6 +10656,10 @@
     {
       "description": "Bebidas, helados, salsas y extras",
       "name": "Catalogo - Complementos"
+    },
+    {
+      "description": "Restablecer la contrasena por correo",
+      "name": "Autenticacion - Recuperacion"
     },
     {
       "description": "Escalones del programa de lealtad por puntos",

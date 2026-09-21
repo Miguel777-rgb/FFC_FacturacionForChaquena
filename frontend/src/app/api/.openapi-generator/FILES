@@ -2,6 +2,7 @@ api.base.service.ts
 api.module.ts
 api/api.ts
 api/archivos.api.ts
+api/autenticacion-recuperacion.api.ts
 api/autenticacion.api.ts
 api/bots.api.ts
 api/caja-arqueo-y-fraude.api.ts
@@ -157,12 +158,14 @@ model/reporte-ventas-dto.ts
 model/reserva-request-dto.ts
 model/reserva-response-dto.ts
 model/reservar-mesa-request-dto.ts
+model/restablecer-password-request-dto.ts
 model/resultado-importacion-carta-dto.ts
 model/resumen-inventario-dto.ts
 model/rol-response-dto.ts
 model/seccion-importacion-dto.ts
 model/seccion-leida-dto.ts
 model/serie-ventas-dto.ts
+model/solicitar-recuperacion-request-dto.ts
 model/tablero-dto.ts
 model/ticket-cocina-dto.ts
 model/trabajador-response-dto.ts
