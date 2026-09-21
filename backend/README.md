@@ -33,7 +33,7 @@ pnpm dlx newman run end_points.json \
 ## Lo que se agregó con el reajuste de la interfaz
 
 Todas las rutas cuelgan de `/api/v1`; el contrato completo está en `/v3/api-docs`
-y cada una tiene su petición de ejemplo en `end_points.json` (carpetas 25 a 32).
+y cada una tiene su petición de ejemplo en `end_points.json` (carpetas 25 a 33).
 Leer los catálogos (local, niveles, proveedores, alérgenos) es de cualquier
 sesión; la columna «Quién» dice quién puede cambiarlos.
 
@@ -49,6 +49,7 @@ sesión; la columna «Quién» dice quién puede cambiarlos.
 | Tiempo real (`tiemporeal`) | `GET /eventos/stream` | cualquier sesión, filtrado por cargo | Ver abajo |
 | Reportes (`reportes`) | `GET /reportes/ventas-por-metodo-pago` · `GET /reportes/{ventas,productos,inventario,asistencia}/exportar` | los cargos de cada pantalla | Ver abajo |
 | Lectura de la carta (`inventario`) | `GET /carta/lector` · `POST /carta/lecturas` · `POST /carta/importaciones` | ADMIN | Ver abajo |
+| Recuperar la contraseña (`auth`) | `POST /auth/recuperacion` · `POST /auth/recuperacion/confirmacion` | público | Ver abajo |
 
 ### Tiempo real
 
@@ -109,6 +110,44 @@ commit y comprobado por hash, porque las reglas se calibraron con ese modelo.
 Fuera de Docker hacen falta `app.carta.tesseract` (el programa) y
 `app.carta.tessdata` (la carpeta del modelo); si falta cualquiera de los dos,
 `GET /carta/lector` lo dice y la pantalla no ofrece subir fotos.
+
+### «Olvidé mi contraseña»
+
+Hasta ahora, quien olvidaba su contraseña dependía de que un administrador se la
+restableciera. `POST /auth/recuperacion` manda al correo de la cuenta un enlace a
+`/restablecer?token=…`, y `POST /auth/recuperacion/confirmacion` cambia la
+contraseña con ese token. Los dos son públicos, porque quien los usa —por
+definición— no puede iniciar sesión.
+
+Tres cautelas gobiernan el mecanismo, y las tres son deliberadas:
+
+1. **Pedirlo nunca confirma nada.** La respuesta es 202 y el mismo texto exista o
+   no el correo. Si dijera «ese correo no está registrado», el formulario sería
+   un comprobador de quién trabaja en el local: basta una lista de direcciones.
+2. **Lo que se guarda es la huella, no el token.** El token viaja en el enlace y
+   no queda escrito en el servidor; en `tokens_recuperacion` está su SHA-256. Un
+   volcado de la base no sirve para entrar.
+3. **Un enlace, un uso.** Caduca a los 30 minutos, se marca gastado al usarse y
+   pedir otro anula los anteriores. Hay además un tope de tres por persona y
+   hora, porque sin freno el botón es un cañón de correos hacia una dirección
+   ajena. La contraseña nueva pasa la misma expresión regular que el alta.
+
+El correo sale por SMTP con **STARTTLS en el 587** y va en texto plano, en el
+idioma que traiga `Accept-Language` —español, inglés o portugués—, la misma
+cabecera que ya decide el idioma de los PDF exportados. La configuración vive en
+el `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USUARIO`, `SMTP_CLAVE`,
+`CORREO_REMITENTE` y `RECUPERACION_URL_BASE`, que es el dominio público que se
+pega en el enlace). Con Gmail hace falta una contraseña de aplicación, no la del
+correo.
+
+Dos detalles operativos que cuestan un rato entender si no se dicen. El envío
+**no puede tumbar la petición**: si el servidor de correo no contesta, quien lo
+pidió ve el mismo mensaje de siempre y el fallo queda en el registro, porque lo
+contrario contaría por la puerta de atrás lo que el 202 calla. Y la sonda de
+salud **no mira el correo** (`management.health.mail.enabled=false`): Spring Boot
+abre si no una conexión SMTP en cada consulta a `/actuator/health`, y con eso un
+servidor de correo caído deja el contenedor «unhealthy» y el local sin sistema
+por algo que no impide cobrar.
 
 ## Los bots
 

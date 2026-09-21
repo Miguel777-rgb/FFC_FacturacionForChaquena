@@ -370,8 +370,8 @@ Dos consecuencias prácticas:
    navegador en segundo plano estrangula los intervalos, y una pestaña dormida
    nunca llegaría al límite. Al cerrarse, el login explica por qué
    (`?motivo=inactividad`).
-7. `sinSesion` hace lo contrario en `/entrar`: con la sesión abierta lleva al
-   puesto del rol. Sin esa guarda, retroceder con el navegador hasta el login lo
+7. `sinSesion` hace lo contrario en `/entrar`, `/recuperar` y `/restablecer`:
+   con la sesión abierta lleva al puesto del rol. Sin esa guarda, retroceder con el navegador hasta el login lo
    dibujaba **dentro** del cascarón de la sesión —el panel con el nombre y el
    cargo de quien ya había entrado, y al lado un formulario pidiendo usuario y
    contraseña—, porque el cascarón mira `autenticado()` y el `router-outlet`
@@ -470,6 +470,18 @@ idiomas del selector tengan diccionario.
   como están; traducirlos los haría irreconocibles en el mostrador.
 
 ---
+
+## Contraseña olvidada
+
+Desde el acceso, **¿Olvidaste tu contraseña?** lleva a `/recuperar`: se escribe
+el correo y el servidor manda un enlace a `/restablecer?token=…`, donde se elige
+la nueva. Dos pantallas públicas y sin panel, porque quien llega a ellas no
+puede entrar.
+
+| Pantalla | Qué hace | Detalle que conviene no romper |
+|---|---|---|
+| [recuperar.page.ts](src/app/paginas/recuperar/recuperar.page.ts) | Pide el correo | **El desenlace es el mismo pase lo que pase**, también si el servidor falla: se enseña «si ese correo pertenece a una cuenta…». Si la pantalla distinguiera los casos, contaría por la puerta de atrás lo que el 202 del servidor calla, y el formulario serviría para averiguar quién tiene cuenta |
+| [restablecer.page.ts](src/app/paginas/restablecer/restablecer.page.ts) | Elige la contraseña nueva | El token sale de la URL y no se guarda en ninguna parte del navegador: viaja con la contraseña y se olvida. La contraseña pasa el mismo `PATRONES.contrasena` que el alta, y se pide dos veces. Al terminar se va al acceso: cambiarla y entrar son dos pasos a propósito. Cuando el enlace ya no vale, se enseña **el motivo que da el servidor** —caducó, ya se usó, no existe—, no un texto propio |
 
 ## Validación de formularios
 
@@ -678,6 +690,7 @@ mirar la pantalla:
 | [turnos.seccion.spec.ts](src/app/paginas/personal/turnos.seccion.spec.ts) | Que la semana se pinte por persona y que un turno de noche se guarde terminando al día siguiente |
 | [asistencia.seccion.spec.ts](src/app/paginas/personal/asistencia.seccion.spec.ts) | Que cada turno muestre su entrada, marque la tardanza y diga quién faltó |
 | [selector-idioma.spec.ts](src/app/disenio/selector-idioma.spec.ts) | Que el desplegable ofrezca los tres idiomas con su nombre, que marque cuál está en uso, que elegir otro lo cambie y que un valor desconocido se ignore: si el control desaparece, los otros dos idiomas quedan inalcanzables sin que falle nada |
+| [recuperar.page.spec.ts](src/app/paginas/recuperar/recuperar.page.spec.ts) · [restablecer.page.spec.ts](src/app/paginas/restablecer/restablecer.page.spec.ts) | Que pedir el enlace acabe igual con un 202 que con un 500 —lo contrario delataría qué correos existen—, que sin token no se enseñe el formulario, que una contraseña floja o dos que no coinciden no lleguen al servidor, y que el motivo de un enlace caducado salga tal como lo manda el servidor |
 | [patrones.spec.ts](src/app/nucleo/validacion/patrones.spec.ts) | Que cada expresión regular acepte lo que debe y **rechace lo que debe**: sin la comprobación de las anclas, `\d{8}` daría por bueno un DNI metido dentro de una frase |
 
 ---

@@ -7425,6 +7425,76 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "33 · Auth · Recuperar la contrasena",
+      "item": [
+        {
+          "name": "Pedir el enlace (publico)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "es"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/recuperacion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "recuperacion"
+              ]
+            },
+            "description": "Responde 202 exista o no el correo: decir «no esta registrado» convertiria el formulario en un comprobador de quien tiene cuenta. El enlace caduca en 30 minutos, sirve una vez y pedir otro anula el anterior; maximo tres por hora y por persona. La cabecera Accept-Language decide el idioma del correo (es, en o pt).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@chaquena.pe\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Poner la contrasena nueva con el token del correo (publico)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/recuperacion/confirmacion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "recuperacion",
+                "confirmacion"
+              ]
+            },
+            "description": "El token sale del enlace del correo. 204 si se cambio; 409 si el enlace caduco, ya se uso o no existe; 400 si la contrasena no cumple el formato (ocho caracteres con mayuscula, minuscula y cifra).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{token_recuperacion}}\",\n  \"password\": \"Chaquena2026\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
