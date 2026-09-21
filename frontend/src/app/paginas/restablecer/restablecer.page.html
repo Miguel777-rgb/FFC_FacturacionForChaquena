@@ -1,0 +1,55 @@
+<div class="entrada">
+  <form class="tarjeta" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <header>
+      <h1><span class="marca">Chaquena</span> {{ t('login.modulo') }}</h1>
+      <p class="subtitulo">{{ t('restablecer.subtitulo') }}</p>
+    </header>
+
+    @if (sinToken()) {
+      <p class="error" role="alert">{{ t('restablecer.sinEnlace') }}</p>
+      <p class="pie">
+        <a routerLink="/recuperar">{{ t('restablecer.pedirOtro') }}</a>
+      </p>
+    } @else {
+      <label>
+        <span>{{ t('restablecer.nueva') }}</span>
+        <input
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+          [attr.aria-invalid]="passwordInvalida"
+          [attr.aria-describedby]="passwordInvalida ? 'error-password' : null"
+        />
+      </label>
+      @if (passwordInvalida) {
+        <small class="error-campo" id="error-password">{{ t('validacion.contrasena') }}</small>
+      }
+
+      <label>
+        <span>{{ t('restablecer.repetir') }}</span>
+        <input
+          type="password"
+          formControlName="repetida"
+          autocomplete="new-password"
+          [attr.aria-invalid]="noCoinciden"
+          [attr.aria-describedby]="noCoinciden ? 'error-repetida' : null"
+        />
+      </label>
+      @if (noCoinciden) {
+        <small class="error-campo" id="error-repetida">{{ t('restablecer.noCoinciden') }}</small>
+      }
+
+      @if (error(); as textoError) {
+        <p class="error" role="alert">{{ textoError }}</p>
+      }
+
+      <button type="submit" [disabled]="enviando()" [attr.aria-busy]="enviando()">
+        {{ t(enviando() ? 'comun.guardando' : 'restablecer.guardar') }}
+      </button>
+
+      <p class="pie">
+        <a routerLink="/entrar">{{ t('recuperar.volver') }}</a>
+      </p>
+    }
+  </form>
+</div>

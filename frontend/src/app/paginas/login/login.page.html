@@ -54,6 +54,10 @@
       {{ t(enviando() ? 'login.entrando' : 'login.entrar') }}
     </button>
 
+    <p class="pie">
+      <a routerLink="/recuperar">{{ t('login.olvide') }}</a>
+    </p>
+
     @if (google.disponible()) {
       <p class="separador">
         <span>{{ t('login.o') }}</span>

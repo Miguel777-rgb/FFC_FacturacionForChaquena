@@ -23,6 +23,23 @@ export const routes: Routes = [
     loadComponent: () => import('./paginas/login/login.page').then((m) => m.LoginPage),
   },
 
+  // Las dos pantallas del olvido: pedir el enlace y elegir la contrasena nueva.
+  // Publicas por lo mismo que el acceso —quien llega aqui no puede entrar— y con
+  // `sinSesion` por lo mismo: con la sesion abierta no pintan nada.
+  {
+    path: 'recuperar',
+    title: 'titulo.recuperar',
+    canActivate: [sinSesion],
+    loadComponent: () => import('./paginas/recuperar/recuperar.page').then((m) => m.RecuperarPage),
+  },
+  {
+    path: 'restablecer',
+    title: 'titulo.restablecer',
+    canActivate: [sinSesion],
+    loadComponent: () =>
+      import('./paginas/restablecer/restablecer.page').then((m) => m.RestablecerPage),
+  },
+
   // --- operacion: el dia del local y los puestos por los que pasa una comanda ----
   {
     path: 'tablero',

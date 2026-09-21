@@ -1,7 +1,7 @@
 import { computed, Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { Icono } from '../../disenio/icono';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { AutenticacionApi, type AuthResponseDto } from '../../api';
@@ -14,7 +14,7 @@ import { INICIO_POR_ROL } from '../../nucleo/sesion/rol';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, Icono],
+  imports: [ReactiveFormsModule, RouterLink, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.page.html',
   styleUrl: './login.page.scss',

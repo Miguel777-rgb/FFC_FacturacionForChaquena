@@ -1,0 +1,40 @@
+<div class="entrada">
+  <form class="tarjeta" [formGroup]="formulario" (ngSubmit)="pedir()" novalidate>
+    <header>
+      <h1><span class="marca">Chaquena</span> {{ t('login.modulo') }}</h1>
+      <p class="subtitulo">{{ t('recuperar.subtitulo') }}</p>
+    </header>
+
+    @if (enviado()) {
+      <!-- El mismo texto exista o no el correo: decir «no está registrado»
+           convertiría esta pantalla en un comprobador de quién tiene cuenta. -->
+      <p class="nota" role="status">{{ t('recuperar.enviado') }}</p>
+      <p class="tenue">{{ t('recuperar.revisaSpam') }}</p>
+      <button type="button" (click)="volver()">{{ t('recuperar.volver') }}</button>
+    } @else {
+      <label>
+        <span>{{ t('comun.correo') }}</span>
+        <input
+          type="email"
+          formControlName="correo"
+          autocomplete="email"
+          autocapitalize="none"
+          spellcheck="false"
+          [attr.aria-invalid]="correoInvalido"
+          [attr.aria-describedby]="correoInvalido ? 'error-correo' : null"
+        />
+      </label>
+      @if (correoInvalido) {
+        <small class="error-campo" id="error-correo">{{ t('validacion.correo') }}</small>
+      }
+
+      <button type="submit" [disabled]="enviando()" [attr.aria-busy]="enviando()">
+        {{ t(enviando() ? 'recuperar.enviando' : 'recuperar.enviar') }}
+      </button>
+
+      <p class="pie">
+        <a routerLink="/entrar">{{ t('recuperar.volver') }}</a>
+      </p>
+    }
+  </form>
+</div>

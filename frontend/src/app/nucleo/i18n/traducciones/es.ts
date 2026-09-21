@@ -156,12 +156,34 @@ export const ES = {
 
   // --- validación de formularios (expresiones regulares) --------------------
   'validacion.dni': 'El DNI son ocho dígitos, sin puntos ni espacios.',
-  'validacion.celular': 'El celular peruano son nueve dígitos y empieza en 9; se admite el 51 delante.',
+  'validacion.celular':
+    'El celular peruano son nueve dígitos y empieza en 9; se admite el 51 delante.',
   'validacion.correo': 'Escribe un correo con arroba y dominio, como nombre@chaquena.pe.',
   'validacion.nombre': 'Solo letras, tildes y ñ; sin cifras.',
   'validacion.usuario': 'Entre 3 y 20 caracteres en minúscula, empezando por letra.',
   'validacion.contrasena': 'Mínimo ocho caracteres, con una mayúscula, una minúscula y un número.',
   'validacion.revisa': 'Revisa los campos marcados antes de guardar.',
+
+  'login.olvide': '¿Olvidaste tu contraseña?',
+  'titulo.recuperar': 'Recuperar contraseña',
+  'titulo.restablecer': 'Nueva contraseña',
+  'recuperar.subtitulo': 'Te mandamos un enlace al correo de tu cuenta.',
+  'recuperar.enviar': 'Enviar el enlace',
+  'recuperar.enviando': 'Enviando…',
+  'recuperar.enviado':
+    'Si ese correo pertenece a una cuenta, el enlace ya va en camino. Caduca en media hora y sirve una sola vez.',
+  'recuperar.revisaSpam': 'Si no aparece en unos minutos, mira en la carpeta de correo no deseado.',
+  'recuperar.volver': 'Volver a entrar',
+  'restablecer.subtitulo': 'Elige tu contraseña nueva.',
+  'restablecer.nueva': 'Contraseña nueva',
+  'restablecer.repetir': 'Repite la contraseña',
+  'restablecer.noCoinciden': 'Las dos contraseñas tienen que ser la misma.',
+  'restablecer.guardar': 'Guardar y entrar',
+  'restablecer.listo': 'Contraseña cambiada. Entra con la nueva.',
+  'restablecer.sinEnlace':
+    'Este enlace está incompleto. Pide uno nuevo desde la pantalla de acceso.',
+  'restablecer.pedirOtro': 'Pedir otro enlace',
+  'restablecer.errorGenerico': 'No se pudo cambiar la contraseña. Pide un enlace nuevo.',
   'login.errorGoogle': 'No se pudo entrar con Google.',
   'login.errorSinToken': 'El servidor no devolvió un token. Avisa al administrador.',
 

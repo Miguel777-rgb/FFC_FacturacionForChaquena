@@ -140,12 +140,34 @@ export const PT: Record<ClaveI18n, string> = {
 
   // --- validação de formulários (expressões regulares) ----------------------
   'validacion.dni': 'O documento tem oito dígitos, sem pontos nem espaços.',
-  'validacion.celular': 'O celular peruano tem nove dígitos e começa com 9; o 51 na frente é aceito.',
+  'validacion.celular':
+    'O celular peruano tem nove dígitos e começa com 9; o 51 na frente é aceito.',
   'validacion.correo': 'Escreva um e-mail com arroba e domínio, como nome@chaquena.pe.',
   'validacion.nombre': 'Somente letras, com acentos; sem números.',
   'validacion.usuario': 'Entre 3 e 20 caracteres minúsculos, começando por letra.',
-  'validacion.contrasena': 'No mínimo oito caracteres, com uma maiúscula, uma minúscula e um número.',
+  'validacion.contrasena':
+    'No mínimo oito caracteres, com uma maiúscula, uma minúscula e um número.',
   'validacion.revisa': 'Revise os campos marcados antes de salvar.',
+
+  'login.olvide': 'Esqueceu sua senha?',
+  'titulo.recuperar': 'Recuperar senha',
+  'titulo.restablecer': 'Nova senha',
+  'recuperar.subtitulo': 'Enviamos um link para o e-mail da sua conta.',
+  'recuperar.enviar': 'Enviar o link',
+  'recuperar.enviando': 'Enviando…',
+  'recuperar.enviado':
+    'Se esse e-mail pertence a uma conta, o link já está a caminho. Expira em meia hora e serve uma só vez.',
+  'recuperar.revisaSpam': 'Se não chegar em alguns minutos, veja na pasta de spam.',
+  'recuperar.volver': 'Voltar a entrar',
+  'restablecer.subtitulo': 'Escolha sua nova senha.',
+  'restablecer.nueva': 'Nova senha',
+  'restablecer.repetir': 'Repita a senha',
+  'restablecer.noCoinciden': 'As duas senhas têm de ser iguais.',
+  'restablecer.guardar': 'Salvar e entrar',
+  'restablecer.listo': 'Senha alterada. Entre com a nova.',
+  'restablecer.sinEnlace': 'Este link está incompleto. Peça um novo na tela de acesso.',
+  'restablecer.pedirOtro': 'Pedir outro link',
+  'restablecer.errorGenerico': 'Não foi possível alterar a senha. Peça um link novo.',
   'login.errorGoogle': 'Não foi possível entrar com o Google.',
   'login.errorSinToken': 'O servidor não devolveu um token. Avise o administrador.',
 

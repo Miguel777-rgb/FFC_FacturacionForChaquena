@@ -142,12 +142,34 @@ export const EN: Record<ClaveI18n, string> = {
 
   // --- form validation (regular expressions) --------------------------------
   'validacion.dni': 'The ID number is eight digits, with no dots or spaces.',
-  'validacion.celular': 'A Peruvian mobile is nine digits starting with 9; the 51 prefix is allowed.',
+  'validacion.celular':
+    'A Peruvian mobile is nine digits starting with 9; the 51 prefix is allowed.',
   'validacion.correo': 'Type an address with an at sign and a domain, such as name@chaquena.pe.',
   'validacion.nombre': 'Letters only, accents included; no digits.',
   'validacion.usuario': 'Between 3 and 20 lowercase characters, starting with a letter.',
-  'validacion.contrasena': 'At least eight characters, with one uppercase, one lowercase and one digit.',
+  'validacion.contrasena':
+    'At least eight characters, with one uppercase, one lowercase and one digit.',
   'validacion.revisa': 'Check the marked fields before saving.',
+
+  'login.olvide': 'Forgot your password?',
+  'titulo.recuperar': 'Recover password',
+  'titulo.restablecer': 'New password',
+  'recuperar.subtitulo': 'We send a link to your account email.',
+  'recuperar.enviar': 'Send the link',
+  'recuperar.enviando': 'Sending…',
+  'recuperar.enviado':
+    'If that address belongs to an account, the link is already on its way. It expires in half an hour and works once.',
+  'recuperar.revisaSpam': 'If it does not turn up in a few minutes, check the spam folder.',
+  'recuperar.volver': 'Back to sign in',
+  'restablecer.subtitulo': 'Choose your new password.',
+  'restablecer.nueva': 'New password',
+  'restablecer.repetir': 'Repeat the password',
+  'restablecer.noCoinciden': 'Both passwords have to match.',
+  'restablecer.guardar': 'Save and sign in',
+  'restablecer.listo': 'Password changed. Sign in with the new one.',
+  'restablecer.sinEnlace': 'This link is incomplete. Ask for a new one from the sign-in screen.',
+  'restablecer.pedirOtro': 'Ask for another link',
+  'restablecer.errorGenerico': 'The password could not be changed. Ask for a new link.',
   'login.errorGoogle': 'Could not sign in with Google.',
   'login.errorSinToken': 'The server returned no token. Tell the administrator.',
 

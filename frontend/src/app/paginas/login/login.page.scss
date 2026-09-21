@@ -107,6 +107,14 @@ button[type='submit'] {
   width: 100%;
 }
 
+/* El enlace de «olvidé mi contraseña» y el de volver: centrados bajo el botón,
+   en el tamaño del texto pequeño, sin competir con la acción principal. */
+.pie {
+  margin: 0;
+  font-size: var(--t-chico);
+  text-align: center;
+}
+
 /* Las dos vias de entrada son alternativas, no una principal y una escondida. */
 .separador {
   display: flex;
