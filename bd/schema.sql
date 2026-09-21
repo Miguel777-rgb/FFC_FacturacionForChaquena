@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 1HwAkoHyA9fIxq5rzaCIDXpGxxkEglXUUVOqQvTXuoDrYmJzLp9ZqBJcp8xfHik
+\restrict HI0CmedYyaT4UStWwZRyqxoZepKD6yMHiw7xNGKaPqGzKhkljSNRg5CZb7QYbwK
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -893,6 +893,23 @@ CREATE TABLE public.sesiones_bot (
 
 
 --
+-- Name: tokens_recuperacion; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tokens_recuperacion (
+    id uuid NOT NULL,
+    created_by character varying(100) NOT NULL,
+    date_created timestamp(6) with time zone NOT NULL,
+    expira_en timestamp(6) with time zone NOT NULL,
+    huella character varying(64) NOT NULL,
+    last_date_modified timestamp(6) with time zone NOT NULL,
+    modified_by character varying(100) NOT NULL,
+    usado_en timestamp(6) with time zone,
+    trabajador_id uuid NOT NULL
+);
+
+
+--
 -- Name: trabajadores; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1251,6 +1268,14 @@ ALTER TABLE ONLY public.sesiones_bot
 
 
 --
+-- Name: tokens_recuperacion tokens_recuperacion_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tokens_recuperacion
+    ADD CONSTRAINT tokens_recuperacion_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: trabajadores trabajadores_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1360,6 +1385,14 @@ ALTER TABLE ONLY public.proveedores
 
 ALTER TABLE ONLY public.sesiones_bot
     ADD CONSTRAINT uk_sesion_bot_canal_remitente UNIQUE (canal, remitente_id);
+
+
+--
+-- Name: tokens_recuperacion uk_tokens_recuperacion_huella; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tokens_recuperacion
+    ADD CONSTRAINT uk_tokens_recuperacion_huella UNIQUE (huella);
 
 
 --
@@ -1580,6 +1613,14 @@ ALTER TABLE ONLY public.orden_detalle_complementos
 
 ALTER TABLE ONLY public.calificaciones_feedback
     ADD CONSTRAINT fk8bdonmh61n5ik6mks22nmo7he FOREIGN KEY (orden_id) REFERENCES public.ordenes(id);
+
+
+--
+-- Name: tokens_recuperacion fk8nujxm2geo1q8teivdsof806c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tokens_recuperacion
+    ADD CONSTRAINT fk8nujxm2geo1q8teivdsof806c FOREIGN KEY (trabajador_id) REFERENCES public.trabajadores(persona_id);
 
 
 --
@@ -1818,5 +1859,5 @@ ALTER TABLE ONLY public.cliente_empresas
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 1HwAkoHyA9fIxq5rzaCIDXpGxxkEglXUUVOqQvTXuoDrYmJzLp9ZqBJcp8xfHik
+\unrestrict HI0CmedYyaT4UStWwZRyqxoZepKD6yMHiw7xNGKaPqGzKhkljSNRg5CZb7QYbwK
 
