@@ -11,6 +11,12 @@ FROM maven:3.9-eclipse-temurin-21 AS compilacion
 
 WORKDIR /construccion
 
+# La compilacion ocurre en el servidor, junto a los contenedores que siguen
+# atendiendo. Sin este techo, Maven mide la RAM de la maquina y se reserva una
+# cuarta parte para el solo, justo mientras el backend viejo todavia ocupa la
+# suya.
+ENV MAVEN_OPTS="-Xmx512m -XX:MaxMetaspaceSize=192m"
+
 # El pom va solo y primero: mientras no cambien las dependencias, Docker
 # reutiliza la capa con el repositorio ya descargado y la compilacion arranca
 # en segundos en lugar de bajarse Spring entero otra vez.
@@ -63,8 +69,40 @@ ENV CARTA_TESSDATA=/aplicacion/tessdata
 USER chaquena
 EXPOSE 8080
 
-# MaxRAMPercentage deja que la JVM respete el limite de memoria del contenedor
-# en lugar de mirar la RAM de la maquina entera y reservar de mas.
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseContainerSupport"
+# Ajuste para un servidor pequeno. Todo lo de aqui se mide contra el limite del
+# contenedor, no contra la maquina: UseContainerSupport lee el cgroup, pero solo
+# funciona si el compose declara `mem_limit`. Sin ese limite la JVM mide la RAM
+# entera del servidor y un MaxRAMPercentage alto se la lleva casi toda.
+#
+#   MaxRAMPercentage=55   Techo del heap. El resto del contenedor no sobra: es
+#                         para metaspace, cache de codigo, pilas de hilos y los
+#                         buferes directos, que no salen del heap.
+#   InitialRAMPercentage  Arranca pequeno y crece si hace falta, en vez de
+#                         reservar el maximo desde el primer segundo.
+#   Min/MaxHeapFreeRatio  Y vuelve a encogerse cuando el local esta tranquilo.
+#                         Sin esto el heap solo sube: una hora punta deja la
+#                         memoria tomada hasta el siguiente reinicio, que es lo
+#                         que hacia que el consumo en reposo fuera alto.
+#   UseSerialGC           Con este tamano la JVM ya lo elegiria sola. Explicito
+#                         para que no cambie si el contenedor crece: G1 mantiene
+#                         estructuras por region y varios hilos que aqui no se
+#                         pagan solos.
+#   Xss768k               Pila por hilo, contra el mega por defecto.
+#   MaxMetaspaceSize      Las clases tienen techo: sin el, una fuga de metaspace
+#                         se come el contenedor sin tocar el heap.
+#   MaxDirectMemorySize   Los buferes fuera del heap de Lettuce y del cliente
+#                         HTTP de los bots.
+#   ExitOnOutOfMemoryError  Morir y que el compose reinicie, en vez de quedarse
+#                         medio vivo respondiendo a medias.
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+-XX:MaxRAMPercentage=55 \
+-XX:InitialRAMPercentage=15 \
+-XX:MinHeapFreeRatio=10 \
+-XX:MaxHeapFreeRatio=30 \
+-XX:+UseSerialGC \
+-Xss768k \
+-XX:MaxMetaspaceSize=256m \
+-XX:MaxDirectMemorySize=64m \
+-XX:+ExitOnOutOfMemoryError"
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar aplicacion.jar"]

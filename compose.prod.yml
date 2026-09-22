@@ -22,6 +22,22 @@
 #     externo porque reutiliza el de desarrollo, y en una maquina limpia no
 #     existe.
 #
+# Reparto de memoria, pensado para un servidor de 2 GB:
+#
+#   backend-logistica    896 MB   de los que ~490 son el heap de la JVM
+#   bd-logistica         256 MB
+#   redis-logistica       64 MB
+#   frontend-logistica    48 MB
+#   ------------------------------
+#   total              1 264 MB   quedan ~700 MB para el sistema y para el pico
+#                                 de la compilacion, que ocurre aqui mismo
+#
+# Los cuatro `mem_limit` no son decoracion. El de backend-logistica es ademas lo
+# que la JVM lee para dimensionarse: sin el, mide los 2 GB del servidor y se
+# reserva mas de la mitad para el heap, que despues no devuelve. En un servidor
+# mas grande se suben estos numeros y la JVM se ajusta sola, sin tocar el
+# Dockerfile.
+#
 # Sin container_name: dos pilas en la misma maquina no chocan por nombre, y los
 # contenedores se siguen encontrando por el nombre del servicio, que es el que
 # usan Nginx y el backend.
@@ -36,6 +52,30 @@ services:
   bd-logistica:
     image: postgres:16-alpine
     restart: unless-stopped
+    # Postgres reparte 128 MB de shared_buffers y admite 100 conexiones por
+    # defecto, y cada conexion es un proceso aparte. Para un local con una
+    # decena de pantallas eso es reservar para una carga que no llega.
+    #
+    # Veinte conexiones sobran: el pool del backend abre ocho como mucho, y las
+    # que quedan son para un psql de mantenimiento. El numero importa porque
+    # cada conexion cuesta memoria a los dos lados, y el techo de este
+    # contenedor tiene que poder con todas a la vez.
+    #
+    # effective_cache_size no reserva nada: solo le dice al planificador con
+    # cuanta cache del sistema puede contar.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=64MB
+      - -c
+      - max_connections=20
+      - -c
+      - work_mem=2MB
+      - -c
+      - maintenance_work_mem=32MB
+      - -c
+      - effective_cache_size=192MB
+    mem_limit: 256m
     # Solo sus tres variables, no el .env entero: Postgres no tiene por que
     # tener a la vista los tokens de Discord ni el JWT_SECRET.
     #
@@ -63,6 +103,24 @@ services:
     # Sin contrasena y sin volumen. Lo primero es aceptable solo porque no sale
     # de la red interna de este compose; lo segundo, porque guarda sesiones de
     # conversacion que caducan en minutos.
+    #
+    # `--save ""` apaga las instantaneas en disco. No solo sobran sin volumen:
+    # para escribirlas Redis se bifurca, y durante la copia el sistema puede
+    # tener que sostener dos veces sus datos. En un servidor justo, ese pico
+    # periodico es justo lo que no se quiere.
+    #
+    # El tope con desalojo del menos usado convierte «Redis crecio sin freno» en
+    # «se perdio la sesion mas vieja de un bot», que es un mal mucho menor:
+    # quien la pierda solo tiene que repetir el ultimo paso de la conversacion.
+    command:
+      - redis-server
+      - --maxmemory
+      - 48mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - ""
+    mem_limit: 64m
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -124,6 +182,11 @@ services:
       RECUPERACION_URL_BASE: "${RECUPERACION_URL_BASE:?Falta RECUPERACION_URL_BASE en el .env, con el dominio publico y su esquema}"
     volumes:
       - archivos_logistica:/aplicacion/archivos
+    # El limite no es solo un freno: es el dato que la JVM lee para dimensionar
+    # el heap. Las banderas del Dockerfile se calculan como porcentaje de este
+    # numero, asi que borrar esta linea no «quita un limite», sino que deja a la
+    # JVM midiendo el servidor entero y pidiendo mas de la mitad para ella.
+    mem_limit: 896m
     expose:
       - "8080"
     healthcheck:
@@ -141,6 +204,9 @@ services:
     restart: unless-stopped
     depends_on:
       backend-logistica: { condition: service_started }
+    # Nginx sirviendo estaticos apenas necesita memoria; el tope existe para que
+    # no se coma lo que les falte a los otros si algo se descontrola.
+    mem_limit: 48m
     # El proxy inverso entra por el 80 del contenedor. `expose` lo documenta
     # sin abrirlo en el host.
     expose:
