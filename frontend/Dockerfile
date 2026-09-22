@@ -29,6 +29,12 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+# Techo para el monton de Node. Por defecto lo calcula sobre la RAM de la
+# maquina, y en un servidor pequeno esta compilacion convive con los
+# contenedores que siguen en pie. Si alguna vez falla con "heap out of memory",
+# este es el numero que hay que subir, no el del servidor.
+ENV NODE_OPTIONS=--max-old-space-size=768
+
 # Configuracion de produccion: environment.ts deja apiBasePath vacio, asi que
 # las peticiones salen al mismo origen y las resuelve el proxy de Nginx de
 # abajo. El navegador nunca cruza origen y CORS no entra en juego.
