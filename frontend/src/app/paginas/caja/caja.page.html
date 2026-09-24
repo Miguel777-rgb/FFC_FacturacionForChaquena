@@ -143,6 +143,7 @@
             <span>{{ t('comun.total') }}</span>
             <strong class="cifra">S/ {{ orden.montoTotal | number: '1.2-2' }}</strong>
           </div>
+          <app-en-dolares [soles]="orden.montoTotal ?? 0" />
           <!-- Los precios ya incluyen el IGV: estas dos lineas lo desglosan, no lo suman. -->
           @if (orden.montoIgv != null) {
             <div class="linea-total tenue igv">

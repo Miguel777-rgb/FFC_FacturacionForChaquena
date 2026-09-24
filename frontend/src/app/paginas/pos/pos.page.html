@@ -417,6 +417,7 @@
           <span>{{ t('pos.totalEstimado') }}</span>
           <strong class="cifra">S/ {{ total() | number: '1.2-2' }}</strong>
         </div>
+        <app-en-dolares [soles]="total()" />
 
         @if (puedeUsarCupon() && cupon().trim()) {
           <p class="vacio">{{ t('pos.avisoCuponCaja') }}</p>

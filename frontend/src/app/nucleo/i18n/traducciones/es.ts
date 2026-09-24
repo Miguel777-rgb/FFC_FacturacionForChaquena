@@ -81,6 +81,10 @@ export const ES = {
   'comun.baseImponible': 'Base imponible',
   'comun.igvIncluido': 'IGV incluido ({pct} %)',
 
+  // --- equivalente en dólares (servicio externo) -----------------------------
+  'cambio.detalle': 'Referencia: {tasa} soles por dólar, cotización del {fecha}.',
+  'cambio.delDia': 'del {fecha}',
+
   // --- tema y confirmaciones de peligro ------------------------------------
   'tema.alternar': 'Tema: {actual}. Pulsa para pasar a {siguiente}.',
   'tema.sistema': 'el del sistema',

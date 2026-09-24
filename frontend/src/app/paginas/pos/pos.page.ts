@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Icono } from '../../disenio/icono';
+import { EnDolares } from '../../disenio/en-dolares';
 import { formatearDuracion } from '../../nucleo/i18n/formatos';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { forkJoin, of } from 'rxjs';
@@ -84,7 +85,7 @@ const TIPOS = CrearOrdenRequestDtoTipoOrdenEnum;
  */
 @Component({
   selector: 'app-pos',
-  imports: [DecimalPipe, Icono],
+  imports: [DecimalPipe, Icono, EnDolares],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pos.page.html',
   styleUrl: './pos.page.scss',

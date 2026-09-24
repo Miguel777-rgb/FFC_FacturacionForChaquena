@@ -67,6 +67,10 @@ export const PT: Record<ClaveI18n, string> = {
   'comun.baseImponible': 'Base de cálculo',
   'comun.igvIncluido': 'IGV incluído ({pct}%)',
 
+  // --- equivalente em dólares (serviço externo) ------------------------------
+  'cambio.detalle': 'Referência: {tasa} soles por dólar, cotação de {fecha}.',
+  'cambio.delDia': 'de {fecha}',
+
   // --- tema y confirmaciones de peligro ------------------------------------
   'tema.alternar': 'Tema: {actual}. Toque para mudar para {siguiente}.',
   'tema.sistema': 'o do sistema',
