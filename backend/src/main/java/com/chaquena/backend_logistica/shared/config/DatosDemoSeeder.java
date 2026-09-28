@@ -147,7 +147,7 @@ public class DatosDemoSeeder {
     private Trabajador sembrarPersonal() {
         Trabajador admin = crearTrabajador("ADMINISTRADOR", "admin", "Miguel", "Flores",
                 "admin@chaquena.pe", "51900000001", "70000001");
-        crearTrabajador("MOZO", "mozo1", "Rosa", "Huaman",
+        crearTrabajador("MOZO", "mozo1", "Rosa", "Huamán",
                 "mozo@chaquena.pe", "51900000002", "70000002");
         crearTrabajador("JEFE DE COCINA", "chef1", "Julio", "Ccahuana",
                 "cocina@chaquena.pe", "51900000003", "70000003");
@@ -205,15 +205,15 @@ public class DatosDemoSeeder {
         insumos.put("papa",     insumo(autorId, "Papa amarilla",            TipoInsumoEnum.NO_COCIDO, "KG",  "8.000",  "30.000"));
         insumos.put("cebolla",  insumo(autorId, "Cebolla roja",             TipoInsumoEnum.NO_COCIDO, "KG",  "4.000",  "15.000"));
         insumos.put("tomate",   insumo(autorId, "Tomate",                   TipoInsumoEnum.NO_COCIDO, "KG",  "3.000",  "12.000"));
-        insumos.put("limon",    insumo(autorId, "Limon",                    TipoInsumoEnum.NO_COCIDO, "KG",  "3.000",  "10.000"));
-        insumos.put("aji",      insumo(autorId, "Aji amarillo",             TipoInsumoEnum.NO_COCIDO, "KG",  "1.000",   "5.000"));
+        insumos.put("limon",    insumo(autorId, "Limón",                    TipoInsumoEnum.NO_COCIDO, "KG",  "3.000",  "10.000"));
+        insumos.put("aji",      insumo(autorId, "Ají amarillo",             TipoInsumoEnum.NO_COCIDO, "KG",  "1.000",   "5.000"));
         insumos.put("aceite",   insumo(autorId, "Aceite vegetal",           TipoInsumoEnum.NO_COCIDO, "LTR", "5.000",  "20.000"));
         // Deliberadamente por debajo del minimo, para que GET /insumos/alertas
         // devuelva algo y se pueda probar el aviso al jefe de cocina.
         insumos.put("culantro", insumo(autorId, "Culantro",                 TipoInsumoEnum.NO_COCIDO, "KG",  "2.000",   "0.500"));
         insumos.put("gaseosa",  insumo(autorId, "Gaseosa Inca Kola 500 ml", TipoInsumoEnum.NO_COCIDO, "UNIDAD", "12.000", "48.000"));
         insumos.put("cerveza",  insumo(autorId, "Cerveza Pilsen 620 ml",    TipoInsumoEnum.NO_COCIDO, "UNIDAD", "12.000", "36.000"));
-        insumos.put("helado",   insumo(autorId, "Helado de lucuma",         TipoInsumoEnum.COCIDO,    "LTR",  "2.000",   "6.000"));
+        insumos.put("helado",   insumo(autorId, "Helado de lúcuma",         TipoInsumoEnum.COCIDO,    "LTR",  "2.000",   "6.000"));
 
         return insumos;
     }
@@ -231,17 +231,17 @@ public class DatosDemoSeeder {
     private static final Map<String, CompraDemo> COMPRAS_DEMO = Map.ofEntries(
             Map.entry("Carne de res", new CompraDemo("Mercado Mayorista Santa Anita", "32.00", 4)),
             Map.entry("Filete de pescado", new CompraDemo("Pesquera Muelle Norte", "28.00", 2)),
-            Map.entry("Pechuga de pollo", new CompraDemo("Avicola del Sur", "11.50", 3)),
+            Map.entry("Pechuga de pollo", new CompraDemo("Avícola del Sur", "11.50", 3)),
             Map.entry("Arroz crudo", new CompraDemo("Mercado Mayorista Santa Anita", "4.20", null)),
             Map.entry("Papa amarilla", new CompraDemo("Mercado Mayorista Santa Anita", "3.50", 20)),
             Map.entry("Cebolla roja", new CompraDemo("Mercado Mayorista Santa Anita", "2.80", 15)),
             Map.entry("Tomate", new CompraDemo("Mercado Mayorista Santa Anita", "3.20", 6)),
-            Map.entry("Limon", new CompraDemo("Mercado Mayorista Santa Anita", "4.00", 10)),
-            Map.entry("Aji amarillo", new CompraDemo("Mercado Mayorista Santa Anita", "9.00", 8)),
+            Map.entry("Limón", new CompraDemo("Mercado Mayorista Santa Anita", "4.00", 10)),
+            Map.entry("Ají amarillo", new CompraDemo("Mercado Mayorista Santa Anita", "9.00", 8)),
             Map.entry("Aceite vegetal", new CompraDemo("Mercado Mayorista Santa Anita", "8.50", 180)),
             Map.entry("Culantro", new CompraDemo("Mercado Mayorista Santa Anita", "12.00", -1)),
-            Map.entry("Gaseosa Inca Kola 500 ml", new CompraDemo("Avicola del Sur", "2.10", 120)),
-            Map.entry("Cerveza Pilsen 620 ml", new CompraDemo("Avicola del Sur", "5.60", 90)));
+            Map.entry("Gaseosa Inca Kola 500 ml", new CompraDemo("Avícola del Sur", "2.10", 120)),
+            Map.entry("Cerveza Pilsen 620 ml", new CompraDemo("Avícola del Sur", "5.60", 90)));
 
     private Proveedor proveedorDemo(String nombre) {
         return proveedorRepository.findByNombreIgnoreCase(nombre).orElseGet(() ->
@@ -297,11 +297,11 @@ public class DatosDemoSeeder {
                         in.get("cebolla"), "0.080", in.get("tomate"), "0.060",
                         in.get("arrozK"), "0.200", in.get("aceite"), "0.030")));
 
-        platillos.put("ceviche", platillo(marinos, "Ceviche Clasico", "Pescado fresco en leche de tigre",
+        platillos.put("ceviche", platillo(marinos, "Ceviche Clásico", "Pescado fresco en leche de tigre",
                 "28.00", Map.of(in.get("pescado"), "0.220", in.get("limon"), "0.120",
                         in.get("cebolla"), "0.060", in.get("aji"), "0.020")));
 
-        platillos.put("aji", platillo(criollos, "Aji de Gallina", "Crema de aji amarillo con pollo deshilachado",
+        platillos.put("aji", platillo(criollos, "Ají de Gallina", "Crema de ají amarillo con pollo deshilachado",
                 "26.00", Map.of(in.get("pollo"), "0.200", in.get("aji"), "0.040",
                         in.get("arrozK"), "0.200")));
 
@@ -309,10 +309,10 @@ public class DatosDemoSeeder {
                 "24.00", Map.of(in.get("pollo"), "0.180", in.get("arrozK"), "0.250",
                         in.get("cebolla"), "0.050", in.get("aceite"), "0.020")));
 
-        platillos.put("huancaina", platillo(entradas, "Papa a la Huancaina", "Papa amarilla con salsa huancaina",
+        platillos.put("huancaina", platillo(entradas, "Papa a la Huancaína", "Papa amarilla con salsa huancaína",
                 "14.00", Map.of(in.get("papa"), "0.250", in.get("aji"), "0.030")));
 
-        platillos.put("chicharron", platillo(marinos, "Chicharron de Pescado", "Trozos de pescado apanado",
+        platillos.put("chicharron", platillo(marinos, "Chicharrón de Pescado", "Trozos de pescado apanado",
                 "30.00", Map.of(in.get("pescado"), "0.250", in.get("aceite"), "0.050",
                         in.get("limon"), "0.050")));
 
@@ -349,12 +349,12 @@ public class DatosDemoSeeder {
     private void sembrarComplementosYPromociones(Map<String, Insumo> in) {
         complemento("Inca Kola 500 ml", TipoComplementoEnum.BEBIDA, "6.00", in.get("gaseosa"));
         complemento("Cerveza Pilsen 620 ml", TipoComplementoEnum.CERVEZA, "10.00", in.get("cerveza"));
-        complemento("Helado de lucuma", TipoComplementoEnum.HELADO, "8.00", in.get("helado"));
-        complemento("Porcion extra de arroz", TipoComplementoEnum.OTROS, "5.00", in.get("arrozK"));
+        complemento("Helado de lúcuma", TipoComplementoEnum.HELADO, "8.00", in.get("helado"));
+        complemento("Porción extra de arroz", TipoComplementoEnum.OTROS, "5.00", in.get("arrozK"));
         complemento("Salsa criolla", TipoComplementoEnum.SALSAS, "2.00", null);
 
         promocionRepository.saveAndFlush(Promocion.builder()
-                .nombre("Menu del dia con gaseosa")
+                .nombre("Menú del día con gaseosa")
                 .descripcion("10% de descuento e Inca Kola de regalo")
                 .porcentajeDescuento(new BigDecimal("10.00"))
                 .montoDescuento(BigDecimal.ZERO)
@@ -397,7 +397,7 @@ public class DatosDemoSeeder {
     private List<Mesa> sembrarMesas() {
         java.util.List<Mesa> mesas = new java.util.ArrayList<>();
         for (int i = 1; i <= 8; i++) {
-            mesas.add(mesa("M" + i, "Salon principal", i <= 4 ? 4 : 6, i - 1));
+            mesas.add(mesa("M" + i, "Salón principal", i <= 4 ? 4 : 6, i - 1));
         }
         for (int i = 1; i <= 4; i++) {
             mesas.add(mesa("T" + i, "Terraza", i < 4 ? 2 : 6, i - 1));
@@ -428,7 +428,7 @@ public class DatosDemoSeeder {
 
     private List<Cliente> sembrarClientes() {
         Cliente rosa = cliente("41258963", "Rosa", "Quispe Ttito", "rosa.quispe@correo.pe",
-                "51987654321", "Av. Ejercito 512, Yanahuara", "CF", 4);
+                "51987654321", "Av. Ejército 512, Yanahuara", "CF", 4);
         Cliente carlos = cliente("09876543", "Carlos", "Mendoza Rivas", "carlos.mendoza@correo.pe",
                 "51956781234", "Calle Mercaderes 210, Cercado", "CD 10%", 1);
         Cliente anonimo = cliente("ANON-DEMO0001", "Cliente", "Sin identificar", null,
@@ -510,7 +510,7 @@ public class DatosDemoSeeder {
         Transportista luis = transportistaRepository.saveAndFlush(Transportista.builder()
                 .dni("48123456")
                 .nombres("Luis")
-                .apellidos("Ramos Cardenas")
+                .apellidos("Ramos Cárdenas")
                 .celular("51965432100")
                 .empresaTransporte("Motos Express Arequipa")
                 .activo(true)
@@ -586,7 +586,7 @@ public class DatosDemoSeeder {
 
         fidelizacionService.registrarFeedback(cerrada.getId(), FeedbackRequestDto.builder()
                 .puntajeAtencion(5).puntajeComida(5).puntajeLugar(4)
-                .comentario("El chaufa estuvo en su punto, llego rapido.")
+                .comentario("El chaufa estuvo en su punto, llegó rápido.")
                 .build());
     }
 
