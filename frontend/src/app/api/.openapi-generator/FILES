@@ -25,6 +25,7 @@ api/inventario-insumos.api.ts
 api/inventario-movimientos.api.ts
 api/inventario-proveedores.api.ts
 api/local.api.ts
+api/mapas.api.ts
 api/niveles-de-lealtad.api.ts
 api/outbox.api.ts
 api/personal-asistencia.api.ts
@@ -79,12 +80,14 @@ model/datos-local-dto.ts
 model/delivery-info-dto.ts
 model/descuadre.ts
 model/desempeno-dto.ts
+model/direccion-dto.ts
 model/disponibilidad-request-dto.ts
 model/disponibilidad-response-dto.ts
 model/empresa-request-dto.ts
 model/empresa-response-dto.ts
 model/estado-bots-dto.ts
 model/estado-canal-bot.ts
+model/estado-geo-dto.ts
 model/estado-lector-carta-dto.ts
 model/estimar-tiempo-request-dto.ts
 model/faltante.ts
@@ -162,6 +165,7 @@ model/restablecer-password-request-dto.ts
 model/resultado-importacion-carta-dto.ts
 model/resumen-inventario-dto.ts
 model/rol-response-dto.ts
+model/ruta-dto.ts
 model/seccion-importacion-dto.ts
 model/seccion-leida-dto.ts
 model/serie-ventas-dto.ts

@@ -23,6 +23,8 @@ export interface OrdenResponseDto {
   flagCierrePlatillo?: boolean;
   flagCierreRecepcion?: boolean;
   id?: string;
+  latitudDelivery?: number;
+  longitudDelivery?: number;
   mesaId?: string;
   mesaNumero?: string;
   montoBaseImponible?: number;

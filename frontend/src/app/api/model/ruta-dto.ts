@@ -8,11 +8,7 @@
  * Do not edit the class manually.
  */
 
-export interface ClienteAnonimoRequestDto {
-  celular?: string;
-  direccionHabitual?: string;
-  discordUserId?: string;
-  latitud?: number;
-  longitud?: number;
-  nombreReferencia?: string;
+export interface RutaDto {
+  metros?: number;
+  segundos?: number;
 }

@@ -470,6 +470,22 @@
             "minLength": 0,
             "type": "string"
           },
+          "latitud": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "format": "double",
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number"
+          },
+          "longitud": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "format": "double",
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number"
+          },
           "nombreReferencia": {
             "maxLength": 100,
             "minLength": 0,
@@ -503,6 +519,22 @@
             "maxLength": 15,
             "minLength": 0,
             "type": "string"
+          },
+          "latitud": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "format": "double",
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number"
+          },
+          "longitud": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "format": "double",
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number"
           },
           "nombres": {
             "maxLength": 100,
@@ -545,6 +577,14 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "latitud": {
+            "format": "double",
+            "type": "number"
+          },
+          "longitud": {
+            "format": "double",
+            "type": "number"
           },
           "nombreCompleto": {
             "type": "string"
@@ -910,6 +950,22 @@
             "minItems": 1,
             "type": "array"
           },
+          "latitudDelivery": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "format": "double",
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number"
+          },
+          "longitudDelivery": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "format": "double",
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number"
+          },
           "mesaId": {
             "format": "uuid",
             "type": "string"
@@ -1004,10 +1060,26 @@
             },
             "type": "array"
           },
+          "latitud": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "format": "double",
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number"
+          },
           "logoId": {
             "format": "uuid",
             "readOnly": true,
             "type": "string"
+          },
+          "longitud": {
+            "exclusiveMaximum": false,
+            "exclusiveMinimum": false,
+            "format": "double",
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number"
           },
           "nombreComercial": {
             "maxLength": 120,
@@ -1062,6 +1134,14 @@
           "id": {
             "format": "int64",
             "type": "integer"
+          },
+          "latitudDelivery": {
+            "format": "double",
+            "type": "number"
+          },
+          "longitudDelivery": {
+            "format": "double",
+            "type": "number"
           },
           "minutosEnRuta": {
             "format": "int64",
@@ -1180,6 +1260,25 @@
             "type": "integer"
           },
           "vendido": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "DireccionDto": {
+        "properties": {
+          "direccion": {
+            "type": "string"
+          },
+          "etiqueta": {
+            "type": "string"
+          },
+          "latitud": {
+            "format": "double",
+            "type": "number"
+          },
+          "longitud": {
+            "format": "double",
             "type": "number"
           }
         },
@@ -1334,6 +1433,14 @@
           "latenciaMs": {
             "format": "int64",
             "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "EstadoGeoDto": {
+        "properties": {
+          "geocodificacion": {
+            "type": "boolean"
           }
         },
         "type": "object"
@@ -2323,6 +2430,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "latitudDelivery": {
+            "format": "double",
+            "type": "number"
+          },
+          "longitudDelivery": {
+            "format": "double",
+            "type": "number"
+          },
           "mesaId": {
             "format": "uuid",
             "type": "string"
@@ -2446,6 +2561,9 @@
           "clienteNombre": {
             "type": "string"
           },
+          "direccionDelivery": {
+            "type": "string"
+          },
           "editable": {
             "type": "boolean"
           },
@@ -2465,6 +2583,14 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "latitudDelivery": {
+            "format": "double",
+            "type": "number"
+          },
+          "longitudDelivery": {
+            "format": "double",
+            "type": "number"
           },
           "mesaId": {
             "format": "uuid",
@@ -3884,6 +4010,19 @@
           },
           "nombre": {
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "RutaDto": {
+        "properties": {
+          "metros": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "segundos": {
+            "format": "int32",
+            "type": "integer"
           }
         },
         "type": "object"
@@ -6341,6 +6480,143 @@
         "summary": "Avisos de lo que cambia en el local, filtrados por cargo",
         "tags": [
           "Tiempo real"
+        ]
+      }
+    },
+    "/api/v1/geo/direccion": {
+      "get": {
+        "operationId": "direccionEnPunto",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "latitud",
+            "required": true,
+            "schema": {
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "longitud",
+            "required": true,
+            "schema": {
+              "format": "double",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DireccionDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "La direccion del punto tocado en el mapa",
+        "tags": [
+          "Mapas"
+        ]
+      }
+    },
+    "/api/v1/geo/estado": {
+      "get": {
+        "operationId": "estadoGeo",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoGeoDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Si hay geocodificador configurado",
+        "tags": [
+          "Mapas"
+        ]
+      }
+    },
+    "/api/v1/geo/ruta": {
+      "get": {
+        "operationId": "rutaDesdeElLocal",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "latitud",
+            "required": true,
+            "schema": {
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "longitud",
+            "required": true,
+            "schema": {
+              "format": "double",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RutaDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Distancia y tiempo en auto desde el local",
+        "tags": [
+          "Mapas"
+        ]
+      }
+    },
+    "/api/v1/geo/sugerencias": {
+      "get": {
+        "operationId": "sugerirDirecciones",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "texto",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DireccionDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Direcciones que empiezan como lo escrito, cerca del local",
+        "tags": [
+          "Mapas"
         ]
       }
     },
@@ -10540,6 +10816,10 @@
     {
       "description": "Categorias de la carta",
       "name": "Catalogo - Categorias"
+    },
+    {
+      "description": "Direcciones y distancias sobre el mapa (OpenRouteService)",
+      "name": "Mapas"
     },
     {
       "description": "Kardex, lotes, mermas, cocinado y conteo fisico",

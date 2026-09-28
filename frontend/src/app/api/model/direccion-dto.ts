@@ -7,17 +7,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { HorarioLocalDto } from './horario-local-dto';
 
-export interface DatosLocalDto {
-  correo?: string;
+export interface DireccionDto {
   direccion?: string;
-  horarios?: Array<HorarioLocalDto>;
+  etiqueta?: string;
   latitud?: number;
-  readonly logoId?: string;
   longitud?: number;
-  nombreComercial?: string;
-  porcentajeIgv?: number;
-  ruc?: string;
-  telefono?: string;
 }

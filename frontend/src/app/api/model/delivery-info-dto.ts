@@ -14,6 +14,8 @@ export interface DeliveryInfoDto {
   horaDespacho?: string;
   horaEntrega?: string;
   id?: number;
+  latitudDelivery?: number;
+  longitudDelivery?: number;
   minutosEnRuta?: number;
   ordenId?: string;
   otpVerificado?: boolean;

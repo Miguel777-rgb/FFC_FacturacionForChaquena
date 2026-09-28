@@ -16,6 +16,8 @@ export interface ClienteResponseDto {
   direccionHabitual?: string;
   dni?: string;
   id?: string;
+  latitud?: number;
+  longitud?: number;
   nombreCompleto?: string;
   nombres?: string;
   puntosFidelidad?: number;

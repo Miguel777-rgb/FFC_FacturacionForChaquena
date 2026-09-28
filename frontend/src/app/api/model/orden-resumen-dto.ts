@@ -12,9 +12,12 @@ export interface OrdenResumenDto {
   canalOrigen?: OrdenResumenDtoCanalOrigenEnum;
   cantidadItems?: number;
   clienteNombre?: string;
+  direccionDelivery?: string;
   editable?: boolean;
   estado?: OrdenResumenDtoEstadoEnum;
   id?: string;
+  latitudDelivery?: number;
+  longitudDelivery?: number;
   mesaId?: string;
   mesaNumero?: string;
   minutosTranscurridos?: number;

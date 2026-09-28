@@ -14,6 +14,8 @@ export interface ClienteRequestDto {
   correo?: string;
   direccionHabitual?: string;
   dni: string;
+  latitud?: number;
+  longitud?: number;
   nombres: string;
   tipoCliente?: string;
 }

@@ -46,6 +46,8 @@ export * from './inventario-proveedores.api';
 import { InventarioProveedoresApi } from './inventario-proveedores.api';
 export * from './local.api';
 import { LocalApi } from './local.api';
+export * from './mapas.api';
+import { MapasApi } from './mapas.api';
 export * from './niveles-de-lealtad.api';
 import { NivelesDeLealtadApi } from './niveles-de-lealtad.api';
 export * from './outbox.api';
@@ -95,6 +97,7 @@ export const APIS = [
   InventarioMovimientosApi,
   InventarioProveedoresApi,
   LocalApi,
+  MapasApi,
   NivelesDeLealtadApi,
   OutboxApi,
   PersonalAsistenciaApi,

@@ -15,6 +15,8 @@ export interface CrearOrdenRequestDto {
   cuponCodigo?: string;
   direccionDelivery?: string;
   items: Array<ItemOrdenRequestDto>;
+  latitudDelivery?: number;
+  longitudDelivery?: number;
   mesaId?: string;
   promocionId?: string;
   tipoOrden: CrearOrdenRequestDtoTipoOrdenEnum;
