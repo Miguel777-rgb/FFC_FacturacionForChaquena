@@ -33,7 +33,7 @@ ver [Idiomas](#idiomas).
 | 5 | **El rol sale del claim `roles`, no del `cargo`.** El cargo se llama `ADMINISTRADOR`; el `@PreAuthorize` pide `ADMIN`. El puente es la tabla `cargo_roles`. | [sesion.service.ts:125](src/app/nucleo/sesion/sesion.service.ts#L125) · [sesion.service.spec.ts:44](src/app/nucleo/sesion/sesion.service.spec.ts#L44) |
 | 6 | **Guardas y menús son comodidad, no seguridad.** Los roles están copiados de los `@PreAuthorize`; quien de verdad protege los datos es el servidor con su 403. | [guardas.ts:30](src/app/nucleo/sesion/guardas.ts#L30) · [panel-lateral.ts:29](src/app/disenio/panel-lateral.ts#L29) |
 | 7 | **Los errores tienen un solo camino.** El interceptor traduce cada código a un aviso legible; una pantalla no inventa el texto de un fallo. | [errores.interceptor.ts:64](src/app/nucleo/http/errores.interceptor.ts#L64) |
-| 8 | **Ningún estado de dominio se calcula aquí.** Qué gestos se ofrecen lo dice `transicionesPermitidas`; si una comanda quedó `PAGADO` lo decide el servidor y se relee. | [pos.page.ts:673](src/app/paginas/pos/pos.page.ts#L673) · [caja.page.ts:337](src/app/paginas/caja/caja.page.ts#L337) |
+| 8 | **Ningún estado de dominio se calcula aquí.** Qué gestos se ofrecen lo dice `transicionesPermitidas`; si una comanda quedó `PAGADO` lo decide el servidor y se relee. | [pos.page.ts:784](src/app/paginas/pos/pos.page.ts#L784) · [caja.page.ts:337](src/app/paginas/caja/caja.page.ts#L337) |
 | 9 | **Cada superficie es un chunk aparte.** El celular del mozo no descarga el arqueo de caja: las diecisiete rutas con componente son `loadComponent`. | [app.routes.ts](src/app/app.routes.ts) · tabla de compilación más abajo |
 | 10 | **La interfaz habla tres idiomas y cambia sin recargar**, desde un desplegable con la bandera de cada uno, siempre a la vista: en el pie del panel, en la barra superior del celular y, sin sesión, arriba a la derecha. Las plantillas llaman a `t('clave')`; el español viaja en el bundle, el inglés y el portugués se descargan al elegirlos. | [i18n.service.ts](src/app/nucleo/i18n/i18n.service.ts) · [Idiomas](#idiomas) |
 | 11 | **Formularios: solo el login usa `ReactiveFormsModule`.** El resto son señales y manejadores `(input)`. No hay `ngModel`, ni `CommonModule`, ni `*ngIf`/`*ngFor` en todo el proyecto. | [login.page.ts:35](src/app/paginas/login/login.page.ts#L35) |
@@ -134,7 +134,7 @@ src/
 | [pila-avisos.ts](src/app/disenio/pila-avisos.ts) | Los avisos en pantalla | `role="status"` + `aria-live="polite"`: el lector de pantalla los anuncia sin interrumpir. Se apilan en la esquina inferior derecha |
 | [selector-idioma.ts](src/app/disenio/selector-idioma.ts) | El desplegable de idioma | `integrada` en el pie del panel, en la barra superior y en Mi perfil; sin sesión, fijo arriba a la derecha. `compacto` deja solo la bandera (barra del celular y regleta). El botón se anuncia como «Idioma de la interfaz: Español»: dice para qué sirve y qué idioma tiene puesto | [selector-idioma.ts](src/app/disenio/selector-idioma.ts) · [bandera.ts](src/app/disenio/bandera.ts) |
 | [icono.ts](src/app/disenio/icono.ts) + [iconos.ts](src/app/disenio/iconos.ts) | Iconos de un solo juego | Tabler Icons 3.46.0 (MIT), de contorno: se copian los `d` de los que se usan, sin instalar la librería. Nada de emojis ni glifos como `★` en lugar de iconos. `aria-hidden` va fijo, porque un icono nunca es la única forma de nombrar algo | [iconos.ts](src/app/disenio/iconos.ts) |
-| [dialogo.ts](src/app/disenio/dialogo.ts) + [confirmacion.ts](src/app/disenio/confirmacion.ts) | Diálogo y confirmación de peligro | Sobre el `<dialog>` nativo: `showModal()` deja inerte el resto, atrapa el foco y cierra con Escape. Toda acción de peligro pasa por `ConfirmacionService.pedir(...)`; el foco arranca en «Dejarlo», no en el botón rojo | [confirmacion.service.ts](src/app/nucleo/confirmacion/confirmacion.service.ts) |
+| [dialogo.ts](src/app/disenio/dialogo.ts) + [confirmacion.ts](src/app/disenio/confirmacion.ts) | Diálogo y confirmación de peligro | Sobre el `<dialog>` nativo: `showModal()` deja inerte el resto, atrapa el foco y cierra con Escape. Tres formas: `modal`, `cajon` (lateral) y `hoja`, que en el celular sube desde abajo, al alcance del pulgar. Toda acción de peligro pasa por `ConfirmacionService.pedir(...)`; el foco arranca en «Dejarlo», no en el botón rojo | [confirmacion.service.ts](src/app/nucleo/confirmacion/confirmacion.service.ts) |
 | [en-vivo.ts](src/app/disenio/en-vivo.ts) | «En vivo» junto al título | En cocina, despacho, órdenes, mesas y el tablero. Con la conexión caída dice «Se actualiza sola»: sin eso, una comanda que no aparece podría no existir o no haber llegado todavía | [en-vivo.ts](src/app/disenio/en-vivo.ts) |
 | [descarga.ts](src/app/disenio/descarga.ts) | Los botones PDF y Excel | Dos botones y no un menú: son dos formatos fijos, y un desplegable en el celular es un toque más. La pantalla le pasa una función que pide el archivo con su rango; el botón se ocupa del estado, el nombre y el aviso | [descarga.ts](src/app/disenio/descarga.ts) |
 | [metodos-pago.ts](src/app/disenio/metodos-pago.ts) | Lo cobrado por método | Barras horizontales, no torta: tres porciones parecidas no se distinguen a ojo. Los tres métodos siempre, también el que quedó en cero | [metodos-pago.ts](src/app/disenio/metodos-pago.ts) |
@@ -168,7 +168,7 @@ a Google Fonts. Ningún rótulo va en mayúsculas espaciadas ni en monoespaciada
 | [inicio.page.ts](src/app/paginas/inicio/inicio.page.ts) | cualquiera | Reparte a cada rol a su superficie | Sin plantilla: existe para que `/` sea válida sin repetir el destino en cada redirección | — |
 | [sin-permiso.page.ts](src/app/paginas/sin-permiso/sin-permiso.page.ts) | cualquiera | El 403 explicado | Dice con qué roles entró la persona, para que sepa qué pedirle al administrador | — |
 | [tablero.page.ts](src/app/paginas/tablero/tablero.page.ts) | ADMIN, CAJA | Cómo va el día y qué hay que ir a resolver | Compara con **ayer a la misma hora**, no con el día entero de ayer: a las once de la mañana cualquier día pierde contra una noche completa. Cada pendiente enlaza a su pantalla solo si el rol puede entrar; si no, queda en cifra. Al lado de lo más vendido, lo cobrado hoy por método de pago. Se recarga con los avisos de comandas, caja, mesas y stock, como mucho una vez cada 5 s: son cinco consultas | `Reportes` |
-| [pos.page.ts](src/app/paginas/pos/pos.page.ts) (794 líneas) | MOZO, ADMIN | Nace la comanda y se entrega en la mesa | Ver abajo | `SalonMesas`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `Clientes`, `FeedbackYFidelizacion`, `Comandas` |
+| [pos.page.ts](src/app/paginas/pos/pos.page.ts) (990 líneas) + [carta-pos](src/app/paginas/pos/carta-pos.ts) · [hoja-platillo](src/app/paginas/pos/hoja-platillo.ts) · [hoja-destino](src/app/paginas/pos/hoja-destino.ts) · [linea](src/app/paginas/pos/linea.ts) | MOZO, ADMIN | Nace la comanda y se entrega en la mesa | Ver abajo | `SalonMesas`, `CatalogoPlatillos`, `CatalogoComplementos`, `CatalogoPromociones`, `Clientes`, `FeedbackYFidelizacion`, `Comandas` |
 | [kds.page.ts](src/app/paginas/kds/kds.page.ts) | COCINA, ADMIN | La cola de cocina en tres columnas | Ver abajo | `CocinaKDS`, `InventarioInsumos` |
 | [caja.page.ts](src/app/paginas/caja/caja.page.ts) | CAJA, ADMIN | Cobrar, acreditar, calificar y cerrar | Ver abajo | `Comandas`, `CajaPagos`, `CajaArqueoYFraude`, `Reportes`, `FeedbackYFidelizacion` |
 | [despacho.page.ts](src/app/paginas/despacho/despacho.page.ts) | DELIVERY, MOZO, ADMIN | El tramo del reparto que ocurre dentro del local | Ver abajo | `Comandas`, `DespachoReparto`, `DespachoTransportistas` |
@@ -203,31 +203,48 @@ existiendo como redirecciones a `/inventario` y `/reportes`.
 
 #### `/pos` — tomar la comanda
 
-- **Tres formas de pedir** (mesa, retiro, delivery) y cambiar de tipo suelta el
-  destino que deja de tener sentido ([:257](src/app/paginas/pos/pos.page.ts#L257)).
+- **Se toma como en una app de reparto.** La carta ocupa la pantalla con un
+  buscador (sin tildes ni mayúsculas) y una fila de secciones fijos arriba, que
+  marca en cuál se está ([carta-pos.ts](src/app/paginas/pos/carta-pos.ts)). Tocar
+  un plato abre su hoja: cantidad, complementos y observación, y el botón dice el
+  total ([hoja-platillo.ts](src/app/paginas/pos/hoja-platillo.ts)). En el celular
+  la comanda es una barra fija abajo que se abre encima de la carta; desde
+  60rem está siempre a la derecha, con el total y el envío pegados abajo. Antes
+  el botón de enviar quedaba a 1.300 px de la carta en un celular.
+- **Una línea por pedido distinto.** Dos Lomos con observaciones distintas son
+  dos líneas y cocina los ve como dos platos; el mismo plato con la misma
+  observación y los mismos complementos se suma. La regla vive, con sus pruebas,
+  en [linea.ts](src/app/paginas/pos/linea.ts#L51). Antes la observación era de
+  la línea y la línea era del platillo: «sin cebolla» valía para todos.
+- **Tres formas de pedir** (mesa, retiro, delivery), elegidas desde el chip de
+  destino que está junto al buscador; cambiar de tipo suelta el destino que deja
+  de tener sentido ([:398](src/app/paginas/pos/pos.page.ts#L398)).
 - **El total que se ve es una estimación.** El importe que vale es el que
   devuelve `POST /ordenes`, calculado con los precios del servidor. El descuento
   del cupón **no** se estima: adivinarlo sería prometer un precio
-  ([:183](src/app/paginas/pos/pos.page.ts#L183)).
+  ([:262](src/app/paginas/pos/pos.page.ts#L262)).
 - **El cupón necesita dos llamadas.** Crear la orden aplica el descuento pero
   deja el cupón `VIGENTE`; quien lo marca gastado es `POST /cupones/{codigo}/canjear`.
   Va **después** del envío: si el canje falla, la comida ya está en cocina y lo
   que corresponde es avisar, no fingir que la venta no ocurrió
-  ([:513](src/app/paginas/pos/pos.page.ts#L513)).
+  ([:622](src/app/paginas/pos/pos.page.ts#L622)).
 - **El OTP de delivery aparece una sola vez.** Solo viaja en la respuesta de
   `POST /ordenes`; las lecturas posteriores lo omiten. Si no se dicta ahí, nadie
-  del local puede volver a leerlo ([:166](src/app/paginas/pos/pos.page.ts#L166)).
-- **Corregir una comanda ya enviada** está implementado, y solo si el servidor la
-  declara `editable`. Cuidado: `PUT /ordenes/{id}/detalles/{detalleId}` reemplaza
+  del local puede volver a leerlo ([:229](src/app/paginas/pos/pos.page.ts#L229)).
+- **Las comandas enviadas viven en la pestaña «En el salón».** Corregir una se
+  abre en un cajón, y solo si el servidor la declara `editable`: cada línea abre
+  la misma hoja que al pedirla, y agregar un plato pasa por la carta y su hoja,
+  así que también lleva observación. Cuidado: `PUT /ordenes/{id}/detalles/{detalleId}` reemplaza
   la línea y la que vuelve tiene **id nuevo**; por eso se repinta con la respuesta
-  entera y no con el detalle viejo ([:724](src/app/paginas/pos/pos.page.ts#L724)).
+  entera y no con el detalle viejo ([:827](src/app/paginas/pos/pos.page.ts#L827)).
 - **El nivel de lealtad se muestra, no se estima.** Al identificar al cliente
   aparece su nivel y lo que rebaja, para decirlo en voz alta; el descuento lo
   aplica el servidor al crear la comanda, solo en el POS y sin sumarse al cupón:
   gana el que más rebaja. Si gana el nivel, la comanda vuelve sin `cuponCodigo`
   y por eso el cupón no se canjea.
-- Un platillo agotado se pinta en gris y el botón no responde: pedirlo terminaría
-  en un 422 de stock insuficiente ([:374](src/app/paginas/pos/pos.page.ts#L374)).
+- Un platillo agotado se pinta apagado, dice qué le falta y su hoja no se abre:
+  pedirlo terminaría en un 422 de stock insuficiente
+  ([:524](src/app/paginas/pos/pos.page.ts#L524)).
 
 #### `/kds` — la cocina
 

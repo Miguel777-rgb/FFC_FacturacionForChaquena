@@ -83,6 +83,12 @@ export const ICONOS = {
   siguiente: 'M9 6l6 6l-6 6',
   /** Flecha hacia abajo: un control que despliega una lista. (chevron-down) */
   desplegar: 'M6 9l6 6l6 -6',
+  /** Sumar y restar una unidad: los contadores de la comanda. (plus, minus) */
+  mas: 'M12 5l0 14 M5 12l14 0',
+  menos: 'M5 12l14 0',
+  /** Bolsa: el pedido que se recoge en el mostrador. (shopping-bag) */
+  bolsa:
+    'M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304z M9 11v-5a3 3 0 0 1 6 0v5',
   /** Tres lineas: abrir la navegacion en el celular. (menu-2) */
   menuLineas: 'M4 6l16 0 M4 12l16 0 M4 18l16 0',
   salir:

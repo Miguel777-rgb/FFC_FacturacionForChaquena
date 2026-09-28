@@ -1,6 +1,7 @@
-/* El POS: dos columnas en PC, con la comanda siempre a la vista a la derecha.
-   En el celular se apila y la comanda queda arriba, que es lo que el mozo mira
-   mientras el comensal habla. */
+/* El POS. En PC, la carta a lo ancho y la comanda fija a la derecha. Por debajo
+   de 60rem la comanda pasa a una barra fija abajo que se abre encima de la
+   carta, como el carrito de una app de reparto: el mozo no baja y sube por la
+   pagina para enviar. */
 
 .pos {
   display: flex;
@@ -11,258 +12,330 @@
 
 .tablero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 21rem;
-  gap: var(--e4);
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: var(--e5);
   align-items: start;
 }
 
-.eleccion {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e4);
+.zona-carta {
   min-width: 0;
 }
 
-/* --- mesas ---------------------------------------------------------------- */
-.mesas {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+/* --- destino ---------------------------------------------------------------- */
+.destino-chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 55%;
   gap: var(--e2);
-}
-
-.mesa {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  min-height: calc(var(--toque) + var(--e4));
-  padding: var(--e2) var(--e3);
-  font-weight: 400;
+  padding: 0 var(--e3);
   color: var(--tinta);
   background: var(--superficie);
-  border: 1px solid var(--linea-fuerte);
-  text-align: left;
+  border-color: var(--linea-fuerte);
 
-  .numero {
-    font-size: 1.05rem;
-    font-weight: 600;
-  }
-
-  .detalle,
-  .estado {
-    font-size: var(--t-chico);
-    color: var(--tenue);
+  .texto {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
-.mesa:hover:not(:disabled) {
-  background: var(--acento-suave);
-  border-color: var(--acento);
-}
-
-/* Ocupada no se bloquea: el servidor solo rechaza la mesa inhabilitada, y una
-   mesa larga puede llevar dos comandas. Se avisa, no se impide. */
-.mesa.ocupada .estado {
-  color: var(--aviso);
-  font-weight: 600;
-}
-
-.mesa.elegida,
-.mesa.elegida:hover:not(:disabled) {
-  color: var(--sobre-relleno);
-  background: var(--acento-relleno);
-  border-color: var(--acento-relleno);
-
-  .detalle,
-  .estado {
-    color: rgb(255 255 255 / 0.85);
-  }
-}
-
-/* --- carta ---------------------------------------------------------------- */
-.carta {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: var(--e2);
-}
-
-.platillo {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 2px;
-  padding: var(--e3);
-  font-weight: 400;
-  color: var(--tinta);
-  background: var(--superficie);
-  border: 1px solid var(--linea-fuerte);
-  text-align: left;
-
-  .categoria {
-    font-size: var(--t-chico);
-    color: var(--tenue);
-  }
-
-  .nombre {
-    font-weight: 500;
-    line-height: 1.3;
-  }
-
-  .precio {
-    color: var(--acento);
-  }
-
-  /* La foto ayuda a reconocer el plato, no a decorarlo: baja y recortada, para
-     que la carta siga cabiendo en el celular. */
-  .foto {
-    width: 100%;
-    max-width: 100%;
-    aspect-ratio: 16 / 9;
-    margin-bottom: var(--e1);
-    object-fit: cover;
-    background: var(--hundido);
-    border-radius: var(--radio-chico);
-  }
-
-  .detalles {
-    font-size: var(--t-chico);
-    color: var(--tenue);
-
-    > span + span::before {
-      content: ' · ';
-    }
-  }
-
-  .alergenos {
-    color: var(--tinta);
-  }
-
-  .falta,
-  .quedan {
-    font-size: var(--t-chico);
-  }
-
-  .falta {
-    color: var(--critico);
-  }
-
-  .quedan {
-    color: var(--aviso);
-  }
-}
-
-.platillo:hover:not(:disabled) {
-  border-color: var(--acento);
-  background: var(--acento-suave);
-}
-
-/* Agotado se lee apagado pero legible: el atenuado global del boton borraria
-   el nombre. */
-.platillo.agotado,
-.platillo.agotado:disabled {
-  color: var(--tenue);
+.destino-chip:hover:not(:disabled),
+.destino-chip:active:not(:disabled) {
   background: var(--hundido);
-  border-color: var(--linea);
-
-  .precio,
-  .alergenos {
-    color: var(--tenue);
-  }
-
-  .foto {
-    opacity: 0.5;
-    filter: grayscale(1);
-  }
 }
 
-/* --- comanda -------------------------------------------------------------- */
+/* Sin destino todavia: la invitacion a elegirlo va en el color de la marca. */
+.destino-chip.pendiente,
+.destino-chip.pendiente:hover:not(:disabled) {
+  color: var(--acento);
+  border-color: var(--acento);
+}
+
+.destino-chip.pendiente {
+  background: var(--acento-suave);
+}
+
+/* --- la comanda ------------------------------------------------------------- */
+/* En PC queda fija y se desplaza por dentro si es larga; su cierre (total y
+   envio) queda pegado abajo. */
 .comanda {
   position: sticky;
   top: var(--e4);
+  max-height: calc(100dvh - var(--e4) * 2);
+  padding-bottom: 0;
+  overflow-y: auto;
+}
+
+.comanda-contenido {
   display: flex;
   flex-direction: column;
   gap: var(--e3);
 }
 
 .destino {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2);
   margin: 0;
+  font-weight: 600;
+  color: var(--tinta);
 }
 
 .destino.sin {
-  color: var(--tenue);
+  font-weight: 400;
+  color: var(--texto);
+}
+
+/* Un boton que se lee como enlace: cambiar el destino no es una accion de peso. */
+.enlace {
+  flex: none;
+  min-height: var(--control-chico);
+  padding: 0 var(--e2);
+  font-weight: 600;
+  color: var(--acento);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: transparent;
+}
+
+.enlace:hover:not(:disabled),
+.enlace:active:not(:disabled) {
+  color: var(--acento-fuerte);
+  background: transparent;
 }
 
 .lineas {
   display: flex;
   flex-direction: column;
-  gap: var(--e3);
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 45vh;
-  overflow-y: auto;
-
-  li:not(.vacio) {
-    display: flex;
-    flex-direction: column;
-    gap: var(--e2);
-    padding-bottom: var(--e3);
-    border-bottom: 1px solid var(--linea);
-  }
 }
 
-.fila {
+/* Como en el carrito de una app de reparto: lo pedido a la izquierda y el
+   contador a la derecha, en una sola fila. La cantidad la dice el contador. */
+.linea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e2);
+  padding: var(--e2) 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+/* El texto del plato es el boton para corregirlo: se ve como texto, no como boton. */
+.linea-cuerpo {
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: var(--control-chico);
+  padding: var(--e1);
+  margin-left: calc(var(--e1) * -1);
+  font-weight: 400;
+  text-align: left;
+  color: var(--tinta);
+  background: transparent;
+  border-radius: var(--radio-chico);
+}
+
+.linea-cuerpo:hover:not(:disabled),
+.linea-cuerpo:active:not(:disabled) {
+  background: var(--hundido);
+}
+
+.linea-cuerpo:disabled {
+  color: var(--tinta);
+  background: transparent;
+  border-color: transparent;
+}
+
+.que {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nombre {
+  font-weight: 600;
+}
+
+.extras,
+.observacion {
+  font-size: var(--t-chico);
+  color: var(--texto);
+}
+
+/* La observacion es lo que cocina tiene que leer: en cursiva, entre las demas. */
+.observacion {
+  font-style: italic;
+}
+
+.subtotal {
+  font-size: var(--t-chico);
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.acciones-linea {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--e2);
-
-  .nombre {
-    font-weight: 500;
-    color: var(--tinta);
-  }
+  gap: var(--e1);
 }
 
 .contador {
   display: flex;
   align-items: center;
-  gap: var(--e2);
+  gap: var(--e1);
 }
 
 .paso {
-  width: var(--control);
+  width: var(--control-chico);
+  min-height: var(--control-chico);
   padding: 0;
-  font-size: 1.2rem;
   color: var(--acento);
   background: transparent;
   border-color: var(--linea-fuerte);
 }
 
-.paso:hover:not(:disabled) {
+.paso:hover:not(:disabled),
+.paso:active:not(:disabled) {
   background: var(--acento-suave);
 }
 
 .cantidad {
   min-width: 1.5rem;
-  text-align: center;
   font-weight: 600;
+  text-align: center;
   color: var(--tinta);
 }
 
-.quitar {
+.quitar-linea {
+  width: var(--control-chico);
   min-height: var(--control-chico);
-  padding: 0 var(--e3);
-  font-size: var(--t-chico);
+  padding: 0;
+  color: var(--texto);
+  background: transparent;
+  border-color: transparent;
+  border-radius: var(--radio-chico);
 }
 
-.nota {
-  min-height: var(--control-chico);
+.quitar-linea:hover:not(:disabled),
+.quitar-linea:active:not(:disabled) {
+  color: var(--critico);
+  background: var(--critico-suave);
 }
 
-.cierre {
+/* --- cliente, promocion y cupon ------------------------------------------- */
+.checkout {
   display: flex;
   flex-direction: column;
   gap: var(--e2);
-  padding-top: var(--e3);
+
+  h3 {
+    margin: 0;
+    font-size: var(--t-chico);
+    font-weight: 600;
+    color: var(--texto);
+  }
+}
+
+.buscador {
+  display: flex;
+  gap: var(--e2);
+
+  button {
+    flex: 0 0 auto;
+  }
+}
+
+.cliente-elegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+
+  .detalle {
+    display: block;
+    color: var(--texto);
+  }
+
+  /* El nivel del cliente y lo que rebaja: se dice en voz alta al tomar la comanda. */
+  .nivel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--e1) var(--e2);
+    margin-top: var(--e1);
+  }
+}
+
+.resultados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  button {
+    width: 100%;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--e3);
+    text-align: left;
+  }
+
+  .detalle {
+    font-size: var(--t-chico);
+  }
+}
+
+/* Fichas y no un desplegable: son pocas, se eligen con el dedo y hay que poder
+   leer el descuento sin abrir nada. */
+.cupones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+}
+
+.cupon-suyo {
+  align-items: baseline;
+  min-height: var(--control-chico);
+  padding: 0 var(--e3);
+  font-weight: 500;
+  color: var(--acento);
+  background: transparent;
+  border: 1px solid var(--acento);
+
+  .detalle {
+    font-size: var(--t-chico);
+  }
+}
+
+.cupon-suyo:hover:not(:disabled) {
+  background: var(--acento-suave);
+}
+
+.cupon-suyo.elegido,
+.cupon-suyo.elegido:hover:not(:disabled) {
+  color: var(--sobre-relleno);
+  background: var(--acento-relleno);
+  border-color: var(--acento-relleno);
+}
+
+/* --- cierre ------------------------------------------------------------------- */
+/* Pegado abajo de lo que se desplace (la comanda en PC o su hoja en el
+   celular): el total y el envio nunca quedan fuera de la vista. */
+.cierre {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e3) 0 var(--e4);
+  background: var(--superficie);
   border-top: 1px solid var(--linea);
 }
 
@@ -275,6 +348,86 @@
   strong {
     font-size: 1.35rem;
   }
+}
+
+.linea-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.linea-total.tenue {
+  color: var(--texto);
+}
+
+/* --- barra de la comanda (celular) ------------------------------------------- */
+/* Fija al pie de la pantalla mientras haya algo en la comanda. Aparece desde
+   abajo con el primer plato; el numero late cuando cambia. */
+.barra-comanda {
+  position: sticky;
+  bottom: max(var(--e3), env(safe-area-inset-bottom));
+  z-index: 3;
+  animation: asomar 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+
+  button {
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--e3);
+    min-height: var(--control-grande);
+    padding: 0 var(--e4);
+    box-shadow: var(--sombra-elevada);
+  }
+
+  .cuenta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 var(--e2);
+    color: var(--acento);
+    background: var(--sobre-relleno);
+    border-radius: 999px;
+    animation: latir 0.2s ease-out;
+  }
+
+  .ver {
+    flex: 1;
+    text-align: left;
+  }
+}
+
+@keyframes asomar {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes latir {
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* --- correccion de una comanda enviada ------------------------------------- */
+.lineas.edicion {
+  margin-bottom: var(--e3);
+}
+
+.recalculado {
+  margin: 0;
+  color: var(--texto);
+
+  strong {
+    color: var(--tinta);
+  }
+}
+
+/* La carta para agregar a una comanda enviada vive dentro de una hoja: su
+   barra fija se pega al borde de la hoja, sobre el fondo de la hoja. */
+.en-dialogo {
+  --carta-fondo: var(--superficie);
 }
 
 /* --- salon ---------------------------------------------------------------- */
@@ -290,26 +443,23 @@
     display: flex;
     flex-direction: column;
     gap: var(--e2);
-    padding: var(--e2) var(--e3);
+    padding: var(--e3);
+    background: var(--superficie);
     border: 1px solid var(--linea);
     border-radius: var(--radio);
   }
 
   .fila {
+    display: flex;
     flex-wrap: wrap;
-    justify-content: flex-start;
+    align-items: center;
     gap: var(--e2) var(--e3);
   }
 
   /* El motivo se escribe en la propia fila. Un `prompt` del navegador sale
      fuera de la aplicacion y en algunos celulares en modo quiosco ni aparece. */
-  .cancelacion {
-    gap: var(--e2);
-
-    input {
-      flex: 1 1 14rem;
-      min-height: var(--control-chico);
-    }
+  .cancelacion input {
+    flex: 1 1 14rem;
   }
 
   .mesa {
@@ -323,29 +473,19 @@
   .items,
   .espera,
   .nota-estado {
-    font-size: var(--t-texto);
-    color: var(--tenue);
+    color: var(--texto);
   }
 
   .monto {
     margin-left: auto;
+    font-weight: 600;
     color: var(--tinta);
   }
 
-  button {
-    min-height: var(--control-chico);
-    padding: 0 var(--e3);
-  }
-}
-
-@media (max-width: 60rem) {
-  .tablero {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .comanda {
-    position: static;
-    order: -1;
+  .gestos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e2);
   }
 }
 
@@ -377,246 +517,19 @@
   }
 }
 
-/* --- tipo de comanda ------------------------------------------------------- */
-/* Tres opciones excluyentes, siempre visibles, como un selector segmentado: en
-   un celular un desplegable cuesta dos toques y esconde lo que no esta elegido. */
-.tipos {
-  display: flex;
-  gap: 2px;
-  margin-bottom: var(--e3);
-  padding: 2px;
-  background: var(--hundido);
-  border: 1px solid var(--linea);
-  border-radius: var(--radio);
-
-  button {
-    flex: 1;
-    min-width: 0;
-    padding: 0 var(--e2);
-    font-weight: 500;
-    color: var(--texto);
-    background: transparent;
-    border-radius: var(--radio-chico);
+@media (max-width: 59.99rem) {
+  .tablero {
+    grid-template-columns: minmax(0, 1fr);
   }
-
-  button:hover:not(:disabled) {
-    color: var(--tinta);
-    background: transparent;
-  }
-
-  button.elegido,
-  button.elegido:hover:not(:disabled) {
-    font-weight: 600;
-    color: var(--acento);
-    background: var(--superficie);
-    border-color: var(--linea);
-    box-shadow: var(--sombra);
-  }
-}
-
-/* --- cliente --------------------------------------------------------------- */
-.buscador {
-  display: flex;
-  gap: var(--e2);
-
-  button {
-    flex: 0 0 auto;
-  }
-}
-
-.cliente-elegido {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e3);
-
-  .detalle {
-    display: block;
-    color: var(--tenue);
-  }
-}
-
-.resultados {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e1);
-  margin: var(--e2) 0 0;
-  padding: 0;
-  list-style: none;
-
-  button {
-    width: 100%;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: var(--e3);
-    text-align: left;
-  }
-
-  .detalle {
-    font-size: var(--t-chico);
-    opacity: 0.85;
-  }
-}
-
-/* --- complementos de una linea --------------------------------------------- */
-.extras {
-  margin: 0;
-  font-size: var(--t-chico);
-  color: var(--tenue);
-}
-
-.extra {
-  min-height: var(--control-chico);
-  padding: 0 var(--e3);
-  font-size: var(--t-chico);
-}
-
-.complementos {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e1);
-  margin: 0;
-  padding: var(--e2);
-  list-style: none;
-  background: var(--hundido);
-  border-radius: var(--radio);
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: var(--e2);
-  }
-
-  .nombre {
-    flex: 1;
-    color: var(--tinta);
-  }
-
-  .precio {
-    font-size: var(--t-chico);
-    color: var(--tenue);
-  }
-
-  .paso {
-    width: var(--control-chico);
-    min-height: var(--control-chico);
-  }
-}
-
-/* --- descuentos y totales -------------------------------------------------- */
-.descuentos {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e2);
-}
-
-.linea-total {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.linea-total.tenue {
-  color: var(--tenue);
-}
-
-/* --- correccion de una comanda enviada ------------------------------------- */
-/* Dentro de la fila del salon, con fondo hundido: una capa de trabajo sobre una
-   comanda concreta, no una seccion nueva de la pantalla. */
-.edicion {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e2);
-  width: 100%;
-  padding: var(--e3);
-  background: var(--hundido);
-  border-radius: var(--radio);
-
-  .detalles {
-    display: flex;
-    flex-direction: column;
-    gap: var(--e2);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-
-    li:not(.vacio) {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: var(--e3);
-    }
-
-    .nombre {
-      flex: 1 1 8rem;
-      font-weight: 500;
-      color: var(--tinta);
-    }
-
-    .extras {
-      margin: 0;
-    }
-  }
-
-  .agregar {
-    gap: var(--e2);
-
-    select {
-      flex: 1;
-    }
-
-    button {
-      flex: 0 0 auto;
-    }
-  }
-}
-
-/* --- cupones del cliente ---------------------------------------------------- */
-/* Fichas y no un desplegable: son pocas, se eligen con el dedo y hay que poder
-   leer el descuento sin abrir nada. */
-.cupones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e2);
-}
-
-.cupon-suyo {
-  align-items: baseline;
-  min-height: var(--control-chico);
-  padding: 0 var(--e3);
-  font-weight: 500;
-  color: var(--acento);
-  background: transparent;
-  border: 1px solid var(--acento);
-
-  .detalle {
-    font-size: var(--t-chico);
-    opacity: 0.85;
-  }
-}
-
-.cupon-suyo:hover:not(:disabled) {
-  background: var(--acento-suave);
-}
-
-.cupon-suyo.elegido,
-.cupon-suyo.elegido:hover:not(:disabled) {
-  color: var(--sobre-relleno);
-  background: var(--acento-relleno);
-  border-color: var(--acento-relleno);
 }
 
 @media (max-width: 47.99rem) {
   .pos {
     padding: var(--e4);
   }
-}
 
-/* El nivel del cliente y lo que rebaja: se dice en voz alta al tomar la comanda. */
-.cliente-elegido .nivel {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e1) var(--e2);
-  margin-top: var(--e1);
+  /* La barra superior del celular es fija: la de la carta se pega debajo. */
+  app-carta-pos:not(.en-dialogo) {
+    --carta-tope: calc(var(--control) + var(--e2) + 1px);
+  }
 }

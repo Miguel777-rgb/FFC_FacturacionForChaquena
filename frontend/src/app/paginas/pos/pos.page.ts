@@ -1,19 +1,23 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
-import { Icono } from '../../disenio/icono';
-import { EnDolares } from '../../disenio/en-dolares';
-import { formatearDuracion } from '../../nucleo/i18n/formatos';
-import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
+import { Dialogo } from '../../disenio/dialogo';
+import { Icono } from '../../disenio/icono';
+import type { NombreIcono } from '../../disenio/iconos';
+import { EnDolares } from '../../disenio/en-dolares';
+import { formatearDuracion } from '../../nucleo/i18n/formatos';
+import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import {
   CatalogoComplementosApi,
   CatalogoPlatillosApi,
@@ -41,27 +45,19 @@ import {
 } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
-import { urlDeArchivo } from '../../nucleo/marca/archivos';
-
-/** Un complemento elegido para una linea, con su propia cantidad. */
-interface ComplementoElegido {
-  complemento: ComplementoResponseDto;
-  cantidad: number;
-}
-
-/**
- * Una linea de la comanda mientras se arma en la pantalla. Guarda el platillo
- * entero, no solo su id, porque el precio y el nombre se pintan aqui sin volver
- * a preguntar al servidor. El total que sale de esto es una estimacion para el
- * mozo: el importe que vale es el que devuelve `POST /ordenes`, calculado con
- * los precios que el servidor tenga en ese instante.
- */
-interface LineaComanda {
-  platillo: PlatilloDisponibleDto;
-  cantidad: number;
-  nota: string;
-  complementos: ComplementoElegido[];
-}
+import { CartaPos } from './carta-pos';
+import { HojaDestino } from './hoja-destino';
+import { HojaPlatillo } from './hoja-platillo';
+import {
+  agregarLinea,
+  limpiarNota,
+  precioDeLinea,
+  reemplazarLinea,
+  resumenComplementos,
+  type ComplementoElegido,
+  type EleccionPlatillo,
+  type LineaComanda,
+} from './linea';
 
 /** Lo que hay que dictarle al cliente cuando la comanda sale a domicilio. */
 interface EntregaPendiente {
@@ -70,22 +66,47 @@ interface EntregaPendiente {
   direccion: string;
 }
 
+/** Para que se abrio la hoja del plato, y que hacer con lo que devuelva. */
+type ObjetivoHoja =
+  | { tipo: 'nueva' }
+  | { tipo: 'linea'; clave: number }
+  | { tipo: 'detalle'; detalle: OrdenDetalleDto }
+  | { tipo: 'enviada' };
+
 const TIPOS = CrearOrdenRequestDtoTipoOrdenEnum;
+
+/** A partir de este ancho la comanda cabe al lado de la carta y no hace falta la barra. */
+const ANCHO_CON_COMANDA = '(min-width: 60rem)';
 
 /**
  * Punto de venta: el paso donde nace la comanda y el paso donde el mozo la
  * entrega en la mesa.
  *
- * Cubre las tres formas de pedir —mesa, retiro en local y delivery—, los
- * complementos por linea, la promocion vigente, el cupon del cliente
- * identificado y la cancelacion. Lo que la pantalla puede ofrecer sobre una
- * comanda ya enviada lo decide `transicionesPermitidas`, que viene en la
+ * La toma de pedido sigue el patron de las apps de reparto. La carta ocupa la
+ * pantalla con su buscador y sus secciones fijos; tocar un plato abre su hoja
+ * (cantidad, complementos, observacion) y lo suma a la comanda. En el celular la
+ * comanda vive en una barra fija abajo que se abre encima de la carta; en PC
+ * esta siempre a la derecha. El destino es un chip junto al buscador que abre
+ * su propia hoja. Nada de eso obliga a bajar y subir por la pagina: antes el
+ * boton de enviar quedaba a 1.300 px de la carta.
+ *
+ * Las comandas ya enviadas viven en la pestana «En el salon». Lo que se puede
+ * hacer con cada una lo decide `transicionesPermitidas`, que viene en la
  * respuesta: la tabla de transiciones vive en el servidor y copiarla aqui la
  * desincronizaria en la primera regla nueva.
  */
 @Component({
   selector: 'app-pos',
-  imports: [DecimalPipe, Icono, EnDolares],
+  imports: [
+    DecimalPipe,
+    NgTemplateOutlet,
+    Icono,
+    EnDolares,
+    Dialogo,
+    CartaPos,
+    HojaPlatillo,
+    HojaDestino,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pos.page.html',
   styleUrl: './pos.page.scss',
@@ -107,7 +128,8 @@ export class PosPage implements OnInit {
   protected readonly t = this.i18n.t;
   protected readonly tp = this.i18n.tp;
   protected readonly tEnum = this.i18n.tEnum;
-  protected readonly urlDeArchivo = urlDeArchivo;
+  protected readonly precioDeLinea = precioDeLinea;
+  protected readonly resumenComplementos = resumenComplementos;
 
   /** El enum del contrato, para que la plantilla no escriba las cadenas a mano. */
   protected readonly TIPOS = TIPOS;
@@ -121,11 +143,21 @@ export class PosPage implements OnInit {
   protected readonly complementos = signal<ComplementoResponseDto[]>([]);
   protected readonly promociones = signal<PromocionResponseDto[]>([]);
 
+  protected readonly pestana = signal<'nueva' | 'salon'>('nueva');
+
+  // --- ancho de la pantalla ---------------------------------------------------
+
+  private readonly consultaAncho =
+    typeof matchMedia === 'function' ? matchMedia(ANCHO_CON_COMANDA) : null;
+  /** true: la comanda va al lado de la carta. false: barra fija y hoja. */
+  protected readonly esAncho = signal(this.consultaAncho?.matches ?? true);
+
   // --- destino de la comanda ------------------------------------------------
 
   protected readonly tipoOrden = signal<CrearOrdenRequestDtoTipoOrdenEnum>(TIPOS.MESA);
   protected readonly mesaElegida = signal<MesaResponseDto | null>(null);
   protected readonly direccion = signal('');
+  protected readonly destinoAbierto = signal(false);
 
   // --- cliente --------------------------------------------------------------
 
@@ -156,9 +188,28 @@ export class PosPage implements OnInit {
   // --- la comanda en construccion -------------------------------------------
 
   protected readonly lineas = signal<LineaComanda[]>([]);
+  /** La comanda superpuesta del celular. En PC no se usa: esta al lado. */
+  protected readonly comandaAbierta = signal(false);
 
-  /** Linea cuyo cajon de complementos esta abierto. Null = cerrado. */
-  protected readonly lineaEnComplementos = signal<LineaComanda | null>(null);
+  // --- hoja del plato ---------------------------------------------------------
+
+  protected readonly hojaAbierta = signal(false);
+  protected readonly platilloEnHoja = signal<PlatilloDisponibleDto | null>(null);
+  protected readonly inicialHoja = signal<EleccionPlatillo | null>(null);
+  private readonly objetivoHoja = signal<ObjetivoHoja>({ tipo: 'nueva' });
+  protected readonly accionHoja = computed(() =>
+    this.objetivoHoja().tipo === 'nueva' || this.objetivoHoja().tipo === 'enviada'
+      ? 'agregar'
+      : 'guardar',
+  );
+
+  /**
+   * Lo que se le dice al lector de pantalla al agregar un plato. La barra lo
+   * cuenta con un pulso; quien no la ve necesita oirlo.
+   */
+  protected readonly anuncio = signal('');
+
+  // --- comandas ya enviadas ----------------------------------------------------
 
   /** Comanda cuya cancelacion se esta escribiendo, y el motivo. */
   protected readonly cancelando = signal<string | null>(null);
@@ -171,7 +222,8 @@ export class PosPage implements OnInit {
    */
   protected readonly editando = signal<OrdenResponseDto | null>(null);
   protected readonly guardandoLinea = signal(false);
-  protected readonly platilloParaAgregar = signal('');
+  /** La carta para elegir que plato se agrega a la comanda enviada. */
+  protected readonly selectorAbierto = signal(false);
 
   /**
    * El OTP de la ultima comanda a domicilio. Solo viaja en la respuesta de
@@ -184,8 +236,23 @@ export class PosPage implements OnInit {
   // --- derivados ------------------------------------------------------------
 
   protected readonly subtotal = computed(() =>
-    this.lineas().reduce((suma, l) => suma + this.precioDeLinea(l), 0),
+    this.lineas().reduce((suma, l) => suma + precioDeLinea(l), 0),
   );
+
+  /** Platos en la comanda, sumando las unidades de todas las lineas. */
+  protected readonly unidades = computed(() =>
+    this.lineas().reduce((suma, l) => suma + l.cantidad, 0),
+  );
+
+  /** Cuantos de cada platillo hay ya en la comanda, para marcarlo en la carta. */
+  protected readonly unidadesPorPlatillo = computed(() => {
+    const cuenta: Record<string, number> = {};
+    for (const l of this.lineas()) {
+      const id = l.platillo.id ?? '';
+      cuenta[id] = (cuenta[id] ?? 0) + l.cantidad;
+    }
+    return cuenta;
+  });
 
   protected readonly promocionElegida = computed(
     () => this.promociones().find((p) => p.id === this.promocionId()) ?? null,
@@ -210,6 +277,45 @@ export class PosPage implements OnInit {
   protected readonly esMesa = computed(() => this.tipoOrden() === TIPOS.MESA);
   protected readonly esDelivery = computed(() => this.tipoOrden() === TIPOS.DELIVERY);
 
+  /** El destino ya esta completo: mesa elegida, direccion escrita o retiro. */
+  protected readonly destinoListo = computed(() => {
+    if (this.esMesa()) return this.mesaElegida() !== null;
+    if (this.esDelivery()) return this.direccion().trim().length > 0;
+    return true;
+  });
+
+  /** Lo que dice el chip del destino y la cabecera de la comanda. */
+  protected readonly etiquetaDestino = computed(() => {
+    if (this.esMesa()) {
+      const mesa = this.mesaElegida();
+      return mesa
+        ? this.t('comun.mesa', { numero: mesa.numero ?? '' })
+        : this.t('pos.elegirDestino');
+    }
+    if (this.esDelivery()) {
+      const direccion = this.direccion().trim();
+      return direccion
+        ? this.t('pos.deliveryDireccion', { direccion })
+        : this.t('pos.sinDireccion');
+    }
+    return this.t('pos.retiro');
+  });
+
+  /** En la cabecera de la comanda cabe mas que en el chip: la mesa con su zona. */
+  protected readonly destinoDetallado = computed(() => {
+    const mesa = this.esMesa() ? this.mesaElegida() : null;
+    return mesa
+      ? this.t('pos.mesaZona', {
+          numero: mesa.numero ?? '',
+          zona: mesa.zona || this.t('comun.sinZona'),
+        })
+      : this.etiquetaDestino();
+  });
+
+  protected readonly iconoDestino = computed<NombreIcono>(() =>
+    this.esMesa() ? 'mesas' : this.esDelivery() ? 'despacho' : 'bolsa',
+  );
+
   /**
    * El cupon pertenece a un cliente concreto: sin cliente identificado el
    * servidor responde 409 sin excepcion. Mas vale no ofrecer el campo que
@@ -221,12 +327,35 @@ export class PosPage implements OnInit {
    * Mismas tres reglas que valida el servidor al crear: mesa para las de mesa,
    * direccion para las de delivery, y al menos una linea.
    */
-  protected readonly puedeEnviar = computed(() => {
-    if (this.lineas().length === 0 || this.enviando()) return false;
-    if (this.esMesa()) return this.mesaElegida() !== null;
-    if (this.esDelivery()) return this.direccion().trim().length > 0;
-    return true;
+  protected readonly puedeEnviar = computed(
+    () => this.lineas().length > 0 && !this.enviando() && this.destinoListo(),
+  );
+
+  /** Comandas del salon con algo que hacer; el numero va en la pestana. */
+  protected readonly cuantasEnSalon = computed(() => this.enSalon().length);
+
+  protected readonly tituloEdicion = computed(() => {
+    const orden = this.editando();
+    if (!orden) return '';
+    const destino = orden.mesaNumero
+      ? this.t('comun.mesa', { numero: orden.mesaNumero })
+      : this.tEnum('tipoOrden', orden.tipoOrden);
+    return this.t('pos.corregirTitulo', { destino });
   });
+
+  constructor() {
+    const alCambiarAncho = (evento: MediaQueryListEvent): void => this.esAncho.set(evento.matches);
+    this.consultaAncho?.addEventListener('change', alCambiarAncho);
+    inject(DestroyRef).onDestroy(() =>
+      this.consultaAncho?.removeEventListener('change', alCambiarAncho),
+    );
+
+    // Si la ventana se ensancha con la comanda abierta encima, la comanda pasa
+    // al lado y la hoja sobra.
+    effect(() => {
+      if (this.esAncho()) this.comandaAbierta.set(false);
+    });
+  }
 
   ngOnInit(): void {
     this.cargar();
@@ -279,7 +408,7 @@ export class PosPage implements OnInit {
 
   protected elegirMesa(mesa: MesaResponseDto): void {
     if (mesa.estado === MesaResponseDtoEstadoEnum.INHABILITADA) return;
-    this.mesaElegida.set(this.mesaElegida()?.id === mesa.id ? null : mesa);
+    this.mesaElegida.set(mesa);
   }
 
   protected anotarDireccion(valor: string): void {
@@ -389,129 +518,94 @@ export class PosPage implements OnInit {
       });
   }
 
-  // --- armado de la comanda -------------------------------------------------
+  // --- hoja del plato ---------------------------------------------------------
 
   /**
    * Un platillo agotado no se puede pedir. El servidor devuelve la carta entera
    * con su bandera `disponible` a proposito —el POS muestra en gris lo que no
    * hay, en vez de esconderlo—, pero pedirlo termina en un 422 de stock
-   * insuficiente, asi que el boton ni siquiera responde.
+   * insuficiente, asi que ni se abre su hoja.
    */
-  protected agregar(platillo: PlatilloDisponibleDto): void {
+  protected abrirPlatillo(platillo: PlatilloDisponibleDto): void {
     if (!platillo.disponible) return;
-
-    const existente = this.lineas().find((l) => l.platillo.id === platillo.id);
-    if (existente) {
-      this.cambiarCantidad(existente, 1);
-      return;
-    }
-
-    this.lineas.update((lista) => [
-      ...lista,
-      { platillo, cantidad: 1, nota: '', complementos: [] },
-    ]);
+    this.abrirHoja(platillo, null, { tipo: 'nueva' });
   }
 
+  protected editarLinea(linea: LineaComanda): void {
+    this.abrirHoja(
+      linea.platillo,
+      { cantidad: linea.cantidad, nota: linea.nota, complementos: linea.complementos },
+      { tipo: 'linea', clave: linea.clave },
+    );
+  }
+
+  private abrirHoja(
+    platillo: PlatilloDisponibleDto,
+    inicial: EleccionPlatillo | null,
+    objetivo: ObjetivoHoja,
+  ): void {
+    this.platilloEnHoja.set(platillo);
+    this.inicialHoja.set(inicial);
+    this.objetivoHoja.set(objetivo);
+    this.hojaAbierta.set(true);
+  }
+
+  protected alConfirmarHoja(eleccion: EleccionPlatillo): void {
+    const platillo = this.platilloEnHoja();
+    if (!platillo) return;
+    const objetivo = this.objetivoHoja();
+
+    switch (objetivo.tipo) {
+      case 'nueva':
+        this.lineas.update((lista) => agregarLinea(lista, platillo, eleccion));
+        this.hojaAbierta.set(false);
+        this.anunciar(platillo);
+        return;
+      case 'linea':
+        this.lineas.update((lista) => reemplazarLinea(lista, objetivo.clave, eleccion));
+        this.hojaAbierta.set(false);
+        return;
+      case 'detalle':
+        this.guardarDetalle(objetivo.detalle, eleccion);
+        return;
+      case 'enviada':
+        this.agregarDetalle(platillo, eleccion);
+        return;
+    }
+  }
+
+  private anunciar(platillo: PlatilloDisponibleDto): void {
+    this.anuncio.set(
+      this.t('pos.anuncioAgregado', {
+        platillo: platillo.nombre ?? '',
+        platos: this.tp('pos.platos', this.unidades()),
+      }),
+    );
+  }
+
+  // --- armado de la comanda -------------------------------------------------
+
+  /** Menos en la ultima unidad quita la linea, como en cualquier carrito. */
   protected cambiarCantidad(linea: LineaComanda, delta: number): void {
     this.lineas.update((lista) =>
       lista
-        .map((l) => (l === linea ? { ...l, cantidad: l.cantidad + delta } : l))
+        .map((l) => (l.clave === linea.clave ? { ...l, cantidad: l.cantidad + delta } : l))
         .filter((l) => l.cantidad > 0),
     );
   }
 
-  protected anotar(linea: LineaComanda, nota: string): void {
-    this.lineas.update((lista) => lista.map((l) => (l === linea ? { ...l, nota } : l)));
-  }
-
   protected quitar(linea: LineaComanda): void {
-    this.lineas.update((lista) => lista.filter((l) => l !== linea));
-    if (this.lineaEnComplementos() === linea) this.lineaEnComplementos.set(null);
+    this.lineas.update((lista) => lista.filter((l) => l.clave !== linea.clave));
   }
 
   protected vaciar(): void {
     this.lineas.set([]);
     this.mesaElegida.set(null);
-    this.lineaEnComplementos.set(null);
     this.promocionId.set(null);
     this.cupon.set('');
     this.cliente.set(null);
     this.direccion.set('');
-  }
-
-  // --- complementos ---------------------------------------------------------
-
-  protected abrirComplementos(linea: LineaComanda): void {
-    this.lineaEnComplementos.set(this.lineaEnComplementos() === linea ? null : linea);
-  }
-
-  protected cerrarComplementos(): void {
-    this.lineaEnComplementos.set(null);
-  }
-
-  protected cantidadDeComplemento(
-    linea: LineaComanda,
-    complemento: ComplementoResponseDto,
-  ): number {
-    return linea.complementos.find((c) => c.complemento.id === complemento.id)?.cantidad ?? 0;
-  }
-
-  /**
-   * El complemento se cobra por plato: el servidor multiplica su precio por su
-   * propia cantidad y por la cantidad de la linea. Dos lomos con una gaseosa
-   * cada uno son dos gaseosas, no una.
-   */
-  protected cambiarComplemento(
-    linea: LineaComanda,
-    complemento: ComplementoResponseDto,
-    delta: number,
-  ): void {
-    this.lineas.update((lista) =>
-      lista.map((l) => {
-        if (l !== linea) return l;
-
-        const actual = l.complementos.find((c) => c.complemento.id === complemento.id);
-        const cantidad = (actual?.cantidad ?? 0) + delta;
-
-        if (cantidad <= 0) {
-          return {
-            ...l,
-            complementos: l.complementos.filter((c) => c.complemento.id !== complemento.id),
-          };
-        }
-        if (actual) {
-          return {
-            ...l,
-            complementos: l.complementos.map((c) =>
-              c.complemento.id === complemento.id ? { ...c, cantidad } : c,
-            ),
-          };
-        }
-        return { ...l, complementos: [...l.complementos, { complemento, cantidad }] };
-      }),
-    );
-
-    // La linea es un objeto nuevo tras la actualizacion; el cajon tiene que
-    // seguir abierto sobre la misma posicion, no sobre la referencia vieja.
-    const indice = this.lineas().findIndex((l) => l.platillo.id === linea.platillo.id);
-    this.lineaEnComplementos.set(indice >= 0 ? this.lineas()[indice] : null);
-  }
-
-  protected precioDeLinea(linea: LineaComanda): number {
-    const base = (linea.platillo.precioVentaBase ?? 0) * linea.cantidad;
-    const extras = linea.complementos.reduce(
-      (suma, c) => suma + (c.complemento.precioAdicional ?? 0) * c.cantidad * linea.cantidad,
-      0,
-    );
-    return base + extras;
-  }
-
-  protected resumenComplementos(linea: LineaComanda): string {
-    return linea.complementos
-      .map((c) =>
-        c.cantidad > 1 ? `${c.cantidad}× ${c.complemento.nombre}` : c.complemento.nombre,
-      )
-      .join(', ');
+    this.comandaAbierta.set(false);
   }
 
   // --- descuentos -----------------------------------------------------------
@@ -551,6 +645,10 @@ export class PosPage implements OnInit {
    * el total y ocupa la mesa; si la receta de algo no se cubre responde 422 y no
    * queda comanda a medias.
    *
+   * Cada linea viaja como un item propio, con su observacion y sus complementos:
+   * el servidor guarda un detalle por item, y cocina ve «1× Lomo · sin cebolla»
+   * y «1× Lomo» por separado.
+   *
    * El tipo de pago viaja como EFECTIVO porque es la intencion declarada al
    * tomar el pedido, no el cobro: el cobro de verdad lo registra la caja al
    * final, y puede terminar siendo otro.
@@ -574,11 +672,8 @@ export class PosPage implements OnInit {
           items: this.lineas().map((l) => ({
             platilloId: l.platillo.id!,
             cantidad: l.cantidad,
-            excepcionesNota: l.nota.trim() || undefined,
-            complementos: l.complementos.map((c) => ({
-              complementoId: c.complemento.id!,
-              cantidad: c.cantidad,
-            })),
+            excepcionesNota: l.nota || undefined,
+            complementos: aItems(l.complementos),
           })),
         },
       })
@@ -598,13 +693,15 @@ export class PosPage implements OnInit {
           );
 
           // Es la unica ocasion en que el OTP viaja: se retiene en pantalla
-          // hasta que el mozo lo haya dictado y lo cierre.
+          // hasta que el mozo lo haya dictado y lo cierre. Esta arriba del
+          // todo, y el mozo puede estar al fondo de la carta.
           if (orden.codigoOtpEntrega) {
             this.entregaPendiente.set({
               correlativo: (orden.id ?? '').slice(0, 8).toUpperCase(),
               otp: orden.codigoOtpEntrega,
               direccion: orden.direccionDelivery ?? this.direccion().trim(),
             });
+            window.scrollTo({ top: 0 });
           }
 
           this.vaciar();
@@ -703,10 +800,6 @@ export class PosPage implements OnInit {
     return orden.transicionesPermitidas?.includes(estado) ?? false;
   }
 
-  protected esMesaElegida(mesa: MesaResponseDto): boolean {
-    return this.mesaElegida()?.id === mesa.id;
-  }
-
   // --- correccion de una comanda ya enviada ---------------------------------
 
   /**
@@ -720,22 +813,14 @@ export class PosPage implements OnInit {
 
   protected abrirEdicion(orden: OrdenResumenDto): void {
     if (!orden.id) return;
-    if (this.editando()?.id === orden.id) {
-      this.cerrarEdicion();
-      return;
-    }
-
     this.comandasApi.obtenerOrden({ id: orden.id }).subscribe({
-      next: (completa) => {
-        this.editando.set(completa);
-        this.platilloParaAgregar.set('');
-      },
+      next: (completa) => this.editando.set(completa),
     });
   }
 
   protected cerrarEdicion(): void {
     this.editando.set(null);
-    this.platilloParaAgregar.set('');
+    this.selectorAbierto.set(false);
   }
 
   /**
@@ -753,13 +838,65 @@ export class PosPage implements OnInit {
     this.cargar();
   }
 
+  /**
+   * Corregir un detalle enviado abre la misma hoja que al pedirlo. Si el plato
+   * ya no esta en la carta (lo sacaron despues), se reconstruye con lo que trae
+   * el propio detalle: nombre y precio congelado.
+   */
+  protected editarDetalle(detalle: OrdenDetalleDto): void {
+    const platillo = this.carta().find((p) => p.id === detalle.platilloId) ?? {
+      id: detalle.platilloId,
+      nombre: detalle.platilloNombre,
+      precioVentaBase: detalle.precioVentaProducto,
+      disponible: true,
+    };
+    const complementos: ComplementoElegido[] = (detalle.complementos ?? []).map((c) => ({
+      complemento: this.complementos().find((k) => k.id === c.complementoId) ?? {
+        id: c.complementoId,
+        nombre: c.nombre,
+        precioAdicional: c.precioVentaComplemento,
+      },
+      cantidad: c.cantidad ?? 1,
+    }));
+    this.abrirHoja(
+      platillo,
+      { cantidad: detalle.cantidad ?? 1, nota: detalle.excepcionesNota ?? '', complementos },
+      { tipo: 'detalle', detalle },
+    );
+  }
+
+  private guardarDetalle(detalle: OrdenDetalleDto, eleccion: EleccionPlatillo): void {
+    const orden = this.editando();
+    if (!orden?.id || !detalle.id || this.guardandoLinea()) return;
+
+    this.guardandoLinea.set(true);
+    this.comandasApi
+      .actualizarDetalle({
+        id: orden.id,
+        detalleId: detalle.id,
+        itemOrdenRequestDto: {
+          platilloId: detalle.platilloId!,
+          cantidad: eleccion.cantidad,
+          excepcionesNota: limpiarNota(eleccion.nota) || undefined,
+          complementos: aItems(eleccion.complementos),
+        },
+      })
+      .subscribe({
+        next: (actualizada) => {
+          this.hojaAbierta.set(false);
+          this.trasEditar(actualizada);
+        },
+        error: () => this.guardandoLinea.set(false),
+      });
+  }
+
   protected cambiarCantidadDetalle(detalle: OrdenDetalleDto, delta: number): void {
     const orden = this.editando();
     if (!orden?.id || !detalle.id || this.guardandoLinea()) return;
 
     const cantidad = (detalle.cantidad ?? 0) + delta;
     if (cantidad <= 0) {
-      this.quitarDetalle(detalle);
+      void this.quitarDetalle(detalle);
       return;
     }
 
@@ -813,27 +950,41 @@ export class PosPage implements OnInit {
     });
   }
 
-  protected elegirPlatilloParaAgregar(id: string): void {
-    this.platilloParaAgregar.set(id);
+  /** Elegido el plato en la carta del selector, se pide como uno nuevo: por su hoja. */
+  protected elegirParaEnviada(platillo: PlatilloDisponibleDto): void {
+    if (!platillo.disponible) return;
+    this.selectorAbierto.set(false);
+    this.abrirHoja(platillo, null, { tipo: 'enviada' });
   }
 
-  protected agregarDetalle(): void {
+  private agregarDetalle(platillo: PlatilloDisponibleDto, eleccion: EleccionPlatillo): void {
     const orden = this.editando();
-    const platilloId = this.platilloParaAgregar();
-    if (!orden?.id || !platilloId || this.guardandoLinea()) return;
+    if (!orden?.id || !platillo.id || this.guardandoLinea()) return;
 
     this.guardandoLinea.set(true);
     this.comandasApi
       .agregarDetalle({
         id: orden.id,
-        itemOrdenRequestDto: { platilloId, cantidad: 1 },
+        itemOrdenRequestDto: {
+          platilloId: platillo.id,
+          cantidad: eleccion.cantidad,
+          excepcionesNota: limpiarNota(eleccion.nota) || undefined,
+          complementos: aItems(eleccion.complementos),
+        },
       })
       .subscribe({
         next: (actualizada) => {
-          this.platilloParaAgregar.set('');
+          this.hojaAbierta.set(false);
           this.trasEditar(actualizada);
         },
         error: () => this.guardandoLinea.set(false),
       });
   }
+}
+
+/** Los complementos como los pide el contrato: id y cantidad. */
+function aItems(complementos: ComplementoElegido[]): { complementoId: string; cantidad: number }[] {
+  return complementos
+    .filter((c) => c.cantidad > 0)
+    .map((c) => ({ complementoId: c.complemento.id!, cantidad: c.cantidad }));
 }

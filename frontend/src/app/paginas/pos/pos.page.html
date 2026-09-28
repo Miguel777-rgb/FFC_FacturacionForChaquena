@@ -30,80 +30,229 @@
     </section>
   }
 
-  <div class="tablero">
-    <div class="eleccion">
-      <!-- ---------------------------------------------------------------- -->
-      <section class="bloque">
-        <h2>{{ t('pos.destino') }}</h2>
+  <nav class="pestanas" [attr.aria-label]="t('pos.pestanas')">
+    <button
+      type="button"
+      [class.activa]="pestana() === 'nueva'"
+      [attr.aria-current]="pestana() === 'nueva' ? 'page' : null"
+      (click)="pestana.set('nueva')"
+    >
+      {{ t('pos.pestanaNueva') }}
+    </button>
+    <button
+      type="button"
+      [class.activa]="pestana() === 'salon'"
+      [attr.aria-current]="pestana() === 'salon' ? 'page' : null"
+      (click)="pestana.set('salon')"
+    >
+      {{ t('pos.pestanaSalon', { n: cuantasEnSalon() }) }}
+    </button>
+  </nav>
 
-        <div class="tipos" role="group" [attr.aria-label]="t('pos.tipoComanda')">
+  @if (pestana() === 'nueva') {
+    <div class="tablero">
+      <div class="zona-carta">
+        <h2 class="visualmente-oculto">{{ t('pos.carta') }}</h2>
+        <app-carta-pos
+          [carta]="carta()"
+          [enComanda]="unidadesPorPlatillo()"
+          [cargando]="cargando()"
+          (elegir)="abrirPlatillo($event)"
+        >
+          <!-- El destino va junto al buscador: siempre a la vista, y a un toque
+               de cambiarlo sin salir de la carta. -->
           <button
+            inicio
             type="button"
-            [class.elegido]="tipoOrden() === TIPOS.MESA"
-            [attr.aria-pressed]="tipoOrden() === TIPOS.MESA"
-            (click)="elegirTipo(TIPOS.MESA)"
+            class="destino-chip"
+            [class.pendiente]="!destinoListo()"
+            (click)="destinoAbierto.set(true)"
+            [attr.aria-label]="t('pos.destinoAria', { destino: etiquetaDestino() })"
           >
-            {{ t('pos.enMesa') }}
+            <app-icono [nombre]="iconoDestino()" [tamano]="18" />
+            <span class="texto">{{ etiquetaDestino() }}</span>
+            <app-icono nombre="desplegar" [tamano]="16" />
           </button>
-          <button
-            type="button"
-            [class.elegido]="tipoOrden() === TIPOS.RETIRO_LOCAL"
-            [attr.aria-pressed]="tipoOrden() === TIPOS.RETIRO_LOCAL"
-            (click)="elegirTipo(TIPOS.RETIRO_LOCAL)"
-          >
-            {{ t('pos.retiro') }}
-          </button>
-          <button
-            type="button"
-            [class.elegido]="tipoOrden() === TIPOS.DELIVERY"
-            [attr.aria-pressed]="tipoOrden() === TIPOS.DELIVERY"
-            (click)="elegirTipo(TIPOS.DELIVERY)"
-          >
-            {{ t('pos.delivery') }}
-          </button>
-        </div>
+        </app-carta-pos>
+      </div>
 
-        @if (esMesa()) {
-          <div class="mesas">
-            @for (m of mesas(); track m.id) {
+      @if (esAncho()) {
+        <section class="comanda bloque" aria-labelledby="pos-comanda-titulo">
+          <h2 id="pos-comanda-titulo">{{ t('pos.laComanda') }}</h2>
+          <ng-container [ngTemplateOutlet]="comanda" />
+        </section>
+      }
+    </div>
+
+    <!-- En el celular la comanda es una barra fija que se abre encima de la
+         carta. Aparece con el primer plato; hasta entonces no hay nada que ver. -->
+    @if (!esAncho() && lineas().length > 0) {
+      <div class="barra-comanda">
+        <button type="button" (click)="comandaAbierta.set(true)">
+          @for (n of [unidades()]; track n) {
+            <span class="cuenta cifra">{{ n }}</span>
+          }
+          <span class="ver">{{ t('pos.verComanda') }}</span>
+          <span class="importe cifra">S/&nbsp;{{ total() | number: '1.2-2' }}</span>
+        </button>
+      </div>
+    }
+  } @else {
+    <section class="salon" [attr.aria-label]="t('pos.enElSalon')">
+      <ul class="comandas">
+        @for (o of enSalon(); track o.id) {
+          <li>
+            <div class="fila">
+              <span class="chip" [attr.data-estado]="o.estado">{{
+                tEnum('estado', o.estado)
+              }}</span>
+              <span class="mesa">
+                {{
+                  o.mesaNumero
+                    ? t('comun.mesa', { numero: o.mesaNumero })
+                    : tEnum('tipoOrden', o.tipoOrden)
+                }}
+              </span>
+              <span class="items">{{ tp('comun.items', o.cantidadItems ?? 0) }}</span>
+              <span class="monto cifra">S/&nbsp;{{ o.montoTotal | number: '1.2-2' }}</span>
+              <span class="espera cifra">{{ duracion(o.minutosTranscurridos) }}</span>
+
+              <!-- Los gestos salen de `transicionesPermitidas`, que calcula el
+                   servidor con la misma tabla que despues valida el cambio. -->
+              <div class="gestos">
+                @if (sePuedeEntregar(o)) {
+                  <button type="button" (click)="entregar(o)">{{ t('pos.entregar') }}</button>
+                }
+                @if (sePuedeEditar(o)) {
+                  <button type="button" class="secundario" (click)="abrirEdicion(o)">
+                    {{ t('comun.editar') }}
+                  </button>
+                }
+                @if (sePuedeCancelar(o)) {
+                  <button type="button" class="secundario" (click)="pedirMotivo(o)">
+                    {{ t(cancelando() === o.id ? 'comun.dejarlo' : 'pos.cancelar') }}
+                  </button>
+                }
+                @if (!sePuedeEntregar(o) && !sePuedeCancelar(o) && !sePuedeEditar(o)) {
+                  <span class="nota-estado">{{ t('pos.listaParaCobrar') }}</span>
+                }
+              </div>
+            </div>
+
+            @if (cancelando() === o.id) {
+              <div class="fila cancelacion">
+                <input
+                  type="text"
+                  [attr.placeholder]="t('pos.motivoCancelacion')"
+                  [value]="motivo()"
+                  (input)="anotarMotivo($any($event.target).value)"
+                  [attr.aria-label]="t('pos.motivoCancelacion')"
+                />
+                <button
+                  type="button"
+                  class="peligro"
+                  (click)="cancelar(o)"
+                  [disabled]="!motivo().trim()"
+                >
+                  {{ t('pos.cancelarReponer') }}
+                </button>
+                <button type="button" class="secundario" (click)="desistirCancelacion()">
+                  {{ t('comun.dejarlo') }}
+                </button>
+              </div>
+            }
+          </li>
+        } @empty {
+          <li class="vacio">
+            {{ t(cargando() ? 'comun.cargando' : 'pos.sinComandas') }}
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <!-- Lo que oye el lector de pantalla al agregar un plato. -->
+  <p class="visualmente-oculto" aria-live="polite">{{ anuncio() }}</p>
+</section>
+
+<!-- ======================================================================== -->
+<!-- La comanda: la misma plantilla al lado de la carta (PC) o en su hoja
+     (celular). Se pinta en un solo sitio a la vez. -->
+<ng-template #comanda>
+  <div class="comanda-contenido">
+    <p class="destino" [class.sin]="!destinoListo()">
+      <span>
+        {{
+          destinoListo()
+            ? destinoDetallado()
+            : t(esMesa() ? 'pos.elegirMesa' : 'pos.escribirDireccion')
+        }}
+      </span>
+      <button type="button" class="enlace" (click)="destinoAbierto.set(true)">
+        {{ t('pos.cambiar') }}
+      </button>
+    </p>
+
+    <ul class="lineas">
+      @for (l of lineas(); track l.clave) {
+        <li class="linea">
+          <!-- La fila entera abre la hoja del plato para corregir cantidad,
+               complementos u observacion de estos platos, y solo de estos. -->
+          <button type="button" class="linea-cuerpo" (click)="editarLinea(l)">
+            <span class="visualmente-oculto">{{ t('comun.editar') }}:</span>
+            <span class="que">
+              <span class="nombre">{{ l.platillo.nombre }}</span>
+              @if (l.complementos.length > 0) {
+                <span class="extras">+ {{ resumenComplementos(l.complementos) }}</span>
+              }
+              @if (l.nota) {
+                <span class="observacion">{{ l.nota }}</span>
+              }
+              <span class="subtotal cifra">S/&nbsp;{{ precioDeLinea(l) | number: '1.2-2' }}</span>
+            </span>
+          </button>
+
+          <div class="acciones-linea">
+            <div class="contador">
               <button
                 type="button"
-                class="mesa"
-                [class.elegida]="esMesaElegida(m)"
-                [class.ocupada]="m.estado === 'OCUPADA'"
-                [disabled]="m.estado === 'INHABILITADA'"
-                [attr.aria-pressed]="esMesaElegida(m)"
-                (click)="elegirMesa(m)"
+                class="paso"
+                (click)="cambiarCantidad(l, -1)"
+                [attr.aria-label]="t('pos.quitarUnidad', { platillo: l.platillo.nombre ?? '' })"
               >
-                <span class="numero">{{ m.numero }}</span>
-                <span class="detalle">{{ m.zona || t('comun.sinZona') }}</span>
-                <span class="estado">{{ tEnum('mesa', m.estado) }}</span>
+                <app-icono nombre="menos" [tamano]="16" />
               </button>
-            } @empty {
-              <p class="vacio">
-                {{ t(cargando() ? 'pos.cargandoMesas' : 'pos.sinMesas') }}
-              </p>
-            }
+              <span class="cantidad cifra">{{ l.cantidad }}</span>
+              <button
+                type="button"
+                class="paso"
+                (click)="cambiarCantidad(l, 1)"
+                [attr.aria-label]="t('pos.agregarUnidad', { platillo: l.platillo.nombre ?? '' })"
+              >
+                <app-icono nombre="mas" [tamano]="16" />
+              </button>
+            </div>
+            <button
+              type="button"
+              class="quitar-linea"
+              (click)="quitar(l)"
+              [attr.aria-label]="t('pos.quitarLinea', { platillo: l.platillo.nombre ?? '' })"
+              [attr.title]="t('pos.quitarLinea', { platillo: l.platillo.nombre ?? '' })"
+            >
+              <app-icono nombre="papelera" [tamano]="18" />
+            </button>
           </div>
-        } @else if (esDelivery()) {
-          <label class="campo">
-            <span>{{ t('pos.direccionEntrega') }}</span>
-            <input
-              type="text"
-              [attr.placeholder]="t('pos.direccionEjemplo')"
-              [value]="direccion()"
-              (input)="anotarDireccion($any($event.target).value)"
-            />
-          </label>
-          <p class="vacio">{{ t('pos.avisoDelivery') }}</p>
-        } @else {
-          <p class="vacio">{{ t('pos.avisoRetiro') }}</p>
-        }
-      </section>
+        </li>
+      } @empty {
+        <li class="vacio">{{ t('pos.vacio') }}</li>
+      }
+    </ul>
 
-      <!-- ---------------------------------------------------------------- -->
-      <section class="bloque">
-        <h2>{{ t('pos.cliente') }}</h2>
+    @if (lineas().length > 0) {
+      <!-- Cliente, promocion y cupon: lo que se pregunta al cerrar el pedido,
+           como en el ultimo paso de una app de reparto. -->
+      <section class="checkout">
+        <h3>{{ t('pos.cliente') }}</h3>
 
         @if (cliente(); as c) {
           <div class="cliente-elegido">
@@ -138,7 +287,12 @@
               (keydown.enter)="buscarCliente()"
               [attr.aria-label]="t('pos.buscarCliente')"
             />
-            <button type="button" (click)="buscarCliente()" [disabled]="buscandoCliente()">
+            <button
+              type="button"
+              class="secundario"
+              (click)="buscarCliente()"
+              [disabled]="buscandoCliente()"
+            >
               {{ buscandoCliente() ? '…' : t('comun.buscar') }}
             </button>
           </div>
@@ -162,430 +316,232 @@
             <p class="vacio">{{ t('pos.sinIdentificar') }}</p>
           }
         }
-      </section>
 
-      <!-- ---------------------------------------------------------------- -->
-      <section class="bloque">
-        <h2>{{ t('pos.carta') }}</h2>
-
-        <div class="carta">
-          @for (p of carta(); track p.id) {
-            <button
-              type="button"
-              class="platillo"
-              [class.agotado]="!p.disponible"
-              [disabled]="!p.disponible"
-              (click)="agregar(p)"
+        @if (promociones().length > 0) {
+          <label class="campo">
+            <span>{{ t('pos.promocion') }}</span>
+            <select
+              [value]="promocionId() ?? ''"
+              (change)="elegirPromocion($any($event.target).value)"
             >
-              @if (urlDeArchivo(p.fotoId); as foto) {
-                <img class="foto" [src]="foto" alt="" loading="lazy" />
+              <option value="">{{ t('pos.sinPromocion') }}</option>
+              @for (p of promociones(); track p.id) {
+                <option [value]="p.id">{{ p.nombre }}</option>
               }
-              <span class="categoria">{{ p.categoriaNombre }}</span>
-              <span class="nombre">{{ p.nombre }}</span>
-              <span class="precio cifra">S/ {{ p.precioVentaBase | number: '1.2-2' }}</span>
-
-              <!-- Lo que el comensal pregunta antes de pedir: cuanto tarda y que lleva. -->
-              @if (p.tiempoPreparacionMinutos || p.alergenos?.length) {
-                <span class="detalles">
-                  @if (p.tiempoPreparacionMinutos) {
-                    <span>{{ t('pos.minutos', { n: p.tiempoPreparacionMinutos }) }}</span>
-                  }
-                  @if (p.alergenos?.length) {
-                    <span class="alergenos">
-                      {{ t('pos.contiene', { alergenos: p.alergenos?.join(', ') ?? '' }) }}
-                    </span>
-                  }
-                </span>
-              }
-
-              @if (!p.disponible) {
-                <!-- El servidor manda la carta entera con la bandera puesta: el
-                     plato agotado se ve en gris y dice que le falta, en vez de
-                     desaparecer y dejar al mozo preguntandose donde esta. -->
-                <span class="falta">
-                  {{ t('pos.agotado', { insumos: p.insumosFaltantes?.join(', ') ?? '' }) }}
-                </span>
-              } @else if (
-                p.porcionesPosibles !== null &&
-                p.porcionesPosibles !== undefined &&
-                p.porcionesPosibles <= 5
-              ) {
-                <span class="quedan">{{ t('pos.quedan', { n: p.porcionesPosibles ?? 0 }) }}</span>
-              }
-            </button>
-          } @empty {
-            <p class="vacio">
-              {{ t(cargando() ? 'pos.cargandoCarta' : 'pos.sinCarta') }}
-            </p>
-          }
-        </div>
-      </section>
-    </div>
-
-    <!-- ------------------------------------------------------------------ -->
-    <aside class="comanda bloque">
-      <h2>{{ t('pos.laComanda') }}</h2>
-
-      @if (esMesa()) {
-        @if (mesaElegida(); as mesa) {
-          <p class="destino">
-            {{
-              t('pos.mesaZona', {
-                numero: mesa.numero ?? '',
-                zona: mesa.zona || t('comun.sinZona'),
-              })
-            }}
-          </p>
-        } @else {
-          <p class="destino sin">{{ t('pos.elegirMesa') }}</p>
+            </select>
+          </label>
         }
-      } @else if (esDelivery()) {
-        @if (direccion().trim()) {
-          <p class="destino">{{ t('pos.deliveryDireccion', { direccion: direccion() }) }}</p>
-        } @else {
-          <p class="destino sin">{{ t('pos.escribirDireccion') }}</p>
-        }
-      } @else {
-        <p class="destino">{{ t('pos.retiro') }}</p>
-      }
 
-      <ul class="lineas">
-        @for (l of lineas(); track l.platillo.id) {
-          <li>
-            <div class="fila">
-              <span class="nombre">{{ l.platillo.nombre }}</span>
-              <span class="subtotal cifra">S/ {{ precioDeLinea(l) | number: '1.2-2' }}</span>
-            </div>
-
-            @if (l.complementos.length > 0) {
-              <p class="extras">{{ resumenComplementos(l) }}</p>
-            }
-
-            <div class="fila controles">
-              <div class="contador">
-                <button
-                  type="button"
-                  class="paso"
-                  (click)="cambiarCantidad(l, -1)"
-                  [attr.aria-label]="t('pos.quitarUnidad', { platillo: l.platillo.nombre ?? '' })"
-                >
-                  −
-                </button>
-                <span class="cantidad cifra">{{ l.cantidad }}</span>
-                <button
-                  type="button"
-                  class="paso"
-                  (click)="cambiarCantidad(l, 1)"
-                  [attr.aria-label]="t('pos.agregarUnidad', { platillo: l.platillo.nombre ?? '' })"
-                >
-                  +
-                </button>
-              </div>
-
-              @if (complementos().length > 0) {
-                <button type="button" class="secundario extra" (click)="abrirComplementos(l)">
-                  {{ t(lineaEnComplementos() === l ? 'pos.listo' : 'pos.complementos') }}
-                </button>
-              }
-
-              <button type="button" class="secundario quitar" (click)="quitar(l)">
-                {{ t('comun.quitar') }}
-              </button>
-            </div>
-
-            <!-- El complemento se cobra por plato: dos lomos con una gaseosa
-                 cada uno son dos gaseosas. El servidor multiplica por la
-                 cantidad de la linea, y la estimacion de aqui hace lo mismo. -->
-            @if (lineaEnComplementos() === l) {
-              <ul class="complementos">
-                @for (c of complementos(); track c.id) {
-                  <li>
-                    <span class="nombre">{{ c.nombre }}</span>
-                    <span class="precio cifra">+ S/ {{ c.precioAdicional | number: '1.2-2' }}</span>
-                    <div class="contador">
-                      <button
-                        type="button"
-                        class="paso"
-                        (click)="cambiarComplemento(l, c, -1)"
-                        [disabled]="cantidadDeComplemento(l, c) === 0"
-                        [attr.aria-label]="t('pos.quitarComplemento', { nombre: c.nombre ?? '' })"
-                      >
-                        −
-                      </button>
-                      <span class="cantidad cifra">{{ cantidadDeComplemento(l, c) }}</span>
-                      <button
-                        type="button"
-                        class="paso"
-                        (click)="cambiarComplemento(l, c, 1)"
-                        [attr.aria-label]="t('pos.agregarComplemento', { nombre: c.nombre ?? '' })"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </li>
-                }
-              </ul>
-            }
-
-            <!-- La nota es la personalizacion del comensal: "sin cebolla", "bien
-                 cocido". Viaja como `excepcionesNota` y sale impresa en cocina. -->
+        <!-- El cupon esta ligado a un cliente: sin cliente el servidor lo
+             rechaza siempre, asi que el campo ni se ofrece. -->
+        @if (puedeUsarCupon()) {
+          <label class="campo">
+            <span>{{ t('pos.cupon') }}</span>
             <input
               type="text"
-              class="nota"
-              [attr.placeholder]="t('pos.notaPlaceholder')"
-              [value]="l.nota"
-              (change)="anotar(l, $any($event.target).value)"
-              [attr.aria-label]="t('pos.notaAria', { platillo: l.platillo.nombre ?? '' })"
+              [attr.placeholder]="t('pos.cuponPlaceholder')"
+              [value]="cupon()"
+              (input)="anotarCupon($any($event.target).value)"
             />
-          </li>
-        } @empty {
-          <li class="vacio">{{ t('pos.vacio') }}</li>
+          </label>
+
+          <!-- Los que ya tiene, para no teclear a ciegas un codigo que se le
+               dicto hace semanas. El campo sigue ahi por si trae uno en el
+               telefono que la lista no alcanza. -->
+          @if (cupones().length > 0) {
+            <div class="cupones">
+              @for (c of cupones(); track c.id) {
+                <button
+                  type="button"
+                  class="cupon-suyo"
+                  [class.elegido]="cupon() === c.codigo"
+                  [attr.aria-pressed]="cupon() === c.codigo"
+                  (click)="alternarCupon(c.codigo)"
+                >
+                  <span class="cifra">{{ c.codigo }}</span>
+                  @if (c.porcentajeDescuento) {
+                    <span class="detalle">{{ c.porcentajeDescuento }}%</span>
+                  } @else if (c.montoDescuento) {
+                    <span class="detalle">S/&nbsp;{{ c.montoDescuento }}</span>
+                  }
+                </button>
+              }
+            </div>
+            <p class="vacio">{{ t('pos.avisoCupones') }}</p>
+          }
         }
-      </ul>
+      </section>
+    }
+
+    <!-- El cierre queda pegado abajo: el total y el envio no se pierden al
+         bajar por una comanda larga. -->
+    <footer class="cierre">
+      @if (descuento() > 0) {
+        <div class="linea-total tenue">
+          <span>{{ t('comun.subtotal') }}</span>
+          <span class="cifra">S/&nbsp;{{ subtotal() | number: '1.2-2' }}</span>
+        </div>
+        <div class="linea-total tenue">
+          <span>{{ promocionElegida()?.nombre }}</span>
+          <span class="cifra">− S/&nbsp;{{ descuento() | number: '1.2-2' }}</span>
+        </div>
+      }
+
+      <div class="total">
+        <span>{{ t('pos.totalEstimado') }}</span>
+        <strong class="cifra">S/&nbsp;{{ total() | number: '1.2-2' }}</strong>
+      </div>
+      <app-en-dolares [soles]="total()" />
+
+      @if (puedeUsarCupon() && cupon().trim()) {
+        <p class="vacio">{{ t('pos.avisoCuponCaja') }}</p>
+      }
+
+      <button
+        type="button"
+        (click)="enviar()"
+        [disabled]="!puedeEnviar()"
+        [attr.aria-busy]="enviando()"
+      >
+        {{ t(enviando() ? 'pos.enviando' : 'pos.enviar') }}
+      </button>
 
       @if (lineas().length > 0) {
-        <div class="descuentos">
-          @if (promociones().length > 0) {
-            <label class="campo">
-              <span>{{ t('pos.promocion') }}</span>
-              <select
-                [value]="promocionId() ?? ''"
-                (change)="elegirPromocion($any($event.target).value)"
-              >
-                <option value="">{{ t('pos.sinPromocion') }}</option>
-                @for (p of promociones(); track p.id) {
-                  <option [value]="p.id">{{ p.nombre }}</option>
-                }
-              </select>
-            </label>
-          }
-
-          <!-- El cupon esta ligado a un cliente: sin cliente el servidor lo
-               rechaza siempre, asi que el campo ni se ofrece. -->
-          @if (puedeUsarCupon()) {
-            <label class="campo">
-              <span>{{ t('pos.cupon') }}</span>
-              <input
-                type="text"
-                [attr.placeholder]="t('pos.cuponPlaceholder')"
-                [value]="cupon()"
-                (input)="anotarCupon($any($event.target).value)"
-              />
-            </label>
-
-            <!-- Los que ya tiene, para no teclear a ciegas un codigo que se le
-                 dicto hace semanas. El campo sigue ahi por si trae uno en el
-                 telefono que la lista no alcanza. -->
-            @if (cupones().length > 0) {
-              <div class="cupones">
-                @for (c of cupones(); track c.id) {
-                  <button
-                    type="button"
-                    class="cupon-suyo"
-                    [class.elegido]="cupon() === c.codigo"
-                    [attr.aria-pressed]="cupon() === c.codigo"
-                    (click)="alternarCupon(c.codigo)"
-                  >
-                    <span class="cifra">{{ c.codigo }}</span>
-                    @if (c.porcentajeDescuento) {
-                      <span class="detalle">{{ c.porcentajeDescuento }}%</span>
-                    } @else if (c.montoDescuento) {
-                      <span class="detalle">S/ {{ c.montoDescuento }}</span>
-                    }
-                  </button>
-                }
-              </div>
-              <p class="vacio">{{ t('pos.avisoCupones') }}</p>
-            }
-          }
-        </div>
+        <button type="button" class="secundario" (click)="vaciar()">{{ t('pos.vaciar') }}</button>
       }
-
-      <footer class="cierre">
-        @if (descuento() > 0) {
-          <div class="linea-total tenue">
-            <span>{{ t('comun.subtotal') }}</span>
-            <span class="cifra">S/ {{ subtotal() | number: '1.2-2' }}</span>
-          </div>
-          <div class="linea-total tenue">
-            <span>{{ promocionElegida()?.nombre }}</span>
-            <span class="cifra">− S/ {{ descuento() | number: '1.2-2' }}</span>
-          </div>
-        }
-
-        <div class="total">
-          <span>{{ t('pos.totalEstimado') }}</span>
-          <strong class="cifra">S/ {{ total() | number: '1.2-2' }}</strong>
-        </div>
-        <app-en-dolares [soles]="total()" />
-
-        @if (puedeUsarCupon() && cupon().trim()) {
-          <p class="vacio">{{ t('pos.avisoCuponCaja') }}</p>
-        }
-
-        <button type="button" (click)="enviar()" [disabled]="!puedeEnviar()">
-          {{ t(enviando() ? 'pos.enviando' : 'pos.enviar') }}
-        </button>
-
-        @if (lineas().length > 0) {
-          <button type="button" class="secundario" (click)="vaciar()">{{ t('pos.vaciar') }}</button>
-        }
-      </footer>
-    </aside>
+    </footer>
   </div>
+</ng-template>
 
-  <!-- -------------------------------------------------------------------- -->
-  <section class="bloque salon">
-    <h2>{{ t('pos.enElSalon') }}</h2>
+<!-- ======================================================================== -->
+<!-- Hojas y dialogos -->
 
-    <ul class="comandas">
-      @for (o of enSalon(); track o.id) {
-        <li>
-          <div class="fila">
-            <span class="chip" [attr.data-estado]="o.estado">{{ tEnum('estado', o.estado) }}</span>
-            <span class="mesa">
-              {{
-                o.mesaNumero
-                  ? t('comun.mesa', { numero: o.mesaNumero })
-                  : tEnum('tipoOrden', o.tipoOrden)
-              }}
-            </span>
-            <span class="items">{{ tp('comun.items', o.cantidadItems ?? 0) }}</span>
-            <span class="monto cifra">S/ {{ o.montoTotal | number: '1.2-2' }}</span>
-            <span class="espera cifra">{{ duracion(o.minutosTranscurridos) }}</span>
+<app-hoja-destino
+  [tipo]="tipoOrden()"
+  [mesas]="mesas()"
+  [mesaElegida]="mesaElegida()"
+  [direccion]="direccion()"
+  [cargando]="cargando()"
+  [(abierto)]="destinoAbierto"
+  (elegirTipo)="elegirTipo($event)"
+  (elegirMesa)="elegirMesa($event)"
+  (anotarDireccion)="anotarDireccion($event)"
+/>
 
-            <!-- Los gestos salen de `transicionesPermitidas`, que calcula el
-                 servidor con la misma tabla que despues valida el cambio. -->
-            @if (sePuedeEntregar(o)) {
-              <button type="button" (click)="entregar(o)">{{ t('pos.entregar') }}</button>
-            }
-            @if (sePuedeEditar(o)) {
-              <button type="button" class="secundario" (click)="abrirEdicion(o)">
-                {{ t(editando()?.id === o.id ? 'comun.cerrar' : 'comun.editar') }}
-              </button>
-            }
-            @if (sePuedeCancelar(o)) {
-              <button type="button" class="secundario" (click)="pedirMotivo(o)">
-                {{ t(cancelando() === o.id ? 'comun.dejarlo' : 'pos.cancelar') }}
-              </button>
-            }
-            @if (!sePuedeEntregar(o) && !sePuedeCancelar(o) && !sePuedeEditar(o)) {
-              <span class="nota-estado">{{ t('pos.listaParaCobrar') }}</span>
-            }
-          </div>
+<app-hoja-platillo
+  [platillo]="platilloEnHoja()"
+  [complementos]="complementos()"
+  [inicial]="inicialHoja()"
+  [accion]="accionHoja()"
+  [ocupado]="guardandoLinea()"
+  [(abierto)]="hojaAbierta"
+  (confirmar)="alConfirmarHoja($event)"
+/>
 
-          <!-- Corregir una comanda ya enviada. Solo aparece mientras el
-               servidor la declare `editable`; en cuanto cocina la toma, el
-               panel se cierra solo en el siguiente refresco. -->
-          @if (editando(); as edicion) {
-            @if (edicion.id === o.id) {
-              <div class="edicion">
-                <ul class="detalles">
-                  @for (d of edicion.detalles; track d.id) {
-                    <li>
-                      <span class="nombre">{{ d.platilloNombre }}</span>
-                      @if (d.excepcionesNota) {
-                        <span class="extras">{{ d.excepcionesNota }}</span>
-                      }
-                      <div class="contador">
-                        <button
-                          type="button"
-                          class="paso"
-                          [disabled]="guardandoLinea()"
-                          (click)="cambiarCantidadDetalle(d, -1)"
-                          [attr.aria-label]="
-                            t('pos.quitarUnidad', { platillo: d.platilloNombre ?? '' })
-                          "
-                        >
-                          −
-                        </button>
-                        <span class="cantidad cifra">{{ d.cantidad }}</span>
-                        <button
-                          type="button"
-                          class="paso"
-                          [disabled]="guardandoLinea()"
-                          (click)="cambiarCantidadDetalle(d, 1)"
-                          [attr.aria-label]="
-                            t('pos.agregarUnidad', { platillo: d.platilloNombre ?? '' })
-                          "
-                        >
-                          +
-                        </button>
-                      </div>
-                      <span class="monto cifra">S/ {{ d.montoSubtotal | number: '1.2-2' }}</span>
-                      <button
-                        type="button"
-                        class="secundario quitar"
-                        [disabled]="guardandoLinea()"
-                        (click)="quitarDetalle(d)"
-                      >
-                        {{ t('comun.quitar') }}
-                      </button>
-                    </li>
-                  } @empty {
-                    <li class="vacio">{{ t('pos.sinLineas') }}</li>
+@if (!esAncho()) {
+  <app-dialogo modo="hoja" [titulo]="t('pos.laComanda')" [(abierto)]="comandaAbierta">
+    <ng-container [ngTemplateOutlet]="comanda" />
+  </app-dialogo>
+}
+
+<!-- Corregir una comanda ya enviada. Solo se abre mientras el servidor la
+     declare `editable`; cada linea abre la misma hoja que al pedirla. -->
+<app-dialogo
+  modo="cajon"
+  [titulo]="tituloEdicion()"
+  [abierto]="editando() !== null"
+  (abiertoChange)="!$event && cerrarEdicion()"
+>
+  @if (editando(); as edicion) {
+    <ul class="lineas edicion">
+      @for (d of edicion.detalles; track d.id) {
+        <li class="linea">
+          <button
+            type="button"
+            class="linea-cuerpo"
+            [disabled]="guardandoLinea()"
+            (click)="editarDetalle(d)"
+          >
+            <span class="visualmente-oculto">{{ t('comun.editar') }}:</span>
+            <span class="que">
+              <span class="nombre">{{ d.platilloNombre }}</span>
+              @if (d.complementos?.length) {
+                <span class="extras">
+                  +
+                  @for (c of d.complementos; track c.complementoId; let ultimo = $last) {
+                    {{ (c.cantidad ?? 1) > 1 ? c.cantidad + '× ' : '' }}{{ c.nombre
+                    }}{{ ultimo ? '' : ', ' }}
                   }
-                </ul>
+                </span>
+              }
+              @if (d.excepcionesNota) {
+                <span class="observacion">{{ d.excepcionesNota }}</span>
+              }
+              <span class="subtotal cifra">S/&nbsp;{{ d.montoSubtotal | number: '1.2-2' }}</span>
+            </span>
+          </button>
 
-                <div class="fila agregar">
-                  <select
-                    [value]="platilloParaAgregar()"
-                    (change)="elegirPlatilloParaAgregar($any($event.target).value)"
-                    [attr.aria-label]="t('pos.platilloAgregar')"
-                  >
-                    <option value="">{{ t('pos.agregarPlatillo') }}</option>
-                    @for (p of carta(); track p.id) {
-                      <option [value]="p.id" [disabled]="!p.disponible">
-                        {{ p.nombre }} · S/ {{ p.precioVentaBase | number: '1.2-2' }}
-                        {{ p.disponible ? '' : t('pos.agotadoCorto') }}
-                      </option>
-                    }
-                  </select>
-                  <button
-                    type="button"
-                    (click)="agregarDetalle()"
-                    [disabled]="!platilloParaAgregar() || guardandoLinea()"
-                  >
-                    {{ t('comun.agregar') }}
-                  </button>
-                </div>
-
-                <p class="vacio">
-                  {{ t('pos.totalRecalculado') }}
-                  <strong class="cifra">S/ {{ edicion.montoTotal | number: '1.2-2' }}</strong>
-                </p>
-              </div>
-            }
-          }
-
-          @if (cancelando() === o.id) {
-            <div class="fila cancelacion">
-              <input
-                type="text"
-                [attr.placeholder]="t('pos.motivoCancelacion')"
-                [value]="motivo()"
-                (input)="anotarMotivo($any($event.target).value)"
-                [attr.aria-label]="t('pos.motivoCancelacion')"
-              />
+          <div class="acciones-linea">
+            <div class="contador">
               <button
                 type="button"
-                class="peligro"
-                (click)="cancelar(o)"
-                [disabled]="!motivo().trim()"
+                class="paso"
+                [disabled]="guardandoLinea()"
+                (click)="cambiarCantidadDetalle(d, -1)"
+                [attr.aria-label]="t('pos.quitarUnidad', { platillo: d.platilloNombre ?? '' })"
               >
-                {{ t('pos.cancelarReponer') }}
+                <app-icono nombre="menos" [tamano]="16" />
               </button>
-              <button type="button" class="secundario" (click)="desistirCancelacion()">
-                {{ t('comun.dejarlo') }}
+              <span class="cantidad cifra">{{ d.cantidad }}</span>
+              <button
+                type="button"
+                class="paso"
+                [disabled]="guardandoLinea()"
+                (click)="cambiarCantidadDetalle(d, 1)"
+                [attr.aria-label]="t('pos.agregarUnidad', { platillo: d.platilloNombre ?? '' })"
+              >
+                <app-icono nombre="mas" [tamano]="16" />
               </button>
             </div>
-          }
+            <button
+              type="button"
+              class="quitar-linea"
+              [disabled]="guardandoLinea()"
+              (click)="quitarDetalle(d)"
+              [attr.aria-label]="t('pos.quitarLinea', { platillo: d.platilloNombre ?? '' })"
+              [attr.title]="t('pos.quitarLinea', { platillo: d.platilloNombre ?? '' })"
+            >
+              <app-icono nombre="papelera" [tamano]="18" />
+            </button>
+          </div>
         </li>
       } @empty {
-        <li class="vacio">
-          {{ t(cargando() ? 'comun.cargando' : 'pos.sinComandas') }}
-        </li>
+        <li class="vacio">{{ t('pos.sinLineas') }}</li>
       }
     </ul>
-  </section>
-</section>
+
+    <p class="recalculado">
+      {{ t('pos.totalRecalculado') }}
+      <strong class="cifra">S/&nbsp;{{ edicion.montoTotal | number: '1.2-2' }}</strong>
+    </p>
+  }
+
+  <div pie>
+    <button
+      type="button"
+      class="secundario"
+      (click)="selectorAbierto.set(true)"
+      [disabled]="guardandoLinea()"
+    >
+      <app-icono nombre="mas" [tamano]="18" />
+      {{ t('pos.agregarPlatillo') }}
+    </button>
+    <button type="button" (click)="cerrarEdicion()">{{ t('pos.listo') }}</button>
+  </div>
+</app-dialogo>
+
+<app-dialogo modo="hoja" [titulo]="t('pos.agregarAComanda')" [(abierto)]="selectorAbierto">
+  @if (selectorAbierto()) {
+    <app-carta-pos class="en-dialogo" [carta]="carta()" (elegir)="elegirParaEnviada($event)" />
+  }
+</app-dialogo>
