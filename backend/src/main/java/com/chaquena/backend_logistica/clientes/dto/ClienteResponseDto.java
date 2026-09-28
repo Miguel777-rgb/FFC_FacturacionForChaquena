@@ -20,6 +20,8 @@ public class ClienteResponseDto {
     private String correo;
     private String celular;
     private String direccionHabitual;
+    private Double latitud;
+    private Double longitud;
     private String tipoCliente;
     private Integer puntosFidelidad;
     private Integer scoreFraude;
@@ -35,6 +37,8 @@ public class ClienteResponseDto {
                 .correo(c.getCorreo())
                 .celular(c.getCelular())
                 .direccionHabitual(c.getDireccionHabitual())
+                .latitud(c.getLatitud())
+                .longitud(c.getLongitud())
                 .tipoCliente(c.getTipoCliente())
                 .puntosFidelidad(c.getPuntosFidelidad())
                 .scoreFraude(c.getScoreFraude())

@@ -19,6 +19,8 @@ public class DeliveryInfoDto {
     private UUID ordenId;
     private EstadoOrdenEnum estadoOrden;
     private String direccionDelivery;
+    private Double latitudDelivery;
+    private Double longitudDelivery;
     private UUID transportistaId;
     private String transportistaNombre;
     private String transportistaTelefono;
@@ -41,6 +43,8 @@ public class DeliveryInfoDto {
                 .ordenId(info.getOrden() != null ? info.getOrden().getId() : null)
                 .estadoOrden(info.getOrden() != null ? info.getOrden().getEstado() : null)
                 .direccionDelivery(info.getOrden() != null ? info.getOrden().getDireccionDelivery() : null)
+                .latitudDelivery(info.getOrden() != null ? info.getOrden().getLatitudDelivery() : null)
+                .longitudDelivery(info.getOrden() != null ? info.getOrden().getLongitudDelivery() : null)
                 .transportistaId(info.getTransportista() != null ? info.getTransportista().getId() : null)
                 .transportistaNombre(info.getTransportista() != null
                         ? (info.getTransportista().getNombres() + " "

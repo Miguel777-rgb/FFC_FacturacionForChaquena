@@ -1,5 +1,7 @@
 package com.chaquena.backend_logistica.clientes.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -21,6 +23,15 @@ public class ClienteAnonimoRequestDto {
     private String celular;
 
     private String direccionHabitual;
+
+    /** El punto de la direccion habitual. Van las dos o ninguna. */
+    @DecimalMin(value = "-90.0", message = "La latitud va de -90 a 90")
+    @DecimalMax(value = "90.0", message = "La latitud va de -90 a 90")
+    private Double latitud;
+
+    @DecimalMin(value = "-180.0", message = "La longitud va de -180 a 180")
+    @DecimalMax(value = "180.0", message = "La longitud va de -180 a 180")
+    private Double longitud;
 
     /**
      * Cuenta del proveedor de mensajeria con la que pidio. Es lo que permite

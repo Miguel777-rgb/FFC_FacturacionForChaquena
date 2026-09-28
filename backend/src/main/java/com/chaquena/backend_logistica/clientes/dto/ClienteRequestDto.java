@@ -31,6 +31,15 @@ public class ClienteRequestDto {
 
     private String direccionHabitual;
 
+    /** El punto de la direccion habitual. Van las dos o ninguna. */
+    @DecimalMin(value = "-90.0", message = "La latitud va de -90 a 90")
+    @DecimalMax(value = "90.0", message = "La latitud va de -90 a 90")
+    private Double latitud;
+
+    @DecimalMin(value = "-180.0", message = "La longitud va de -180 a 180")
+    @DecimalMax(value = "180.0", message = "La longitud va de -180 a 180")
+    private Double longitud;
+
     @Size(max = 50, message = "El tipo de cliente no puede exceder 50 caracteres")
     private String tipoCliente;
 }

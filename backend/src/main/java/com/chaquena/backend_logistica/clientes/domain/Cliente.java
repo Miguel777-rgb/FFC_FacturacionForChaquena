@@ -24,6 +24,16 @@ public class Cliente extends Persona {
     @Column(name = "direccion_habitual", columnDefinition = "TEXT")
     private String direccionHabitual;
 
+    /**
+     * El punto de la direccion habitual en el mapa, para que el POS la proponga
+     * ya ubicada. Nulas si se escribio sin marcarla.
+     */
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
+
     @Column(name = "tipo_cliente", length = 50)
     private String tipoCliente; // 'CF' (Cliente Frecuente), 'CT 20%', 'CD 10%'
 

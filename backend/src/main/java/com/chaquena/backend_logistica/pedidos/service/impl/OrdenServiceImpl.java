@@ -8,6 +8,7 @@ import com.chaquena.backend_logistica.fidelizacion.domain.EstadoCuponEnum;
 import com.chaquena.backend_logistica.fidelizacion.domain.NivelLealtad;
 import com.chaquena.backend_logistica.fidelizacion.repository.CuponRepository;
 import com.chaquena.backend_logistica.fidelizacion.service.NivelLealtadService;
+import com.chaquena.backend_logistica.geo.PuntoMapa;
 import com.chaquena.backend_logistica.inventario.domain.ComplementoPlatillo;
 import com.chaquena.backend_logistica.inventario.domain.Platillo;
 import com.chaquena.backend_logistica.inventario.domain.Promocion;
@@ -96,6 +97,8 @@ public class OrdenServiceImpl implements OrdenService {
 
         Mesa mesa = resolverMesa(request);
         validarDelivery(request);
+        PuntoMapa.exigirPar(request.getLatitudDelivery(), request.getLongitudDelivery(), "la entrega");
+        boolean esDelivery = request.getTipoOrden() == TipoOrdenEnum.DELIVERY;
 
         CanalOrigenEnum canal = request.getCanalOrigen() != null
                 ? request.getCanalOrigen()
@@ -111,6 +114,10 @@ public class OrdenServiceImpl implements OrdenService {
                 .mesa(mesa)
                 .mesaNumero(mesa != null ? mesa.getNumero() : null)
                 .direccionDelivery(request.getDireccionDelivery())
+                // El punto solo tiene sentido en un delivery: una comanda de mesa
+                // que arrastra coordenadas de una prueba anterior no las guarda.
+                .latitudDelivery(esDelivery ? request.getLatitudDelivery() : null)
+                .longitudDelivery(esDelivery ? request.getLongitudDelivery() : null)
                 .tipoPago(request.getTipoPago())
                 .estado(EstadoOrdenEnum.ENCOLADO)
                 .scoringRiesgoOrden(cliente != null && cliente.getScoreFraude() != null

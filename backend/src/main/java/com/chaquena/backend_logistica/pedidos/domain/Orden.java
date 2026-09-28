@@ -55,6 +55,17 @@ public class Orden {
     @Column(name = "direccion_delivery", columnDefinition = "TEXT")
     private String direccionDelivery;
 
+    /**
+     * El punto del delivery en el mapa, para el conductor de la empresa externa.
+     * Nulas si la direccion se escribio sin marcarla, o si la comanda no es
+     * delivery. No hay seguimiento: es a donde va, no por donde va.
+     */
+    @Column(name = "latitud_delivery")
+    private Double latitudDelivery;
+
+    @Column(name = "longitud_delivery")
+    private Double longitudDelivery;
+
     @Column(name = "codigo_otp_entrega", length = 6)
     private String codigoOtpEntrega;
 

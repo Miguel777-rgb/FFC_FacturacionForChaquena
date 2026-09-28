@@ -26,6 +26,8 @@ public class OrdenResponseDto {
     private String mesaNumero;
     private UUID mesaId;
     private String direccionDelivery;
+    private Double latitudDelivery;
+    private Double longitudDelivery;
     private String codigoOtpEntrega;
     private Integer scoringRiesgoOrden;
     private BigDecimal montoSubtotal;
@@ -86,6 +88,8 @@ public class OrdenResponseDto {
                 .mesaNumero(o.getMesaNumero())
                 .mesaId(o.getMesa() != null ? o.getMesa().getId() : null)
                 .direccionDelivery(o.getDireccionDelivery())
+                .latitudDelivery(o.getLatitudDelivery())
+                .longitudDelivery(o.getLongitudDelivery())
                 .codigoOtpEntrega(incluirOtp ? o.getCodigoOtpEntrega() : null)
                 .scoringRiesgoOrden(o.getScoringRiesgoOrden())
                 .montoSubtotal(o.getMontoSubtotal())

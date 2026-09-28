@@ -24,6 +24,10 @@ public class OrdenResumenDto {
     private EstadoOrdenEnum estado;
     private String mesaNumero;
     private UUID mesaId;
+    /** A donde va, si es delivery: despacho se lo ensena al conductor al entregarsela. */
+    private String direccionDelivery;
+    private Double latitudDelivery;
+    private Double longitudDelivery;
     private BigDecimal montoTotal;
     private TipoPagoEnum tipoPago;
     private Integer cantidadItems;
@@ -66,6 +70,9 @@ public class OrdenResumenDto {
                 .canalOrigen(o.getCanalOrigen())
                 .estado(o.getEstado())
                 .mesaNumero(o.getMesaNumero())
+                .direccionDelivery(o.getDireccionDelivery())
+                .latitudDelivery(o.getLatitudDelivery())
+                .longitudDelivery(o.getLongitudDelivery())
                 .mesaId(o.getMesa() != null ? o.getMesa().getId() : null)
                 .montoTotal(o.getMontoTotal())
                 .tipoPago(o.getTipoPago())

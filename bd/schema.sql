@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict HI0CmedYyaT4UStWwZRyqxoZepKD6yMHiw7xNGKaPqGzKhkljSNRg5CZb7QYbwK
+\restrict 9vgUmri8enaavUzbDubEWkdIMA60eyQTFaXGdvU31R6IuKa29QQVQYpiUekgMAR
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -228,7 +228,9 @@ CREATE TABLE public.clientes (
     score_fraude integer DEFAULT 0 NOT NULL,
     tipo_cliente character varying(50),
     persona_id uuid NOT NULL,
-    discord_user_id character varying(32)
+    discord_user_id character varying(32),
+    latitud double precision,
+    longitud double precision
 );
 
 
@@ -329,7 +331,9 @@ CREATE TABLE public.datos_local (
     porcentaje_igv numeric(5,2) NOT NULL,
     ruc character varying(11),
     telefono character varying(20),
-    logo_id uuid
+    logo_id uuid,
+    latitud double precision,
+    longitud double precision
 );
 
 
@@ -619,6 +623,8 @@ CREATE TABLE public.ordenes (
     promocion_id uuid,
     porcentaje_igv numeric(5,2) DEFAULT 18.00 NOT NULL,
     nivel_lealtad_nombre character varying(60),
+    latitud_delivery double precision,
+    longitud_delivery double precision,
     CONSTRAINT ordenes_canal_origen_check CHECK (((canal_origen)::text = ANY ((ARRAY['POS'::character varying, 'WHATSAPP_BOT'::character varying, 'DISCORD_BOT'::character varying, 'WEB'::character varying])::text[]))),
     CONSTRAINT ordenes_estado_check CHECK (((estado)::text = ANY ((ARRAY['ENCOLADO'::character varying, 'EN_PREPARACION'::character varying, 'EN_DESPACHO'::character varying, 'ENTREGADO'::character varying, 'PAGADO'::character varying, 'CONCLUIDO'::character varying, 'CANCELADO'::character varying, 'FRAUDULENTO'::character varying])::text[]))),
     CONSTRAINT ordenes_tipo_orden_check CHECK (((tipo_orden)::text = ANY ((ARRAY['MESA'::character varying, 'RETIRO_LOCAL'::character varying, 'DELIVERY'::character varying])::text[]))),
@@ -1859,5 +1865,5 @@ ALTER TABLE ONLY public.cliente_empresas
 -- PostgreSQL database dump complete
 --
 
-\unrestrict HI0CmedYyaT4UStWwZRyqxoZepKD6yMHiw7xNGKaPqGzKhkljSNRg5CZb7QYbwK
+\unrestrict 9vgUmri8enaavUzbDubEWkdIMA60eyQTFaXGdvU31R6IuKa29QQVQYpiUekgMAR
 

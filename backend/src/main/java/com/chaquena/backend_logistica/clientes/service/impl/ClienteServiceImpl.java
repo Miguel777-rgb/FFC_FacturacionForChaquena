@@ -4,6 +4,7 @@ import com.chaquena.backend_logistica.clientes.domain.Cliente;
 import com.chaquena.backend_logistica.clientes.dto.*;
 import com.chaquena.backend_logistica.clientes.repository.ClienteRepository;
 import com.chaquena.backend_logistica.clientes.service.ClienteService;
+import com.chaquena.backend_logistica.geo.PuntoMapa;
 import com.chaquena.backend_logistica.pedidos.repository.OrdenDetalleRepository;
 import com.chaquena.backend_logistica.shared.dto.PageResponseDto;
 import com.chaquena.backend_logistica.shared.exception.ConflictoException;
@@ -51,6 +52,7 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     @Transactional
     public ClienteResponseDto crear(ClienteRequestDto request) {
+        PuntoMapa.exigirPar(request.getLatitud(), request.getLongitud(), "la direccion habitual");
         clienteRepository.findByDni(request.getDni()).ifPresent(existente -> {
             throw new ConflictoException("Ya existe un cliente con el documento " + request.getDni() + ".");
         });
@@ -62,6 +64,8 @@ public class ClienteServiceImpl implements ClienteService {
                 .correo(vacioANulo(request.getCorreo()))
                 .celular(vacioANulo(request.getCelular()))
                 .direccionHabitual(request.getDireccionHabitual())
+                .latitud(request.getLatitud())
+                .longitud(request.getLongitud())
                 .tipoCliente(request.getTipoCliente())
                 .puntosFidelidad(0)
                 .scoreFraude(0)
@@ -80,6 +84,7 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     @Transactional
     public ClienteResponseDto crearAnonimo(ClienteAnonimoRequestDto request) {
+        PuntoMapa.exigirPar(request.getLatitud(), request.getLongitud(), "la direccion habitual");
         String dniProvisional = PREFIJO_ANONIMO
                 + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -92,6 +97,8 @@ public class ClienteServiceImpl implements ClienteService {
                 .celular(vacioANulo(request.getCelular()))
                 .discordUserId(vacioANulo(request.getDiscordUserId()))
                 .direccionHabitual(request.getDireccionHabitual())
+                .latitud(request.getLatitud())
+                .longitud(request.getLongitud())
                 .puntosFidelidad(0)
                 .scoreFraude(0)
                 .bloqueadoPorFraude(false)
@@ -110,6 +117,7 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     @Transactional
     public ClienteResponseDto actualizar(UUID id, ClienteRequestDto request) {
+        PuntoMapa.exigirPar(request.getLatitud(), request.getLongitud(), "la direccion habitual");
         Cliente cliente = buscarEntidad(id);
         clienteRepository.findByDni(request.getDni())
                 .filter(otro -> !otro.getId().equals(id))
@@ -124,6 +132,8 @@ public class ClienteServiceImpl implements ClienteService {
         cliente.setCorreo(vacioANulo(request.getCorreo()));
         cliente.setCelular(vacioANulo(request.getCelular()));
         cliente.setDireccionHabitual(request.getDireccionHabitual());
+        cliente.setLatitud(request.getLatitud());
+        cliente.setLongitud(request.getLongitud());
         cliente.setTipoCliente(request.getTipoCliente());
         cliente.setModifiedBy(UsuarioActual.username());
 
