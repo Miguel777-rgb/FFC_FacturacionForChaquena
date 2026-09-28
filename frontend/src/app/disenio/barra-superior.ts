@@ -76,7 +76,7 @@ import { SelectorTema } from './selector-tema';
         </button>
       }
 
-      <app-selector-idioma variante="integrada" />
+      <app-selector-idioma variante="integrada" compacto />
       <app-selector-tema />
     </header>
 

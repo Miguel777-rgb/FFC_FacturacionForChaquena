@@ -81,6 +81,8 @@ export const ICONOS = {
   /** Flechas de pagina: anterior y siguiente. (chevron-left, chevron-right) */
   anterior: 'M15 6l-6 6l6 6',
   siguiente: 'M9 6l6 6l-6 6',
+  /** Flecha hacia abajo: un control que despliega una lista. (chevron-down) */
+  desplegar: 'M6 9l6 6l6 -6',
   /** Tres lineas: abrir la navegacion en el celular. (menu-2) */
   menuLineas: 'M4 6l16 0 M4 12l16 0 M4 18l16 0',
   salir:

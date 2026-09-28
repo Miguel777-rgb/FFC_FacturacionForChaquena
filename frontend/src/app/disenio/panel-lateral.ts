@@ -240,21 +240,20 @@ let siguientePanel = 0;
       </nav>
 
       <footer>
-        <!-- Quien soy lleva a Mi perfil: es donde se mira el propio nombre. -->
-        <a
-          class="quien"
-          routerLink="/perfil"
-          routerLinkActive="activo"
-          [attr.title]="t('panel.perfil')"
-          (click)="navego.emit()"
-        >
-          <span class="nombre">{{ sesion.nombre() }}</span>
-          <span class="roles">{{ sesion.roles().join(' · ') || t('panel.sinRoles') }}</span>
-        </a>
-
-        <div class="controles">
-          <app-selector-idioma variante="integrada" />
-          <app-selector-tema />
+        <!-- La cuenta y su salida van juntas; el idioma y el tema, que son
+             preferencias de este dispositivo, en su propia fila. -->
+        <div class="cuenta">
+          <!-- Quien soy lleva a Mi perfil: es donde se mira el propio nombre. -->
+          <a
+            class="quien"
+            routerLink="/perfil"
+            routerLinkActive="activo"
+            [attr.title]="t('panel.perfil')"
+            (click)="navego.emit()"
+          >
+            <span class="nombre">{{ sesion.nombre() }}</span>
+            <span class="roles">{{ sesion.roles().join(' · ') || t('panel.sinRoles') }}</span>
+          </a>
           <button
             type="button"
             class="icono-solo"
@@ -264,6 +263,11 @@ let siguientePanel = 0;
           >
             <app-icono nombre="salir" />
           </button>
+        </div>
+
+        <div class="controles">
+          <app-selector-idioma variante="integrada" [compacto]="regleta()" />
+          <app-selector-tema />
         </div>
       </footer>
 
@@ -485,13 +489,25 @@ let siguientePanel = 0;
 
     .controles {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       gap: var(--e1);
     }
 
+    .cuenta {
+      display: flex;
+      align-items: center;
+      gap: var(--e1);
+    }
+
+    .cuenta a.quien {
+      flex: 1 1 auto;
+    }
+
+    /* El idioma ocupa lo que deja el tema: cabe entero el nombre mas largo,
+       «Português», con su bandera y su flecha. */
     .controles app-selector-idioma {
-      margin-right: auto;
+      flex: 1 1 auto;
+      min-width: 0;
     }
 
     /* Ni principal ni peligro: se anulan a mano los estilos globales del boton. */
@@ -556,12 +572,18 @@ let siguientePanel = 0;
       border-top: 1px solid var(--linea);
     }
 
-    aside.plegado .controles {
+    /* En la regleta todo va en columna, y la salida al final, como antes. */
+    aside.plegado .controles,
+    aside.plegado .cuenta {
       flex-direction: column;
     }
 
+    aside.plegado .cuenta {
+      order: 1;
+    }
+
     aside.plegado .controles app-selector-idioma {
-      margin-right: 0;
+      flex: none;
     }
   `,
 })

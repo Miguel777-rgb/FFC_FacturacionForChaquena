@@ -12,6 +12,7 @@ import type { ClaveI18n } from './es';
  */
 export const EN: Record<ClaveI18n, string> = {
   'idioma.elegir': 'Interface language',
+  'idioma.actual': 'Interface language: {idioma}',
 
   'titulo.entrar': 'Sign in',
   'titulo.sinPermiso': 'No access',

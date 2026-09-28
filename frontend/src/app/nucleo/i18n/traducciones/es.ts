@@ -22,6 +22,7 @@
 export const ES = {
   // --- idioma ---------------------------------------------------------------
   'idioma.elegir': 'Idioma de la interfaz',
+  'idioma.actual': 'Idioma de la interfaz: {idioma}',
 
   // --- titulos de las rutas (los usa TituloDeRuta) ---------------------------
   'titulo.entrar': 'Entrar',

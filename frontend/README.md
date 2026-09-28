@@ -35,7 +35,7 @@ ver [Idiomas](#idiomas).
 | 7 | **Los errores tienen un solo camino.** El interceptor traduce cada código a un aviso legible; una pantalla no inventa el texto de un fallo. | [errores.interceptor.ts:64](src/app/nucleo/http/errores.interceptor.ts#L64) |
 | 8 | **Ningún estado de dominio se calcula aquí.** Qué gestos se ofrecen lo dice `transicionesPermitidas`; si una comanda quedó `PAGADO` lo decide el servidor y se relee. | [pos.page.ts:673](src/app/paginas/pos/pos.page.ts#L673) · [caja.page.ts:337](src/app/paginas/caja/caja.page.ts#L337) |
 | 9 | **Cada superficie es un chunk aparte.** El celular del mozo no descarga el arqueo de caja: las diecisiete rutas con componente son `loadComponent`. | [app.routes.ts](src/app/app.routes.ts) · tabla de compilación más abajo |
-| 10 | **La interfaz habla tres idiomas y cambia sin recargar**, desde un desplegable siempre a la vista: en el pie del panel, en la barra superior del celular y, sin sesión, en una esquina. Las plantillas llaman a `t('clave')`; el español viaja en el bundle, el inglés y el portugués se descargan al elegirlos. | [i18n.service.ts](src/app/nucleo/i18n/i18n.service.ts) · [Idiomas](#idiomas) |
+| 10 | **La interfaz habla tres idiomas y cambia sin recargar**, desde un desplegable con la bandera de cada uno, siempre a la vista: en el pie del panel, en la barra superior del celular y, sin sesión, arriba a la derecha. Las plantillas llaman a `t('clave')`; el español viaja en el bundle, el inglés y el portugués se descargan al elegirlos. | [i18n.service.ts](src/app/nucleo/i18n/i18n.service.ts) · [Idiomas](#idiomas) |
 | 11 | **Formularios: solo el login usa `ReactiveFormsModule`.** El resto son señales y manejadores `(input)`. No hay `ngModel`, ni `CommonModule`, ni `*ngIf`/`*ngFor` en todo el proyecto. | [login.page.ts:35](src/app/paginas/login/login.page.ts#L35) |
 
 ---
@@ -87,7 +87,7 @@ src/
     │   ├── asistencia/   asistencia.service
     │   ├── tiempo-real/  tiempo-real.service
     │   └── marca/        logo.service · archivos
-    ├── disenio/          panel-lateral · pila-avisos · icono · selector-idioma
+    ├── disenio/          panel-lateral · pila-avisos · icono · selector-idioma · bandera
     │                     barra-superior · dialogo · confirmacion · selector-tema
     │                     en-vivo · descarga · metodos-pago
     │                     secciones.scss (menú, inventario, configuración, personal y reportes)
@@ -129,10 +129,10 @@ src/
 
 | Archivo | Qué es | Lo que hay que saber | Evidencia |
 |---|---|---|---|
-| [panel-lateral.ts](src/app/disenio/panel-lateral.ts) | Navegación entre superficies | Solo lista destinos que el rol permite, en dos grupos: **Operación** y **Gestión**. En PC se pliega a una regleta de iconos y lo recuerda por dispositivo; entre 768 y 1023 px es regleta siempre. En su pie van quién es el usuario —que lleva a `/perfil`—, el idioma, el tema y la salida. El mismo componente, con `cajon`, es el menú del celular | [panel-lateral.ts](src/app/disenio/panel-lateral.ts) |
+| [panel-lateral.ts](src/app/disenio/panel-lateral.ts) | Navegación entre superficies | Solo lista destinos que el rol permite, en dos grupos: **Operación** y **Gestión**. En PC se pliega a una regleta de iconos y lo recuerda por dispositivo; entre 768 y 1023 px es regleta siempre. En su pie van quién es el usuario —que lleva a `/perfil`— junto a la salida, y debajo el idioma y el tema. El mismo componente, con `cajon`, es el menú del celular | [panel-lateral.ts](src/app/disenio/panel-lateral.ts) |
 | [barra-superior.ts](src/app/disenio/barra-superior.ts) | La barra del celular | Por debajo de 768 px el panel desaparece: una regleta se comía un sexto del ancho. La barra lleva el menú, la marca, el reloj para marcar entrada y salida, el idioma y el tema; el menú se abre en un `<dialog>` a la izquierda que se cierra al elegir destino | [barra-superior.ts](src/app/disenio/barra-superior.ts) |
 | [pila-avisos.ts](src/app/disenio/pila-avisos.ts) | Los avisos en pantalla | `role="status"` + `aria-live="polite"`: el lector de pantalla los anuncia sin interrumpir. Se apilan en la esquina inferior derecha |
-| [selector-idioma.ts](src/app/disenio/selector-idioma.ts) | El desplegable de idioma | `integrada` en el pie del panel y en la barra superior; solo en la pantalla de entrar flota en una esquina. Lleva un `<label>` oculto asociado por `for`: un `<select>` sin rótulo se anuncia como «cuadro combinado» y nada más | [selector-idioma.ts](src/app/disenio/selector-idioma.ts) |
+| [selector-idioma.ts](src/app/disenio/selector-idioma.ts) | El desplegable de idioma | `integrada` en el pie del panel, en la barra superior y en Mi perfil; sin sesión, fijo arriba a la derecha. `compacto` deja solo la bandera (barra del celular y regleta). El botón se anuncia como «Idioma de la interfaz: Español»: dice para qué sirve y qué idioma tiene puesto | [selector-idioma.ts](src/app/disenio/selector-idioma.ts) · [bandera.ts](src/app/disenio/bandera.ts) |
 | [icono.ts](src/app/disenio/icono.ts) + [iconos.ts](src/app/disenio/iconos.ts) | Iconos de un solo juego | Tabler Icons 3.46.0 (MIT), de contorno: se copian los `d` de los que se usan, sin instalar la librería. Nada de emojis ni glifos como `★` en lugar de iconos. `aria-hidden` va fijo, porque un icono nunca es la única forma de nombrar algo | [iconos.ts](src/app/disenio/iconos.ts) |
 | [dialogo.ts](src/app/disenio/dialogo.ts) + [confirmacion.ts](src/app/disenio/confirmacion.ts) | Diálogo y confirmación de peligro | Sobre el `<dialog>` nativo: `showModal()` deja inerte el resto, atrapa el foco y cierra con Escape. Toda acción de peligro pasa por `ConfirmacionService.pedir(...)`; el foco arranca en «Dejarlo», no en el botón rojo | [confirmacion.service.ts](src/app/nucleo/confirmacion/confirmacion.service.ts) |
 | [en-vivo.ts](src/app/disenio/en-vivo.ts) | «En vivo» junto al título | En cocina, despacho, órdenes, mesas y el tablero. Con la conexión caída dice «Se actualiza sola»: sin eso, una comanda que no aparece podría no existir o no haber llegado todavía | [en-vivo.ts](src/app/disenio/en-vivo.ts) |
@@ -391,8 +391,9 @@ que no debe cerrarse sola
 ## Idiomas
 
 Español (por defecto), inglés y portugués. Se cambian desde **un desplegable
-siempre a la vista**: en el pie del panel lateral, en la barra superior del
-celular y, en la pantalla de entrar, flotando en una esquina. El cambio **no
+siempre a la vista**, con la bandera de cada idioma junto a su nombre: en el pie
+del panel lateral, en la barra superior del celular y, en la pantalla de entrar,
+arriba a la derecha. El cambio **no
 recarga la página**: quien tiene media comanda escrita no la pierde.
 
 El control está siempre a la vista y no dentro de un menú a propósito: quien
@@ -408,7 +409,8 @@ ajuste.
 | [traducciones/en.ts](src/app/nucleo/i18n/traducciones/en.ts) · [pt.ts](src/app/nucleo/i18n/traducciones/pt.ts) | Los otros dos idiomas | Se cargan con `import()` al elegirlos: son unos 50 kB cada uno que la pantalla de cocina no tiene por qué descargar |
 | [i18n.service.ts](src/app/nucleo/i18n/i18n.service.ts) | `t`, `tp`, `tEnum` y el idioma como señal | El idioma vive en `localStorage`, como el tema y el panel plegado: es preferencia del dispositivo, no del turno |
 | [titulo.strategy.ts](src/app/nucleo/i18n/titulo.strategy.ts) | El título de la pestaña | Las rutas declaran `title: 'panel.pos'`, la misma clave que nombra el destino en el panel y titula la pantalla. Un `effect` lo reescribe al cambiar de idioma: es lo único que vive fuera de una plantilla |
-| [selector-idioma.ts](src/app/disenio/selector-idioma.ts) | El control | Un `<select>` nativo: trae resueltos el teclado, el foco y la rueda del celular, que una lista propia habría que reimplementar. Cada opción se escribe en su propia lengua —«English», no «Inglés»— porque quien busca la suya todavía no entiende la que ve. Va `integrada` en el panel y en la barra superior; sin sesión, flotante en `app.html` |
+| [selector-idioma.ts](src/app/disenio/selector-idioma.ts) | El control | Un botón que despliega una lista propia y no un `<select>`: el nativo no admite dibujos dentro de las opciones en todos los navegadores, y el iPhone se quedaría sin banderas. El teclado del nativo se reimplementa según el patrón *select-only combobox* de la APG (flechas, Inicio, Fin, la inicial, Enter o Espacio, Escape) y la lista se abre en la capa superior con `popover`. Cada opción se escribe en su propia lengua —«English», no «Inglés»— y lleva `lang`. Va `integrada` en el panel, la barra superior y Mi perfil; sin sesión, flotante en `app.html` |
+| [bandera.ts](src/app/disenio/bandera.ts) | Las tres banderas | SVG dibujados en el propio componente, a 20 × 14: Perú para el español, EE. UU. para el inglés y Brasil para el portugués. Nunca emoji —Windows los muestra como letras— y siempre al lado del nombre: una bandera es un país, no un idioma |
 | [idioma.interceptor.ts](src/app/nucleo/http/idioma.interceptor.ts) | `Accept-Language` en cada petición | Hoy el backend no la mira. Va igual porque es el mecanismo estándar y esta es la única pieza que sabe el idioma |
 
 ### Las tres funciones
