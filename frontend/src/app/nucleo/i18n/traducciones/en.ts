@@ -14,6 +14,33 @@ export const EN: Record<ClaveI18n, string> = {
   'idioma.elegir': 'Interface language',
   'idioma.actual': 'Interface language: {idioma}',
 
+  // --- mapa (direcciones con su punto) ---------------------------------------
+  'mapa.region': 'Map: tap to mark the spot',
+  'mapa.puntoEntrega': 'Map of the delivery spot',
+  'mapa.acercar': 'Zoom in',
+  'mapa.alejar': 'Zoom out',
+  'mapa.puntoElegido': 'Chosen spot',
+  'mapa.local': 'The restaurant',
+  'mapa.sugerencias': 'Suggested addresses',
+  'mapa.referencia': 'Reference',
+  'mapa.referenciaEjemplo': 'Apt 3, green gate',
+  'mapa.ayuda': 'Tap the map to mark the spot; drag the pin to fine-tune it.',
+  'mapa.buscando': 'Looking up the address of that spot…',
+  'mapa.sinNombre': 'There is no named street at that spot: type the address.',
+  'mapa.sinGeocodificacion':
+    "The map marks the spot, but the address won't fill in by itself: the OpenRouteService key is missing. Type it in.",
+  'mapa.sinLocal':
+    'The restaurant is not marked on the map yet: an administrator can do it in Settings.',
+  'mapa.ruta': '{distancia} · about {min} min by car from the restaurant',
+  'mapa.abrir': 'Open in maps',
+  'mapa.abrirAria': 'Open in maps: {direccion}',
+  'clientes.editarDireccion': 'Edit address',
+  'clientes.agregarDireccion': 'Add address',
+  'clientes.sinDireccion': 'No usual address.',
+  'clientes.sinPunto':
+    'Not marked on the map: the POS will suggest it, but it will need to be located.',
+  'clientes.avisoDireccion': "{nombre}'s address saved.",
+
   'titulo.entrar': 'Sign in',
   'titulo.sinPermiso': 'No access',
 
@@ -205,7 +232,7 @@ export const EN: Record<ClaveI18n, string> = {
   'pos.cargandoMesas': 'Loading the table map…',
   'pos.sinMesas': 'No tables have been set up.',
   'pos.direccionEntrega': 'Delivery address',
-  'pos.direccionEjemplo': 'Jr. Lima 452, Apt 3 · landmark',
+  'pos.direccionEjemplo': 'Jr. Lima 452, Cercado de Lima',
   'pos.avisoDelivery':
     'Delivery is run by an outside company. Once you send the order, the delivery code appears and the customer reads it out to the driver.',
   'pos.avisoRetiro': 'The customer picks it up at the counter. No table or address needed.',
@@ -1136,6 +1163,8 @@ export const EN: Record<ClaveI18n, string> = {
   'datosLocal.ruc': 'RUC',
   'datosLocal.rucOnce': 'The RUC has 11 digits.',
   'datosLocal.direccion': 'Address',
+  'datosLocal.ubicacionAyuda':
+    "Mark the restaurant on the map: it is where maps open and where each delivery's distance is measured from.",
   'datosLocal.telefono': 'Phone',
   'datosLocal.igv': 'IGV',
   'datosLocal.porcentajeIgv': 'IGV rate (%)',

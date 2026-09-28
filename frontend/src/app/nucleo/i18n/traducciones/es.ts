@@ -24,6 +24,33 @@ export const ES = {
   'idioma.elegir': 'Idioma de la interfaz',
   'idioma.actual': 'Idioma de la interfaz: {idioma}',
 
+  // --- mapa (direcciones con su punto) ---------------------------------------
+  'mapa.region': 'Mapa: toca para marcar el punto',
+  'mapa.puntoEntrega': 'Mapa del punto de entrega',
+  'mapa.acercar': 'Acercar',
+  'mapa.alejar': 'Alejar',
+  'mapa.puntoElegido': 'Punto elegido',
+  'mapa.local': 'El local',
+  'mapa.sugerencias': 'Direcciones sugeridas',
+  'mapa.referencia': 'Referencia',
+  'mapa.referenciaEjemplo': 'Dpto 3, portón verde',
+  'mapa.ayuda': 'Toca el mapa para marcar el punto; arrastra el pin para afinarlo.',
+  'mapa.buscando': 'Buscando la dirección de ese punto…',
+  'mapa.sinNombre': 'No hay una calle con nombre en ese punto: escribe la dirección.',
+  'mapa.sinGeocodificacion':
+    'El mapa marca el punto, pero la dirección no se completa sola: falta la clave de OpenRouteService. Escríbela a mano.',
+  'mapa.sinLocal':
+    'El local aún no está marcado en el mapa: un administrador puede hacerlo en Configuración.',
+  'mapa.ruta': '{distancia} · unos {min} min en auto desde el local',
+  'mapa.abrir': 'Abrir en el mapa',
+  'mapa.abrirAria': 'Abrir en el mapa: {direccion}',
+  // la direccion habitual del cliente, con su punto (Clientes)
+  'clientes.editarDireccion': 'Editar dirección',
+  'clientes.agregarDireccion': 'Agregar dirección',
+  'clientes.sinDireccion': 'No tiene dirección habitual.',
+  'clientes.sinPunto': 'Sin punto en el mapa: el POS la propondrá, pero habrá que ubicarla.',
+  'clientes.avisoDireccion': 'Dirección de {nombre} guardada.',
+
   // --- titulos de las rutas (los usa TituloDeRuta) ---------------------------
   'titulo.entrar': 'Entrar',
   'titulo.sinPermiso': 'Sin permiso',
@@ -223,7 +250,7 @@ export const ES = {
   'pos.cargandoMesas': 'Cargando el mapa de mesas…',
   'pos.sinMesas': 'No hay mesas dadas de alta.',
   'pos.direccionEntrega': 'Dirección de entrega',
-  'pos.direccionEjemplo': 'Jr. Lima 452, Dpto 3 · referencia',
+  'pos.direccionEjemplo': 'Jr. Lima 452, Cercado de Lima',
   'pos.avisoDelivery':
     'El reparto lo hace una empresa externa. Al enviar la comanda aparece el código de entrega que el cliente le dictará al conductor.',
   'pos.avisoRetiro': 'El cliente recoge en el mostrador. No hace falta mesa ni dirección.',
@@ -1166,6 +1193,8 @@ export const ES = {
   'datosLocal.ruc': 'RUC',
   'datosLocal.rucOnce': 'El RUC tiene 11 dígitos.',
   'datosLocal.direccion': 'Dirección',
+  'datosLocal.ubicacionAyuda':
+    'Marca el local en el mapa: es donde se abren los mapas y desde donde se mide la distancia de cada delivery.',
   'datosLocal.telefono': 'Teléfono',
   'datosLocal.igv': 'IGV',
   'datosLocal.porcentajeIgv': 'Porcentaje de IGV',

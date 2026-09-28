@@ -12,6 +12,32 @@ export const PT: Record<ClaveI18n, string> = {
   'idioma.elegir': 'Idioma da interface',
   'idioma.actual': 'Idioma da interface: {idioma}',
 
+  // --- mapa (direcciones con su punto) ---------------------------------------
+  'mapa.region': 'Mapa: toque para marcar o ponto',
+  'mapa.puntoEntrega': 'Mapa do ponto de entrega',
+  'mapa.acercar': 'Aproximar',
+  'mapa.alejar': 'Afastar',
+  'mapa.puntoElegido': 'Ponto escolhido',
+  'mapa.local': 'O restaurante',
+  'mapa.sugerencias': 'Endereços sugeridos',
+  'mapa.referencia': 'Referência',
+  'mapa.referenciaEjemplo': 'Apto 3, portão verde',
+  'mapa.ayuda': 'Toque no mapa para marcar o ponto; arraste o pino para ajustá-lo.',
+  'mapa.buscando': 'Buscando o endereço desse ponto…',
+  'mapa.sinNombre': 'Não há uma rua com nome nesse ponto: digite o endereço.',
+  'mapa.sinGeocodificacion':
+    'O mapa marca o ponto, mas o endereço não se completa sozinho: falta a chave do OpenRouteService. Digite-o.',
+  'mapa.sinLocal':
+    'O restaurante ainda não está marcado no mapa: um administrador pode fazê-lo em Configuração.',
+  'mapa.ruta': '{distancia} · uns {min} min de carro desde o restaurante',
+  'mapa.abrir': 'Abrir no mapa',
+  'mapa.abrirAria': 'Abrir no mapa: {direccion}',
+  'clientes.editarDireccion': 'Editar endereço',
+  'clientes.agregarDireccion': 'Adicionar endereço',
+  'clientes.sinDireccion': 'Não tem endereço habitual.',
+  'clientes.sinPunto': 'Sem ponto no mapa: o PDV vai sugeri-lo, mas será preciso localizá-lo.',
+  'clientes.avisoDireccion': 'Endereço de {nombre} salvo.',
+
   'titulo.entrar': 'Entrar',
   'titulo.sinPermiso': 'Sem acesso',
 
@@ -203,7 +229,7 @@ export const PT: Record<ClaveI18n, string> = {
   'pos.cargandoMesas': 'Carregando o mapa de mesas…',
   'pos.sinMesas': 'Nenhuma mesa cadastrada.',
   'pos.direccionEntrega': 'Endereço de entrega',
-  'pos.direccionEjemplo': 'Jr. Lima 452, Apto 3 · referência',
+  'pos.direccionEjemplo': 'Jr. Lima 452, Cercado de Lima',
   'pos.avisoDelivery':
     'A entrega é feita por uma empresa externa. Ao enviar a comanda aparece o código de entrega que o cliente vai falar para o entregador.',
   'pos.avisoRetiro': 'O cliente retira no balcão. Não precisa de mesa nem de endereço.',
@@ -1133,6 +1159,8 @@ export const PT: Record<ClaveI18n, string> = {
   'datosLocal.ruc': 'RUC',
   'datosLocal.rucOnce': 'O RUC tem 11 dígitos.',
   'datosLocal.direccion': 'Endereço',
+  'datosLocal.ubicacionAyuda':
+    'Marque o restaurante no mapa: é onde os mapas abrem e de onde se mede a distância de cada entrega.',
   'datosLocal.telefono': 'Telefone',
   'datosLocal.igv': 'IGV',
   'datosLocal.porcentajeIgv': 'Alíquota do IGV (%)',

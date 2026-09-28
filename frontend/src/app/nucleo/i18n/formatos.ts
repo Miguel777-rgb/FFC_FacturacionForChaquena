@@ -169,3 +169,19 @@ export function formatearDuracion(minutos: number | null | undefined): string {
   if (dias > 0) return horas > 0 ? `${dias} d ${horas} h` : `${dias} d`;
   return resto > 0 ? `${horas} h ${resto} min` : `${horas} h`;
 }
+
+/**
+ * Una distancia por calles: en metros por debajo del kilometro —redondeados a
+ * la decena, que es la precision que tiene sentido para un delivery— y en
+ * kilometros con un decimal despues. El separador decimal es el de quien lee,
+ * como en las fechas: «3.2 km» en el espanol del Peru —el mismo punto de
+ * «S/ 32.00»— y en ingles, «3,2 km» en el portugues de Brasil.
+ */
+export function formatearDistancia(metros: number | null | undefined, idioma: Idioma): string {
+  if (metros === null || metros === undefined || Number.isNaN(metros)) return '—';
+  if (metros < 1000) return `${Math.round(metros / 10) * 10} m`;
+  const km = new Intl.NumberFormat(REGION[idioma], { maximumFractionDigits: 1 }).format(
+    metros / 1000,
+  );
+  return `${km} km`;
+}

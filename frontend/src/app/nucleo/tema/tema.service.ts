@@ -30,8 +30,24 @@ export class TemaService {
     () => ORDEN[(ORDEN.indexOf(this._tema()) + 1) % ORDEN.length],
   );
 
+  /** Lo que prefiere el sistema ahora; cambia en vivo si el celular pasa a modo noche. */
+  private readonly consultaSistema =
+    typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+  private readonly sistemaOscuro = signal(this.consultaSistema?.matches ?? false);
+
+  /**
+   * Si lo que se ve es oscuro, por eleccion o por el sistema. Lo necesitan las
+   * piezas que no se pintan con los tokens de CSS: las teselas del mapa son
+   * imagenes, y hay que pedir las oscuras.
+   */
+  readonly esOscuro = computed(
+    () => this._tema() === 'oscuro' || (this._tema() === 'sistema' && this.sistemaOscuro()),
+  );
+
   constructor() {
     this.aplicar(this._tema());
+    // El servicio vive lo que la aplicacion: no hace falta soltar la escucha.
+    this.consultaSistema?.addEventListener('change', (e) => this.sistemaOscuro.set(e.matches));
   }
 
   elegir(tema: Tema): void {
