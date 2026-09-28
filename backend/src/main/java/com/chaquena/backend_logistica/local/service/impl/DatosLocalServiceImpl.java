@@ -3,6 +3,7 @@ package com.chaquena.backend_logistica.local.service.impl;
 import com.chaquena.backend_logistica.archivos.service.ArchivoService;
 import com.chaquena.backend_logistica.local.domain.DatosLocal;
 import com.chaquena.backend_logistica.local.domain.HorarioLocal;
+import com.chaquena.backend_logistica.local.dto.Coordenadas;
 import com.chaquena.backend_logistica.local.dto.DatosLocalDto;
 import com.chaquena.backend_logistica.local.dto.HorarioLocalDto;
 import com.chaquena.backend_logistica.local.repository.DatosLocalRepository;
@@ -47,6 +48,10 @@ public class DatosLocalServiceImpl implements DatosLocalService {
         if (cambios.getHorarios() != null) {
             validarHorarios(cambios.getHorarios());
         }
+        // Media coordenada no es un punto: o se marco en el mapa, o no.
+        if ((cambios.getLatitud() == null) != (cambios.getLongitud() == null)) {
+            throw new IllegalArgumentException("El punto del local lleva latitud y longitud, o ninguna");
+        }
 
         String autor = UsuarioActual.username();
 
@@ -56,6 +61,8 @@ public class DatosLocalServiceImpl implements DatosLocalService {
         datos.setDireccion(limpio(cambios.getDireccion()));
         datos.setTelefono(limpio(cambios.getTelefono()));
         datos.setCorreo(limpio(cambios.getCorreo()));
+        datos.setLatitud(cambios.getLatitud());
+        datos.setLongitud(cambios.getLongitud());
         if (cambios.getPorcentajeIgv() != null) {
             datos.setPorcentajeIgv(cambios.getPorcentajeIgv().setScale(2, RoundingMode.HALF_UP));
         }
@@ -119,6 +126,16 @@ public class DatosLocalServiceImpl implements DatosLocalService {
     public BigDecimal porcentajeIgv() {
         BigDecimal porcentaje = datos().getPorcentajeIgv();
         return porcentaje != null ? porcentaje : DatosLocal.PORCENTAJE_IGV_POR_DEFECTO;
+    }
+
+    @Override
+    @Transactional
+    public Optional<Coordenadas> ubicacion() {
+        DatosLocal datos = datos();
+        if (datos.getLatitud() == null || datos.getLongitud() == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new Coordenadas(datos.getLatitud(), datos.getLongitud()));
     }
 
     private DatosLocal datos() {

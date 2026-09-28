@@ -15,8 +15,8 @@ import java.util.UUID;
  * Los datos del local y su horario en un solo cuerpo: se leen y se guardan
  * juntos desde la misma pantalla.
  *
- * <p>El {@code PUT} reemplaza los textos, asi que un campo que llega vacio se
- * borra. Dos excepciones: sin {@code porcentajeIgv} se conserva el que habia,
+ * <p>El {@code PUT} reemplaza los textos y el punto del mapa, asi que un campo
+ * que llega vacio se borra. Dos excepciones: sin {@code porcentajeIgv} se conserva el que habia,
  * y sin {@code horarios} el horario no se toca.
  */
 @Getter
@@ -41,6 +41,15 @@ public class DatosLocalDto {
     @Size(max = 120, message = "El correo admite hasta 120 caracteres")
     private String correo;
 
+    /** El punto del local en el mapa. Van las dos o ninguna. */
+    @DecimalMin(value = "-90.0", message = "La latitud va de -90 a 90")
+    @DecimalMax(value = "90.0", message = "La latitud va de -90 a 90")
+    private Double latitud;
+
+    @DecimalMin(value = "-180.0", message = "La longitud va de -180 a 180")
+    @DecimalMax(value = "180.0", message = "La longitud va de -180 a 180")
+    private Double longitud;
+
     @DecimalMin(value = "0.00", message = "El IGV no puede ser negativo")
     @DecimalMax(value = "100.00", message = "El IGV no puede superar 100")
     private BigDecimal porcentajeIgv;
@@ -58,6 +67,8 @@ public class DatosLocalDto {
                 .nombreComercial(d.getNombreComercial())
                 .ruc(d.getRuc())
                 .direccion(d.getDireccion())
+                .latitud(d.getLatitud())
+                .longitud(d.getLongitud())
                 .telefono(d.getTelefono())
                 .correo(d.getCorreo())
                 .porcentajeIgv(d.getPorcentajeIgv())

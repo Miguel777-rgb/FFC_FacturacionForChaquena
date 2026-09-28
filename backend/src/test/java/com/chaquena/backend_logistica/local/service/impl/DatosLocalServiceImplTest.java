@@ -70,6 +70,32 @@ class DatosLocalServiceImplTest {
     }
 
     @Test
+    void mediaCoordenadaNoEsUnPuntoYNoSeGuarda() {
+        DatosLocalDto cambios = DatosLocalDto.builder().latitud(-12.0464).build();
+
+        assertThatThrownBy(() -> servicio.actualizar(cambios))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("latitud y longitud");
+        verify(datosRepositorio, never()).save(any());
+    }
+
+    @Test
+    void elPuntoDelLocalSeGuardaYSeLeeComoUbicacion() {
+        DatosLocal guardado = DatosLocal.porDefecto();
+        when(datosRepositorio.findById(DatosLocal.ID_UNICO)).thenReturn(Optional.of(guardado));
+        when(datosRepositorio.save(any(DatosLocal.class))).thenAnswer(i -> i.getArgument(0));
+        when(horarioRepositorio.findAll()).thenReturn(List.of());
+        when(horarioRepositorio.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        servicio.actualizar(DatosLocalDto.builder().latitud(-12.0464).longitud(-77.0428).build());
+
+        assertThat(servicio.ubicacion()).hasValueSatisfying(c -> {
+            assertThat(c.latitud()).isEqualTo(-12.0464);
+            assertThat(c.longitud()).isEqualTo(-77.0428);
+        });
+    }
+
+    @Test
     void rechazaElMismoDiaDosVeces() {
         HorarioLocalDto lunes = HorarioLocalDto.builder().dia(DayOfWeek.MONDAY).cerrado(true).build();
         DatosLocalDto cambios = DatosLocalDto.builder().horarios(List.of(lunes, lunes)).build();

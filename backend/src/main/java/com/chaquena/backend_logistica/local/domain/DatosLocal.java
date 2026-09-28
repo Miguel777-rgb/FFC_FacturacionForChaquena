@@ -53,6 +53,17 @@ public class DatosLocal {
     @Column(name = "correo", length = 120)
     private String correo;
 
+    /**
+     * Donde esta el local, marcado en el mapa. Nulas hasta que el administrador
+     * lo marque: un punto inventado mandaria las sugerencias de direccion y la
+     * distancia del delivery a otra ciudad.
+     */
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
+
     @Column(name = "porcentaje_igv", nullable = false, precision = 5, scale = 2)
     private BigDecimal porcentajeIgv;
 
