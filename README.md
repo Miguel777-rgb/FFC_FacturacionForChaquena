@@ -120,6 +120,18 @@ no de demostración: se siembra siempre, con `app.seed.enabled` (encendido por
 defecto). Los platillos de ejemplo, en cambio, son parte de `DatosDemoSeeder` y
 solo aparecen con `app.seed.demo=true`.
 
+**La demostración trae sesenta días de historia.** Con `app.seed.demo=true`,
+`HistorialDemoSeeder` siembra ventas (entre 22 y 45 comandas al día, con picos de
+almuerzo y cena, en mesa, retiro y delivery, por el POS y por el bot), encuestas,
+puntos y cupones, turnos, marcaciones y reservas, y en **cada arranque** rellena
+lo que falte hasta la hora actual: los reportes y el tablero nunca están vacíos.
+De hoy solo entra lo que ya terminó, así que nada queda en cocina ni en caja. Cada
+fila tiene un id que sale de su fecha y su posición, de modo que arrancar dos
+veces no duplica nada. Se escribe directo en la base y **no toca el inventario**:
+dos mil ventas por los servicios agotarían el stock. El plan de cada día es
+cálculo puro y tiene sus pruebas
+([PlanDiaDemo.java](backend/src/main/java/com/chaquena/backend_logistica/shared/config/demo/PlanDiaDemo.java)).
+
 **Todavía no hay `backend-facturacion`.** Cada venta escribe un evento
 `FACTURA_REQUERIDA` en `outbox_events`, dentro de la misma transacción, y
 `OutboxWorker` sabe despacharlo con reintentos y cola muerta — pero queda apagado
@@ -130,7 +142,9 @@ con `app.outbox.enabled=false` hasta que exista un destino al que enviarlo.
 ## Credenciales de prueba (solo desarrollo local)
 
 > **Estas credenciales son de la siembra de demostración de un entorno local.**
-> Existen únicamente cuando `app.seed.demo=true` y la base de datos está vacía.
+> Existen únicamente cuando `app.seed.demo=true` (`SEED_DEMO=true` en `backend/.env`):
+> los seis primeros se crean con la base de datos vacía; `mozo2` y `mozo3`, en
+> cualquier arranque.
 > No sirven para ningún despliegue real y no deben crearse en uno: antes de
 > exponer esto a una red, hay que borrar estos usuarios y crear el primer
 > administrador con `POST /api/v1/auth/bootstrap`, que solo funciona con la
@@ -143,6 +157,7 @@ Todos comparten la contraseña `Chaquena2001`. Se entra por
 | --------------- | ------------------- | -------------- | ------------ | ------------------------------------------------------------------------ |
 | `admin`       | admin@chaquena.pe   | ADMINISTRADOR  | `ADMIN`    | Las siete; aterriza en`/pos`, que es donde empieza                     |
 | `mozo1`       | mozo@chaquena.pe    | MOZO           | `MOZO`     | `/pos` y `/despacho`                                                 |
+| `mozo2`, `mozo3` | mozo2@chaquena.pe, mozo3@chaquena.pe | MOZO | `MOZO`     | Los mismos; existen para que «ventas por mozo» compare a tres        |
 | `chef1`       | cocina@chaquena.pe  | JEFE DE COCINA | `COCINA`   | `/kds`                                                                 |
 | `caja1`       | caja@chaquena.pe    | CAJERO         | `CAJA`     | `/caja` y `/kpis`                                                    |
 | `almacen1`    | almacen@chaquena.pe | ALMACENERO     | `ALMACEN`  | `/trastienda` (inventario y carta; local, bots y eventos son de ADMIN) |
