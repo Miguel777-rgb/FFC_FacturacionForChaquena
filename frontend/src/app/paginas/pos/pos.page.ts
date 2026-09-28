@@ -15,6 +15,7 @@ import { catchError } from 'rxjs/operators';
 import { Dialogo } from '../../disenio/dialogo';
 import { Icono } from '../../disenio/icono';
 import type { NombreIcono } from '../../disenio/iconos';
+import type { Punto } from '../../disenio/mapa';
 import { EnDolares } from '../../disenio/en-dolares';
 import { formatearDuracion } from '../../nucleo/i18n/formatos';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
@@ -157,6 +158,10 @@ export class PosPage implements OnInit {
   protected readonly tipoOrden = signal<CrearOrdenRequestDtoTipoOrdenEnum>(TIPOS.MESA);
   protected readonly mesaElegida = signal<MesaResponseDto | null>(null);
   protected readonly direccion = signal('');
+  /** Piso, dpto, «porton verde»: lo que el mapa no sabe. Viaja unido a la direccion. */
+  protected readonly referencia = signal('');
+  /** El punto marcado en el mapa. Opcional: la direccion puede escribirse sin marcarlo. */
+  protected readonly puntoEntrega = signal<Punto | null>(null);
   protected readonly destinoAbierto = signal(false);
 
   // --- cliente --------------------------------------------------------------
@@ -301,15 +306,28 @@ export class PosPage implements OnInit {
     return this.t('pos.retiro');
   });
 
-  /** En la cabecera de la comanda cabe mas que en el chip: la mesa con su zona. */
+  /**
+   * La direccion como viaja a la comanda: la calle y, si hay, la referencia,
+   * unidas con un punto medio. Sin columna aparte: el conductor lo lee de un
+   * tiron, «Jr. Lima 452 · Dpto 3, porton verde».
+   */
+  protected readonly direccionCompleta = computed(() =>
+    [this.direccion().trim(), this.referencia().trim()].filter((p) => p).join(' · '),
+  );
+
+  /** En la cabecera de la comanda cabe mas que en el chip: la mesa con su zona, la referencia. */
   protected readonly destinoDetallado = computed(() => {
     const mesa = this.esMesa() ? this.mesaElegida() : null;
-    return mesa
-      ? this.t('pos.mesaZona', {
-          numero: mesa.numero ?? '',
-          zona: mesa.zona || this.t('comun.sinZona'),
-        })
-      : this.etiquetaDestino();
+    if (mesa) {
+      return this.t('pos.mesaZona', {
+        numero: mesa.numero ?? '',
+        zona: mesa.zona || this.t('comun.sinZona'),
+      });
+    }
+    if (this.esDelivery() && this.direccion().trim()) {
+      return this.t('pos.deliveryDireccion', { direccion: this.direccionCompleta() });
+    }
+    return this.etiquetaDestino();
   });
 
   protected readonly iconoDestino = computed<NombreIcono>(() =>
@@ -403,16 +421,16 @@ export class PosPage implements OnInit {
     if (this.tipoOrden() === tipo) return;
     this.tipoOrden.set(tipo);
     if (tipo !== TIPOS.MESA) this.mesaElegida.set(null);
-    if (tipo !== TIPOS.DELIVERY) this.direccion.set('');
+    if (tipo !== TIPOS.DELIVERY) {
+      this.direccion.set('');
+      this.referencia.set('');
+      this.puntoEntrega.set(null);
+    }
   }
 
   protected elegirMesa(mesa: MesaResponseDto): void {
     if (mesa.estado === MesaResponseDtoEstadoEnum.INHABILITADA) return;
     this.mesaElegida.set(mesa);
-  }
-
-  protected anotarDireccion(valor: string): void {
-    this.direccion.set(valor);
   }
 
   // --- cliente --------------------------------------------------------------
@@ -469,6 +487,9 @@ export class PosPage implements OnInit {
     // para ahorrar. Se puede corregir antes de enviar.
     if (this.esDelivery() && !this.direccion().trim() && elegido.direccionHabitual) {
       this.direccion.set(elegido.direccionHabitual);
+      if (elegido.latitud != null && elegido.longitud != null) {
+        this.puntoEntrega.set({ latitud: elegido.latitud, longitud: elegido.longitud });
+      }
     }
   }
 
@@ -504,6 +525,8 @@ export class PosPage implements OnInit {
         clienteAnonimoRequestDto: {
           nombreReferencia: nombre,
           direccionHabitual: this.direccion().trim() || undefined,
+          latitud: this.puntoEntrega()?.latitud,
+          longitud: this.puntoEntrega()?.longitud,
         },
       })
       .subscribe({
@@ -605,6 +628,8 @@ export class PosPage implements OnInit {
     this.cupon.set('');
     this.cliente.set(null);
     this.direccion.set('');
+    this.referencia.set('');
+    this.puntoEntrega.set(null);
     this.comandaAbierta.set(false);
   }
 
@@ -665,7 +690,9 @@ export class PosPage implements OnInit {
           canalOrigen: CrearOrdenRequestDtoCanalOrigenEnum.POS,
           tipoPago: CrearOrdenRequestDtoTipoPagoEnum.EFECTIVO,
           mesaId: this.esMesa() ? this.mesaElegida()!.id : undefined,
-          direccionDelivery: this.esDelivery() ? this.direccion().trim() : undefined,
+          direccionDelivery: this.esDelivery() ? this.direccionCompleta() : undefined,
+          latitudDelivery: this.esDelivery() ? this.puntoEntrega()?.latitud : undefined,
+          longitudDelivery: this.esDelivery() ? this.puntoEntrega()?.longitud : undefined,
           clienteId: this.cliente()?.id,
           promocionId: this.promocionId() ?? undefined,
           cuponCodigo: this.puedeUsarCupon() ? this.cupon().trim() || undefined : undefined,
@@ -699,7 +726,7 @@ export class PosPage implements OnInit {
             this.entregaPendiente.set({
               correlativo: (orden.id ?? '').slice(0, 8).toUpperCase(),
               otp: orden.codigoOtpEntrega,
-              direccion: orden.direccionDelivery ?? this.direccion().trim(),
+              direccion: orden.direccionDelivery ?? this.direccionCompleta(),
             });
             window.scrollTo({ top: 0 });
           }

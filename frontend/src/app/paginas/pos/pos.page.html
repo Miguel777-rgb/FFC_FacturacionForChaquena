@@ -420,12 +420,13 @@
   [tipo]="tipoOrden()"
   [mesas]="mesas()"
   [mesaElegida]="mesaElegida()"
-  [direccion]="direccion()"
   [cargando]="cargando()"
   [(abierto)]="destinoAbierto"
+  [(direccion)]="direccion"
+  [(referencia)]="referencia"
+  [(punto)]="puntoEntrega"
   (elegirTipo)="elegirTipo($event)"
   (elegirMesa)="elegirMesa($event)"
-  (anotarDireccion)="anotarDireccion($event)"
 />
 
 <app-hoja-platillo

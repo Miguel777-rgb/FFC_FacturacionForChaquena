@@ -6,6 +6,8 @@ import {
   type MesaResponseDto,
 } from '../../api';
 import { Dialogo } from '../../disenio/dialogo';
+import type { Punto } from '../../disenio/mapa';
+import { SelectorUbicacion } from '../../disenio/selector-ubicacion';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
 
 const TIPOS = CrearOrdenRequestDtoTipoOrdenEnum;
@@ -18,11 +20,12 @@ const TIPOS = CrearOrdenRequestDtoTipoOrdenEnum;
  * unico que hay que hacer en ella: la hoja se cierra sola. Para retiro y
  * delivery hay un «Listo», porque la direccion se escribe.
  *
- * Solo pinta y avisa; el estado vive en el POS, que es quien lo envia.
+ * Solo pinta y avisa; el estado vive en el POS, que es quien lo envia. El
+ * delivery lleva ademas el mapa: tocarlo completa la direccion.
  */
 @Component({
   selector: 'app-hoja-destino',
-  imports: [Dialogo],
+  imports: [Dialogo, SelectorUbicacion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-dialogo modo="hoja" [titulo]="t('pos.destino')" [(abierto)]="abierto">
@@ -64,15 +67,17 @@ const TIPOS = CrearOrdenRequestDtoTipoOrdenEnum;
           }
         </div>
       } @else if (tipo() === TIPOS.DELIVERY) {
-        <label class="campo">
-          <span>{{ t('pos.direccionEntrega') }}</span>
-          <input
-            type="text"
-            [attr.placeholder]="t('pos.direccionEjemplo')"
-            [value]="direccion()"
-            (input)="anotarDireccion.emit($any($event.target).value)"
-          />
-        </label>
+        <!-- Tocar el mapa completa la direccion; escribirla sugiere y ubica el
+             punto. La referencia va aparte porque el mapa no la sabe. -->
+        <app-selector-ubicacion
+          [etiqueta]="t('pos.direccionEntrega')"
+          [placeholder]="t('pos.direccionEjemplo')"
+          [conReferencia]="true"
+          [conRuta]="true"
+          [(direccion)]="direccion"
+          [(referencia)]="referencia"
+          [(punto)]="punto"
+        />
         <p class="vacio">{{ t('pos.avisoDelivery') }}</p>
       } @else {
         <p class="vacio">{{ t('pos.avisoRetiro') }}</p>
@@ -191,13 +196,15 @@ export class HojaDestino {
   readonly tipo = input.required<CrearOrdenRequestDtoTipoOrdenEnum>();
   readonly mesas = input<MesaResponseDto[]>([]);
   readonly mesaElegida = input<MesaResponseDto | null>(null);
-  readonly direccion = input('');
   readonly cargando = input(false);
   readonly abierto = model(false);
+  /** Lo del delivery: la direccion, la referencia y el punto en el mapa. */
+  readonly direccion = model('');
+  readonly referencia = model('');
+  readonly punto = model<Punto | null>(null);
 
   readonly elegirTipo = output<CrearOrdenRequestDtoTipoOrdenEnum>();
   readonly elegirMesa = output<MesaResponseDto>();
-  readonly anotarDireccion = output<string>();
 
   protected alElegirMesa(mesa: MesaResponseDto): void {
     if (mesa.estado === MesaResponseDtoEstadoEnum.INHABILITADA) return;
