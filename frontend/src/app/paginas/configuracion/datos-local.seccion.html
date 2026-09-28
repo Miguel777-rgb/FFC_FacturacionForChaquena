@@ -31,15 +31,17 @@
         </label>
       </div>
 
-      <label class="campo">
-        <span>{{ t('datosLocal.direccion') }}</span>
-        <input
-          type="text"
-          autocomplete="street-address"
-          [value]="f.direccion"
-          (input)="anotar('direccion', $any($event.target).value)"
-        />
-      </label>
+      <!-- El local en el mapa: es el centro de todos los mapas y el origen de la
+           distancia del delivery. Tocar el mapa completa la direccion. -->
+      <app-selector-ubicacion
+        [etiqueta]="t('datosLocal.direccion')"
+        [mostrarLocal]="false"
+        [direccion]="f.direccion"
+        (direccionChange)="anotar('direccion', $event)"
+        [punto]="f.punto"
+        (puntoChange)="anotarPunto($event)"
+      />
+      <p class="ayuda-ubicacion">{{ t('datosLocal.ubicacionAyuda') }}</p>
 
       <div class="campos">
         <label class="campo">

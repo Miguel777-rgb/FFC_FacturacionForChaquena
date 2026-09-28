@@ -12,8 +12,11 @@ import {
   LocalApi,
   type DatosLocalDto,
 } from '../../api';
+import type { Punto } from '../../disenio/mapa';
+import { SelectorUbicacion } from '../../disenio/selector-ubicacion';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { UbicacionLocalService } from '../../nucleo/mapa/ubicacion-local.service';
 
 type Dia = HorarioLocalDtoDiaEnum;
 type CampoTexto = 'nombreComercial' | 'ruc' | 'direccion' | 'telefono' | 'correo';
@@ -32,6 +35,8 @@ interface Formulario {
   nombreComercial: string;
   ruc: string;
   direccion: string;
+  /** El local en el mapa: centro de los mapas y origen de la distancia del delivery. */
+  punto: Punto | null;
   telefono: string;
   correo: string;
   porcentajeIgv: number | null;
@@ -49,6 +54,8 @@ function desdeServidor(d: DatosLocalDto): Formulario {
     nombreComercial: d.nombreComercial ?? '',
     ruc: d.ruc ?? '',
     direccion: d.direccion ?? '',
+    punto:
+      d.latitud != null && d.longitud != null ? { latitud: d.latitud, longitud: d.longitud } : null,
     telefono: d.telefono ?? '',
     correo: d.correo ?? '',
     porcentajeIgv: d.porcentajeIgv ?? null,
@@ -71,6 +78,7 @@ function desdeServidor(d: DatosLocalDto): Formulario {
  */
 @Component({
   selector: 'app-datos-local-seccion',
+  imports: [SelectorUbicacion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './datos-local.seccion.html',
   styleUrls: ['../../disenio/secciones.scss', './datos-local.seccion.scss'],
@@ -79,6 +87,7 @@ export class DatosLocalSeccion implements OnInit {
   private readonly localApi = inject(LocalApi);
   private readonly avisos = inject(AvisosService);
   private readonly i18n = inject(I18nService);
+  private readonly ubicacion = inject(UbicacionLocalService);
 
   protected readonly t = this.i18n.t;
   protected readonly tEnum = this.i18n.tEnum;
@@ -133,6 +142,10 @@ export class DatosLocalSeccion implements OnInit {
     this.formulario.update((f) => (f ? { ...f, [campo]: limpio } : f));
   }
 
+  protected anotarPunto(punto: Punto | null): void {
+    this.formulario.update((f) => (f ? { ...f, punto } : f));
+  }
+
   protected anotarIgv(valor: string): void {
     const n = Number.parseFloat(valor);
     this.formulario.update((f) => (f ? { ...f, porcentajeIgv: Number.isFinite(n) ? n : null } : f));
@@ -175,6 +188,8 @@ export class DatosLocalSeccion implements OnInit {
           nombreComercial: texto(f.nombreComercial),
           ruc: texto(f.ruc),
           direccion: texto(f.direccion),
+          latitud: f.punto?.latitud,
+          longitud: f.punto?.longitud,
           telefono: texto(f.telefono),
           correo: texto(f.correo),
           porcentajeIgv: f.porcentajeIgv,
@@ -190,6 +205,8 @@ export class DatosLocalSeccion implements OnInit {
         next: (datos) => {
           this.guardando.set(false);
           this.aplicar(datos);
+          // Los mapas que ya estan abiertos se recentran en el local sin recargar.
+          this.ubicacion.fijar(this.formulario()?.punto ?? null);
           this.avisos.exito(this.t('datosLocal.avisoGuardado'));
         },
         error: () => this.guardando.set(false),

@@ -16,3 +16,10 @@
     background: var(--aviso-suave);
   }
 }
+
+/* Lo que significa el punto del local, bajo su mapa. */
+.ayuda-ubicacion {
+  margin: calc(var(--e2) * -1) 0 0;
+  font-size: var(--t-chico);
+  color: var(--tenue);
+}
