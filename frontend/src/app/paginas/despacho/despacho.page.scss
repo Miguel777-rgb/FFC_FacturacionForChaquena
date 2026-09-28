@@ -2,9 +2,10 @@
    comandas a la izquierda y la libreta de conductores a la derecha, porque
    anotar a alguien nuevo ocurre justo en el momento de entregarle el pedido.
 
-   No hay mapa ni cuenta atras a proposito. El reparto lo lleva una empresa
-   externa y el local no sabe donde esta el conductor; lo unico que consta aqui
-   es a quien se le dio la comanda, con que vehiculo y a que hora salio. */
+   No hay seguimiento ni cuenta atras a proposito. El reparto lo lleva una
+   empresa externa y el local no sabe donde esta el conductor; lo que consta
+   aqui es a quien se le dio la comanda, con que vehiculo, a que hora salio y a
+   donde va. El mapa pequeno es el destino, no la posicion del conductor. */
 
 .despacho {
   display: flex;
@@ -82,6 +83,28 @@
 .direccion {
   margin: 0;
   color: var(--tinta);
+}
+
+/* El destino: la direccion, un mapa bajo con el punto y el enlace a la app de
+   mapas del conductor. */
+.destino {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+}
+
+.mapa-destino {
+  --mapa-alto: 160px;
+}
+
+.abrir-mapa {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--e1);
+  min-height: var(--control-chico);
+  font-weight: 600;
+  color: var(--acento);
 }
 
 .entrega,

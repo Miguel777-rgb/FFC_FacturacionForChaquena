@@ -38,6 +38,10 @@
                 >
               </div>
 
+              @if (destinos()[o.id ?? '']; as d) {
+                <ng-container [ngTemplateOutlet]="destino" [ngTemplateOutletContext]="{ $implicit: d }" />
+              }
+
               @if (puedeSalir(o)) {
                 <!-- Reconocer al conductor y darle la comanda es un solo momento
                      en el mostrador, asi que es un solo boton. -->
@@ -113,8 +117,8 @@
                 }
               </div>
 
-              @if (i.direccionDelivery) {
-                <p class="direccion">{{ i.direccionDelivery }}</p>
+              @if (destinos()[i.ordenId ?? '']; as d) {
+                <ng-container [ngTemplateOutlet]="destino" [ngTemplateOutletContext]="{ $implicit: d }" />
               }
 
               <!-- El codigo lo dicta el cliente. El conductor es de fuera: nunca
@@ -295,3 +299,32 @@
     </aside>
   </div>
 </section>
+
+<!-- A donde va una comanda: la direccion, su punto y el enlace para abrirlo en
+     el celular del conductor. El mismo bloque en las dos listas. -->
+<ng-template #destino let-d>
+  <div class="destino">
+    @if (d.direccion) {
+      <p class="direccion">{{ d.direccion }}</p>
+    }
+    @if (d.punto) {
+      <app-mapa
+        class="mapa-destino"
+        [centro]="d.punto"
+        [punto]="d.punto"
+        [zoom]="16"
+        [etiqueta]="t('mapa.puntoEntrega')"
+      />
+    }
+    <a
+      class="abrir-mapa"
+      [href]="d.enlace"
+      target="_blank"
+      rel="noopener"
+      [attr.aria-label]="t('mapa.abrirAria', { direccion: d.direccion || t('mapa.puntoElegido') })"
+    >
+      <app-icono nombre="externo" [tamano]="16" />
+      {{ t('mapa.abrir') }}
+    </a>
+  </div>
+</ng-template>

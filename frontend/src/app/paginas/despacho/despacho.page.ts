@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
@@ -30,6 +31,35 @@ import { formatearDuracion } from '../../nucleo/i18n/formatos';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { EnVivo } from '../../disenio/en-vivo';
 import { Icono } from '../../disenio/icono';
+import { Mapa, type Punto } from '../../disenio/mapa';
+
+/** Lo que el conductor necesita saber de un destino: la direccion escrita y, si se marco, el punto. */
+interface Destino {
+  direccion: string;
+  punto: Punto | null;
+  /** Abre el destino en la app de mapas del celular del conductor. */
+  enlace: string;
+}
+
+/**
+ * El enlace universal de Google Maps: en un celular abre la app que el
+ * conductor ya usa para navegar. Con punto va al punto exacto; sin el, busca la
+ * direccion escrita. No lleva clave ni dice nada de quien lo abre.
+ */
+function destinoDe(
+  direccion: string | undefined,
+  latitud: number | undefined,
+  longitud: number | undefined,
+): Destino | null {
+  const punto = latitud != null && longitud != null ? { latitud, longitud } : null;
+  if (!direccion && !punto) return null;
+  const consulta = punto ? `${punto.latitud},${punto.longitud}` : (direccion ?? '');
+  return {
+    direccion: direccion ?? '',
+    punto,
+    enlace: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(consulta)}`,
+  };
+}
 
 /** Un mostrador con movimiento constante: sin tiempo real, la lista se refresca sola. */
 const REFRESCO_MS = 20_000;
@@ -44,13 +74,15 @@ const TIPOS_VEHICULO = VehiculoRequestDtoTipoVehiculoEnum;
  * es, su documento y con que vehiculo llego—, entregarle la comanda y cerrar
  * la entrega cuando el cliente le dicta su codigo.
  *
- * Por eso esta pantalla no tiene mapa, ni posicion, ni tiempo estimado de
- * llegada, ni metricas del conductor: ese dato pertenece a la empresa de
- * reparto y el local no lo tiene. Pintarlo seria inventarlo.
+ * Por eso esta pantalla no tiene posicion del conductor, ni tiempo estimado de
+ * llegada, ni metricas: ese dato pertenece a la empresa de reparto y el local
+ * no lo tiene. Pintarlo seria inventarlo. Lo que si muestra es **a donde va**:
+ * la direccion, su punto en un mapa pequeno y un enlace para abrirlo en el
+ * celular del conductor. Es el destino que dicto el cliente, no un seguimiento.
  */
 @Component({
   selector: 'app-despacho',
-  imports: [Icono, EnVivo],
+  imports: [NgTemplateOutlet, Icono, EnVivo, Mapa],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './despacho.page.html',
   styleUrl: './despacho.page.scss',
@@ -117,6 +149,26 @@ export class DespachoPage implements OnInit {
           o.estado === OrdenResumenDtoEstadoEnum.EN_PREPARACION),
     ),
   );
+
+  /**
+   * El destino de cada comanda, por id. Se calcula una vez por lista y no en la
+   * plantilla: un objeto nuevo en cada repintado le haria creer al mapa que el
+   * punto cambio.
+   */
+  protected readonly destinos = computed(() => {
+    const porId: Record<string, Destino | null> = {};
+    for (const o of this.esperando()) {
+      porId[o.id ?? ''] = destinoDe(o.direccionDelivery, o.latitudDelivery, o.longitudDelivery);
+    }
+    for (const i of this.enRuta()) {
+      porId[i.ordenId ?? ''] = destinoDe(
+        i.direccionDelivery,
+        i.latitudDelivery,
+        i.longitudDelivery,
+      );
+    }
+    return porId;
+  });
 
   protected readonly hayConductores = computed(() =>
     this.conductores().some((c) => c.activo && (c.vehiculos?.length ?? 0) > 0),
