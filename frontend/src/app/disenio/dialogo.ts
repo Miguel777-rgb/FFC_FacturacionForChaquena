@@ -15,8 +15,10 @@ import { Icono } from './icono';
 let siguienteId = 0;
 
 /**
- * Dialogo sobre el `<dialog>` nativo, en dos formas: `modal` centrado o `cajon`
- * pegado a la derecha (el detalle de una orden, una edicion larga).
+ * Dialogo sobre el `<dialog>` nativo, en tres formas: `modal` centrado, `cajon`
+ * pegado a la derecha (el detalle de una orden, una edicion larga) y `hoja`,
+ * que en el celular sube desde abajo y ocupa el ancho —la hoja de un plato en
+ * el POS, al alcance del pulgar— y en PC se comporta como el modal.
  *
  * Se usa el elemento del navegador y no una capa propia porque `showModal()` ya
  * resuelve lo dificil: deja inerte el resto de la pagina, atrapa el foco, lo
@@ -41,6 +43,7 @@ let siguienteId = 0;
     <dialog
       #dialogo
       [class.cajon]="modo() === 'cajon'"
+      [class.hoja]="modo() === 'hoja'"
       [attr.aria-labelledby]="idTitulo"
       (close)="alCerrar()"
       (click)="clicEnFondo($event)"
@@ -161,10 +164,33 @@ let siguienteId = 0;
       }
     }
 
+    @keyframes subir {
+      from {
+        transform: translateY(24px);
+        opacity: 0;
+      }
+    }
+
     @media (max-width: 47.99rem) {
       dialog.cajon {
         width: 100vw;
         border-radius: 0;
+      }
+
+      /* La hoja se apoya en el borde de abajo, donde esta el pulgar, y deja ver
+         un poco de lo que tapa: se entiende que se cierra y se vuelve alli. */
+      dialog.hoja {
+        width: 100vw;
+        max-width: 100vw;
+        max-height: 92dvh;
+        margin: auto 0 0;
+        padding-bottom: env(safe-area-inset-bottom);
+        border-bottom: 0;
+        border-radius: var(--radio) var(--radio) 0 0;
+      }
+
+      dialog.hoja[open] {
+        animation-name: subir;
       }
 
       footer ::ng-deep [pie] > * {
@@ -175,7 +201,7 @@ let siguienteId = 0;
 })
 export class Dialogo {
   readonly titulo = input.required<string>();
-  readonly modo = input<'modal' | 'cajon'>('modal');
+  readonly modo = input<'modal' | 'cajon' | 'hoja'>('modal');
   readonly abierto = model(false);
 
   protected readonly t = inject(I18nService).t;
