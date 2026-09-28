@@ -18,6 +18,8 @@ import {
 } from '../../api';
 import { Dialogo } from '../../disenio/dialogo';
 import { Icono } from '../../disenio/icono';
+import type { Punto } from '../../disenio/mapa';
+import { SelectorUbicacion } from '../../disenio/selector-ubicacion';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { codigoDeOrden } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
@@ -51,7 +53,7 @@ interface Ficha {
  */
 @Component({
   selector: 'app-clientes',
-  imports: [DecimalPipe, Icono, Dialogo],
+  imports: [DecimalPipe, Icono, Dialogo, SelectorUbicacion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './clientes.page.html',
   styleUrls: ['../../disenio/secciones.scss', './clientes.page.scss'],
@@ -92,6 +94,14 @@ export class ClientesPage implements OnInit {
   protected readonly ficha = signal<Ficha | null>(null);
   protected readonly bloqueando = signal(false);
   protected readonly motivoBloqueo = signal('');
+
+  /**
+   * La direccion habitual con su punto en el mapa: es la que el POS propone,
+   * ya ubicada, cuando este cliente pide delivery.
+   */
+  protected readonly editandoDireccion = signal(false);
+  protected readonly direccionEditada = signal('');
+  protected readonly puntoEditado = signal<Punto | null>(null);
 
   protected readonly tituloCajon = computed(() => {
     const c = this.cliente();
@@ -184,6 +194,7 @@ export class ClientesPage implements OnInit {
     this.cliente.set(c);
     this.ficha.set(null);
     this.bloqueando.set(false);
+    this.editandoDireccion.set(false);
     this.cajonAbierto.set(true);
     this.leerFicha(c.id);
   }
@@ -247,6 +258,53 @@ export class ClientesPage implements OnInit {
             this.t(bloqueado ? 'clientes.avisoBloqueado' : 'clientes.avisoDesbloqueado', {
               nombre: this.nombreDe(c),
             }),
+          );
+        },
+        error: () => this.guardando.set(false),
+      });
+  }
+
+  protected editarDireccion(c: ClienteResponseDto): void {
+    this.direccionEditada.set(c.direccionHabitual ?? '');
+    this.puntoEditado.set(
+      c.latitud != null && c.longitud != null ? { latitud: c.latitud, longitud: c.longitud } : null,
+    );
+    this.editandoDireccion.set(true);
+  }
+
+  /**
+   * `PUT /clientes/{id}` reemplaza la ficha entera: se reenvia lo demas tal
+   * como esta y solo cambian la direccion y su punto.
+   */
+  protected guardarDireccion(): void {
+    const c = this.cliente();
+    if (!c?.id || !c.dni || !c.nombres || !c.apellidos || this.guardando()) return;
+
+    const punto = this.puntoEditado();
+    this.guardando.set(true);
+    this.clientesApi
+      .actualizarCliente({
+        id: c.id,
+        clienteRequestDto: {
+          dni: c.dni,
+          nombres: c.nombres,
+          apellidos: c.apellidos,
+          correo: c.correo,
+          celular: c.celular,
+          tipoCliente: c.tipoCliente,
+          direccionHabitual: this.direccionEditada().trim() || undefined,
+          latitud: punto?.latitud,
+          longitud: punto?.longitud,
+        },
+      })
+      .subscribe({
+        next: (actualizado) => {
+          this.guardando.set(false);
+          this.editandoDireccion.set(false);
+          this.cliente.set(actualizado);
+          this.reemplazar(actualizado);
+          this.avisos.exito(
+            this.t('clientes.avisoDireccion', { nombre: this.nombreDe(actualizado) }),
           );
         },
         error: () => this.guardando.set(false),

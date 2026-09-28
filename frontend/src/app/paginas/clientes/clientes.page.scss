@@ -44,6 +44,34 @@ td .chip {
   margin-left: auto;
 }
 
+/* La direccion habitual: su titulo con el boton al lado, y al editar, el mapa. */
+.direccion-habitual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+
+  p {
+    margin: 0;
+  }
+}
+
+.titulo-direccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2);
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.acciones-direccion {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--e2);
+}
+
 .bloqueo {
   display: flex;
   flex-direction: column;

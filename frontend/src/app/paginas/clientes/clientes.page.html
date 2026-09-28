@@ -148,13 +148,51 @@
           <dt>{{ t('clientes.tipo') }}</dt>
           <dd>{{ c.tipoCliente || '—' }}</dd>
         </div>
-        @if (c.direccionHabitual) {
-          <div>
-            <dt>{{ t('clientes.direccion') }}</dt>
-            <dd>{{ c.direccionHabitual }}</dd>
-          </div>
-        }
       </dl>
+
+      <!-- La direccion habitual con su punto: el POS la propone ya ubicada cuando
+           este cliente pide delivery. Se corrige aqui, con el mismo mapa. -->
+      <section class="direccion-habitual">
+        <div class="titulo-direccion">
+          <h3>{{ t('clientes.direccion') }}</h3>
+          @if (!editandoDireccion()) {
+            <button type="button" class="secundario chico" (click)="editarDireccion(c)">
+              <app-icono nombre="lapiz" [tamano]="16" />
+              {{
+                t(c.direccionHabitual ? 'clientes.editarDireccion' : 'clientes.agregarDireccion')
+              }}
+            </button>
+          }
+        </div>
+
+        @if (editandoDireccion()) {
+          <app-selector-ubicacion
+            [etiqueta]="t('clientes.direccion')"
+            [(direccion)]="direccionEditada"
+            [(punto)]="puntoEditado"
+          />
+          <div class="acciones-direccion">
+            <button type="button" class="secundario" (click)="editandoDireccion.set(false)">
+              {{ t('comun.descartar') }}
+            </button>
+            <button
+              type="button"
+              (click)="guardarDireccion()"
+              [disabled]="guardando()"
+              [attr.aria-busy]="guardando()"
+            >
+              {{ t(guardando() ? 'comun.guardando' : 'comun.guardar') }}
+            </button>
+          </div>
+        } @else if (c.direccionHabitual) {
+          <p>{{ c.direccionHabitual }}</p>
+          @if (c.latitud == null) {
+            <p class="tenue">{{ t('clientes.sinPunto') }}</p>
+          }
+        } @else {
+          <p class="tenue">{{ t('clientes.sinDireccion') }}</p>
+        }
+      </section>
 
       @if (ficha(); as f) {
         <h3>{{ t('clientes.fidelizacion') }}</h3>
