@@ -99,7 +99,16 @@ public class HistorialDemoSeeder {
     @Bean
     @Order(3) // despues de DatosIniciales (1) y DatosDemo (2)
     public ApplicationRunner sembrarHistorialDemo() {
-        return args -> ejecutar();
+        return args -> {
+            try {
+                ejecutar();
+            } catch (RuntimeException e) {
+                // Es de demostracion: si falla, el backend arranca igual y el log
+                // lo dice. Tumbar el arranque por esto dejaba la API entera en un
+                // bucle de reinicios. Lo sembrado hasta el dia que fallo se queda.
+                log.error("No se pudo completar el historial de demostracion; el backend sigue sin el resto.", e);
+            }
+        };
     }
 
     void ejecutar() {
@@ -430,6 +439,17 @@ public class HistorialDemoSeeder {
             Types.VARCHAR, Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.TIMESTAMP_WITH_TIMEZONE,
             Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.OTHER, Types.OTHER};
 
+    /**
+     * Todas las inserciones del historial. La prueba las compara con bd/schema.sql:
+     * cada columna NOT NULL tiene que ir escrita, aunque en local tenga DEFAULT.
+     * En produccion la base la creo Hibernate sin los DEFAULT de las migraciones,
+     * y un cupon sin `monto_descuento` tumbaba el arranque.
+     */
+    static List<String> inserciones() {
+        return List.of(INSERT_ORDEN, INSERT_LINEA, INSERT_EXTRA, INSERT_PAGO, INSERT_REPARTO, INSERT_ENCUESTA,
+                INSERT_CUPON, INSERT_TURNO, INSERT_MARCACION, INSERT_RESERVA);
+    }
+
     private int sembrarDia(LocalDate dia, Catalogo c, ZonedDateTime ahora, Fidelizacion fidelizacion) {
         List<ComandaPlan> plan = PlanDiaDemo.planear(dia, c, diaConFraude(dia)).stream()
                 .filter(p -> !p.fin().isAfter(ahora))
@@ -525,6 +545,18 @@ public class HistorialDemoSeeder {
 
     private static final String ALFABETO_CUPON = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
+    private static final String INSERT_CUPON = """
+            insert into cupones (id, codigo, created_by, date_created, descripcion, estado,
+              fecha_emision, fecha_vencimiento, last_date_modified, modified_by,
+              porcentaje_descuento, monto_descuento, cliente_id)
+            values (?,?,?,?,?,?, ?,?,?,?, ?,?,?)
+            on conflict (id) do nothing
+            """;
+    private static final int[] TIPOS_CUPON = {
+            Types.OTHER, Types.VARCHAR, Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR,
+            Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.TIMESTAMP_WITH_TIMEZONE,
+            Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR, Types.NUMERIC, Types.NUMERIC, Types.OTHER};
+
     /**
      * La misma regla que la caja al registrar una calificacion: un punto por
      * encuesta y un cupon cada N calificaciones del cliente, contadas sobre todas
@@ -575,7 +607,7 @@ public class HistorialDemoSeeder {
                     uuid("demo-cupon:" + orden), codigo, AUTOR, ts(cuando),
                     "Premio por " + cadaCuantas + " calificaciones",
                     vence.isBefore(ZonedDateTime.now(LIMA)) ? "VENCIDO" : "VIGENTE",
-                    ts(cuando), ts(vence), ts(cuando), AUTOR, porcentaje, cliente});
+                    ts(cuando), ts(vence), ts(cuando), AUTOR, porcentaje, BigDecimal.ZERO, cliente});
             cuponesEmitidos++;
         }
 
@@ -588,16 +620,7 @@ public class HistorialDemoSeeder {
                 puntos.clear();
             }
             if (!cupones.isEmpty()) {
-                jdbc.batchUpdate("""
-                        insert into cupones (id, codigo, created_by, date_created, descripcion, estado,
-                          fecha_emision, fecha_vencimiento, last_date_modified, modified_by,
-                          porcentaje_descuento, cliente_id)
-                        values (?,?,?,?,?,?, ?,?,?,?, ?,?)
-                        on conflict (id) do nothing
-                        """, cupones, new int[] {
-                        Types.OTHER, Types.VARCHAR, Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR,
-                        Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.TIMESTAMP_WITH_TIMEZONE,
-                        Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR, Types.NUMERIC, Types.OTHER});
+                jdbc.batchUpdate(INSERT_CUPON, cupones, TIPOS_CUPON);
                 cupones.clear();
             }
         }
@@ -606,6 +629,18 @@ public class HistorialDemoSeeder {
     // =========================================================================
     // Turnos y marcaciones
     // =========================================================================
+
+    private static final String INSERT_TURNO = """
+            insert into turnos (id, created_by, date_created, fecha, fin, inicio, last_date_modified,
+              modified_by, nota, trabajador_id)
+            values (?,?,?,?,?,?,?, ?,?,?) on conflict (id) do nothing
+            """;
+
+    private static final String INSERT_MARCACION = """
+            insert into marcaciones (id, created_by, date_created, entrada, last_date_modified,
+              modified_by, salida, trabajador_id)
+            values (?,?,?,?,?, ?,?,?) on conflict (id) do nothing
+            """;
 
     /** El horario fijo de cada puesto y su dia de descanso. */
     private record Horario(String usuario, LocalTime inicio, LocalTime fin, DayOfWeek descanso) {
@@ -672,20 +707,12 @@ public class HistorialDemoSeeder {
         }
 
         if (!turnos.isEmpty()) {
-            jdbc.batchUpdate("""
-                    insert into turnos (id, created_by, date_created, fecha, fin, inicio, last_date_modified,
-                      modified_by, nota, trabajador_id)
-                    values (?,?,?,?,?,?,?, ?,?,?) on conflict (id) do nothing
-                    """, turnos, new int[] {
+            jdbc.batchUpdate(INSERT_TURNO, turnos, new int[] {
                     Types.OTHER, Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.DATE, Types.TIME, Types.TIME,
                     Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR, Types.VARCHAR, Types.OTHER});
         }
         if (!marcas.isEmpty()) {
-            jdbc.batchUpdate("""
-                    insert into marcaciones (id, created_by, date_created, entrada, last_date_modified,
-                      modified_by, salida, trabajador_id)
-                    values (?,?,?,?,?, ?,?,?) on conflict (id) do nothing
-                    """, marcas, new int[] {
+            jdbc.batchUpdate(INSERT_MARCACION, marcas, new int[] {
                     Types.OTHER, Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.TIMESTAMP_WITH_TIMEZONE,
                     Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.OTHER});
         }
@@ -695,6 +722,12 @@ public class HistorialDemoSeeder {
     // =========================================================================
     // Reservas
     // =========================================================================
+
+    private static final String INSERT_RESERVA = """
+            insert into reservas (id, celular, created_by, date_created, duracion_minutos, estado, inicio,
+              last_date_modified, modified_by, nombre, nota, personas, mesa_id)
+            values (?,?,?,?,?,?,?, ?,?,?,?,?,?) on conflict (id) do nothing
+            """;
 
     private static final List<String> RESERVANTES = List.of(
             "Familia Quispe", "Andrea Solís", "Almuerzo de la oficina", "Cumpleaños de Martha",
@@ -755,11 +788,7 @@ public class HistorialDemoSeeder {
             }
         }
 
-        int[] hechas = jdbc.batchUpdate("""
-                insert into reservas (id, celular, created_by, date_created, duracion_minutos, estado, inicio,
-                  last_date_modified, modified_by, nombre, nota, personas, mesa_id)
-                values (?,?,?,?,?,?,?, ?,?,?,?,?,?) on conflict (id) do nothing
-                """, reservas, new int[] {
+        int[] hechas = jdbc.batchUpdate(INSERT_RESERVA, reservas, new int[] {
                 Types.OTHER, Types.VARCHAR, Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.INTEGER,
                 Types.VARCHAR, Types.TIMESTAMP_WITH_TIMEZONE, Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR,
                 Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.OTHER});
