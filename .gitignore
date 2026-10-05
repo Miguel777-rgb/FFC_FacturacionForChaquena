@@ -9,7 +9,7 @@
 # =============================================================================
 
 ### Carpetas que no se publican ###
-/Documentacion/
+/Documentation/
 
 ### Solo se versionan los README.md ###
 # Cualquier otra nota (CLAUDE.md, FLUJO_PRINCIPAL.md, OAUTH_DESPLIEGUE.md,
