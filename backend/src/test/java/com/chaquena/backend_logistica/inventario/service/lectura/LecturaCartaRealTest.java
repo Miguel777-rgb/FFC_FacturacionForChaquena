@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Lee las fotos de la carta que haya en {@code Documentacion/carta/} con el
+ * Lee las fotos de la carta que haya en {@code Documentation/carta/} con el
  * Tesseract de la maquina e imprime el resultado. No comprueba nada: sirve para
  * mirar a ojo como lee la carta real al tocar las reglas. Se salta si no hay
  * fotos o si Tesseract no tiene el espanol ({@code CARTA_TESSDATA} apunta a otra
@@ -23,7 +23,7 @@ class LecturaCartaRealTest {
 
     @Test
     void leeLasFotosDeLaCarta() throws Exception {
-        Path carpeta = Path.of("..", "Documentacion", "carta");
+        Path carpeta = Path.of("..", "Documentation", "carta");
         Assumptions.assumeTrue(Files.isDirectory(carpeta), "sin fotos de carta");
         Tesseract tesseract = new Tesseract("tesseract", System.getenv().getOrDefault("CARTA_TESSDATA", ""));
         Assumptions.assumeTrue(tesseract.estado().disponible(), "sin Tesseract en espanol");
