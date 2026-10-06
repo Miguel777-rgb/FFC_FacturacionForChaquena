@@ -10,8 +10,8 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
-// Directo al archivo y no al barril `./api`: el barril reexporta los 23
-// servicios generados, y desde aqui los metia todos en el bundle inicial.
+// Directo al archivo y no al barril `./api`: el barril reexporta cada
+// servicio generado, y desde aqui los metia todos en el bundle inicial.
 import { Configuration } from './api/configuration';
 import { SesionService } from './nucleo/sesion/sesion.service';
 import { erroresInterceptor } from './nucleo/http/errores.interceptor';
