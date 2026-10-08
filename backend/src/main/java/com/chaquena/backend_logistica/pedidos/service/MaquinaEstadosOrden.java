@@ -1,10 +1,13 @@
 package com.chaquena.backend_logistica.pedidos.service;
 
+import com.chaquena.backend_logistica.pedidos.domain.EstadoOrdenCambiadoEvent;
 import com.chaquena.backend_logistica.pedidos.domain.EstadoOrdenEnum;
 import com.chaquena.backend_logistica.pedidos.domain.Orden;
 import com.chaquena.backend_logistica.pedidos.domain.TipoOrdenEnum;
 import com.chaquena.backend_logistica.shared.exception.ConflictoException;
 import com.chaquena.backend_logistica.shared.security.UsuarioActual;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -18,6 +21,7 @@ import java.util.Set;
  * ya entregada vuelva a cocina o que una cancelada se cobre.
  */
 @Component
+@RequiredArgsConstructor
 public class MaquinaEstadosOrden {
 
     private static final Map<EstadoOrdenEnum, Set<EstadoOrdenEnum>> TRANSICIONES = Map.of(
@@ -42,6 +46,8 @@ public class MaquinaEstadosOrden {
     /** Estados que cuentan como venta cerrada para reportes y arqueo. */
     public static final Set<EstadoOrdenEnum> VENTA_EFECTIVA = EnumSet.of(
             EstadoOrdenEnum.ENTREGADO, EstadoOrdenEnum.PAGADO, EstadoOrdenEnum.CONCLUIDO);
+
+    private final ApplicationEventPublisher eventos;
 
     /**
      * Los estados a los que se puede pasar desde {@code actual}, en el orden en
@@ -118,6 +124,9 @@ public class MaquinaEstadosOrden {
 
         orden.setEstado(destino);
         orden.setModifiedBy(UsuarioActual.username());
+        // Quien escucha lo hace con AFTER_COMMIT: si el llamador deshace su
+        // transaccion, el cambio nunca se anuncia.
+        eventos.publishEvent(new EstadoOrdenCambiadoEvent(orden.getId(), destino));
     }
 
     /**
