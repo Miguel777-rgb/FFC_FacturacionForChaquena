@@ -73,6 +73,13 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
 
+                        // Saludo del WebSocket del llamado de cocina. El navegador no deja
+                        // poner Authorization al abrir un WebSocket, asi que el saludo entra
+                        // sin token y el JWT viaja en la trama STOMP CONNECT, donde lo valida
+                        // AutenticacionStomp. Sin un CONNECT valido no se recibe ni se
+                        // manda nada.
+                        .requestMatchers("/api/v1/ws", "/api/v1/ws/**").permitAll()
+
                         // Fotos de la carta y logo: un <img> no manda Authorization.
                         // Solo lectura y por UUID; subirlas sigue pidiendo sesion y cargo.
                         .requestMatchers(HttpMethod.GET, "/api/v1/archivos/*").permitAll()

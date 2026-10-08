@@ -66,6 +66,16 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+		<!--
+			WebSocket con STOMP para el llamado de cocina al mozo. El tiempo real
+			de las pantallas sigue por SSE: este canal existe porque el llamado
+			necesita lo que SSE no da, que el navegador conteste por el mismo
+			canal y que el servidor sepa quien esta conectado.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
