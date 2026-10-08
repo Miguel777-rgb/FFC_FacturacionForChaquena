@@ -36,6 +36,12 @@
     .dato {
       color: var(--critico);
     }
+
+    /* El tenue sobre el fondo rojo suave no llega a 4,5:1 en claro: el rotulo
+       pasa a texto mientras la cifra esta en alerta. */
+    .rotulo {
+      color: var(--texto);
+    }
   }
 
   .dato {
