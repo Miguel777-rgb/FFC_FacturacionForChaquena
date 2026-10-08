@@ -31,7 +31,7 @@ ver [Idiomas](#idiomas).
 | 3 | **El token lo pone el cliente generado, no un interceptor.** Viaja solo a los endpoints que declaran `bearerAuth` en el contrato, no a toda petición saliente. | [app.config.ts:50](src/app/app.config.ts#L50) |
 | 4 | **El JWT se decodifica, nunca se verifica.** El backend firma con HMAC simétrico; el secreto no está —ni puede estar— en el navegador. Sirve para decidir qué pintar, no qué permitir. | [sesion.service.ts:134](src/app/nucleo/sesion/sesion.service.ts#L134) |
 | 5 | **El rol sale del claim `roles`, no del `cargo`.** El cargo se llama `ADMINISTRADOR`; el `@PreAuthorize` pide `ADMIN`. El puente es la tabla `cargo_roles`. | [sesion.service.ts:125](src/app/nucleo/sesion/sesion.service.ts#L125) · [sesion.service.spec.ts:44](src/app/nucleo/sesion/sesion.service.spec.ts#L44) |
-| 6 | **Guardas y menús son comodidad, no seguridad.** Los roles están copiados de los `@PreAuthorize`; quien de verdad protege los datos es el servidor con su 403. | [guardas.ts:30](src/app/nucleo/sesion/guardas.ts#L30) · [panel-lateral.ts:29](src/app/disenio/panel-lateral.ts#L29) |
+| 6 | **Guardas y menús son comodidad, no seguridad.** Los roles están copiados de los `@PreAuthorize`; quien de verdad protege los datos es el servidor con su 403. | [guardas.ts:30](src/app/nucleo/sesion/guardas.ts#L30) · [panel-lateral.ts:32](src/app/disenio/panel-lateral.ts#L32) |
 | 7 | **Los errores tienen un solo camino.** El interceptor traduce cada código a un aviso legible; una pantalla no inventa el texto de un fallo. | [errores.interceptor.ts:64](src/app/nucleo/http/errores.interceptor.ts#L64) |
 | 8 | **Ningún estado de dominio se calcula aquí.** Qué gestos se ofrecen lo dice `transicionesPermitidas`; si una comanda quedó `PAGADO` lo decide el servidor y se relee. | [pos.page.ts:784](src/app/paginas/pos/pos.page.ts#L784) · [caja.page.ts:337](src/app/paginas/caja/caja.page.ts#L337) |
 | 9 | **Cada superficie es un chunk aparte.** El celular del mozo no descarga el arqueo de caja: las diecisiete rutas con componente son `loadComponent`. | [app.routes.ts](src/app/app.routes.ts) · tabla de compilación más abajo |
@@ -77,7 +77,7 @@ src/
     ├── app.ts / .html    cascarón: panel lateral o barra superior + <router-outlet> + avisos
     ├── app.routes.ts     doce rutas en diferido + cuatro redirecciones
     ├── api/              GENERADO — no se edita a mano
-    ├── nucleo/           sesión, roles, guardas, errores, avisos, logo, idiomas, tema, confirmación, tiempo real
+    ├── nucleo/           sesión, roles, guardas, errores, avisos, logo, idiomas, tema, confirmación, tiempo real, llamado de cocina
     │   ├── sesion/       sesion.service · rol · guardas · google.service
     │   ├── http/         errores.interceptor · avisos.service · idioma.interceptor · descarga
     │   ├── i18n/         i18n.service · idioma · titulo.strategy · formatos
@@ -86,11 +86,14 @@ src/
     │   ├── confirmacion/ confirmacion.service
     │   ├── asistencia/   asistencia.service
     │   ├── tiempo-real/  tiempo-real.service
+    │   ├── llamados/     llamados.service · llamado · silencio.service
+    │   ├── sonido/       timbre
     │   ├── mapa/         ubicacion-local.service
     │   └── marca/        logo.service · archivos
     ├── disenio/          panel-lateral · pila-avisos · icono · selector-idioma · bandera
     │                     barra-superior · dialogo · confirmacion · selector-tema
     │                     en-vivo · descarga · metodos-pago · mapa · selector-ubicacion
+    │                     aviso-llamado · campana-llamados
     │                     secciones.scss (menú, inventario, configuración, personal y reportes)
     └── paginas/          login · inicio · sin-permiso · pos · kds · caja · despacho
                           menu · inventario · configuracion (+3 secciones)
@@ -107,7 +110,7 @@ src/
 |---|---|---|---|
 | [main.ts](src/main.ts) | Punto de entrada | `bootstrapApplication` standalone; no hay `AppModule` en el proyecto | 5 líneas |
 | [app.config.ts](src/app/app.config.ts) | Los cuatro *providers* raíz | Zoneless, `withComponentInputBinding`, el interceptor de errores y la `Configuration` del cliente generado con el `bearerAuth` conectado a la sesión | [:23](src/app/app.config.ts#L23), [:34](src/app/app.config.ts#L34), [:50](src/app/app.config.ts#L50) |
-| [app.ts](src/app/app.ts) + [app.html](src/app/app.html) | El cascarón | Con sesión pinta panel lateral + `<router-outlet>`; sin sesión, solo el outlet. La pila de avisos está **fuera** del `@if`: un error de login también se ve | [app.html](src/app/app.html) |
+| [app.ts](src/app/app.ts) + [app.html](src/app/app.html) | El cascarón | Con sesión pinta panel lateral + `<router-outlet>`; sin sesión, solo el outlet. La pila de avisos está **fuera** del `@if`: un error de login también se ve. A los mozos les monta además el aviso del llamado de cocina, sobre el contenido de cualquier pantalla | [app.html](src/app/app.html) |
 | [app.routes.ts](src/app/app.routes.ts) | Diecisiete rutas + dos redirecciones | Todas `loadComponent`. Toda ruta salvo el login lleva `sesionAbierta`, y las trece superficies además `exigeRol(...)` copiado del controlador; `/perfil` solo pide sesión | [app.routes.ts](src/app/app.routes.ts) |
 | [index.html](src/index.html) | Documento base | Carga `accounts.google.com/gsi/client` con `async defer`. Si no hay red, el botón de Google no aparece y el login con contraseña sigue funcionando | [index.html:15](src/index.html#L15) |
 | [environments/](src/environments/) | Dos constantes | En producción `apiBasePath` va **vacío**: el navegador habla con un solo origen y Nginx hace de proxy, así que CORS no interviene | [environment.ts:8](src/environments/environment.ts#L8) |
@@ -123,6 +126,8 @@ src/
 | [errores.interceptor.ts](src/app/nucleo/http/errores.interceptor.ts) | Traductor único de fallos | 401 con sesión abierta la cierra y redirige; 409 y 422 muestran **el texto del servidor**, que ya explica qué transiciones sí se permiten. `mensajeDe` se exporta para que el login lea el mensaje igual | [:35](src/app/nucleo/http/errores.interceptor.ts#L35), [:79](src/app/nucleo/http/errores.interceptor.ts#L79) |
 | [avisos.service.ts](src/app/nucleo/http/avisos.service.ts) | Cola de avisos | Los errores **no se van solos**: en un POS táctil nadie está mirando. Solo éxito (4 s) e info (6 s) caducan. Dos fallos idénticos no se apilan | [:44](src/app/nucleo/http/avisos.service.ts#L44) |
 | [tiempo-real.service.ts](src/app/nucleo/tiempo-real/tiempo-real.service.ts) | Los avisos en vivo del backend | Lee `GET /eventos/stream` con `fetch` y no con `EventSource`, que no deja mandar el Bearer. Un aviso solo dice el tema que cambió; la pantalla vuelve a pedir lo suyo. `cambios(temas, respaldoMs)` emite con cada aviso, al reconectar después de una caída y, **mientras no hay conexión, cada `respaldoMs`**: el polling de antes quedó como red. Una conexión por pestaña, abierta solo mientras alguna pantalla escucha | [Tiempo real](#tiempo-real) |
+| [llamados.service.ts](src/app/nucleo/llamados/llamados.service.ts) + [llamado.ts](src/app/nucleo/llamados/llamado.ts) | El llamado de cocina al mozo | **WebSocket con STOMP**, no SSE: el mozo contesta «Voy» por el mismo canal y el servidor sabe cuántos mozos hay. Un canal por pestaña, solo para MOZO, COCINA y ADMIN, y abierto mientras alguien lo usa (`usar()`): el aviso del mozo, toda la sesión; Cocina, mientras está abierta. `@stomp/stompjs` llega con `import()` en su propio trozo. `aplicarAviso` y `llamadoDeOrden` son puras y se prueban sin socket | [El llamado de cocina](#el-llamado-de-cocina-websocket) |
+| [silencio.service.ts](src/app/nucleo/llamados/silencio.service.ts) + [timbre.ts](src/app/nucleo/sonido/timbre.ts) | Si el llamado suena, y cómo | Silenciarlo es preferencia del dispositivo (`localStorage`), como el tema. El timbre son notas de Web Audio, sin archivo: dos para una comanda nueva en Cocina; ding-dong dos veces para el llamado al mozo | [timbre.ts](src/app/nucleo/sonido/timbre.ts) |
 | [descarga.ts](src/app/nucleo/http/descarga.ts) | Guardar un Blob como archivo | El nombre sale de `Content-Disposition` —`filename*` primero, que admite tildes—, así que lo decide el servidor, que sabe qué rango usó. La URL del Blob se libera a los 30 s y no en el acto: Safari cancela la descarga si se revoca antes | [descarga.spec.ts](src/app/nucleo/http/descarga.spec.ts) |
 | [logo.service.ts](src/app/nucleo/marca/logo.service.ts) + [archivos.ts](src/app/nucleo/marca/archivos.ts) | Logo del local y URL de las imágenes subidas | El logo es un dato del local, el mismo en todas las pantallas: se pide al abrir la sesión y **solo ADMIN lo cambia**; los demás lo ven sin ranura. Importa `archivos.api` y `local.api` sueltos, no el barril, porque carga con el panel. Las imágenes se sirven por UUID **sin token** —un `<img>` no manda cabeceras—, y `problemaDeImagen` rechaza SVG y lo que pase de 2 MB antes de subir; el servidor lo vuelve a mirar en los bytes | [logo.service.ts](src/app/nucleo/marca/logo.service.ts), [archivos.ts](src/app/nucleo/marca/archivos.ts) |
 
@@ -130,8 +135,8 @@ src/
 
 | Archivo | Qué es | Lo que hay que saber | Evidencia |
 |---|---|---|---|
-| [panel-lateral.ts](src/app/disenio/panel-lateral.ts) | Navegación entre superficies | Solo lista destinos que el rol permite, en dos grupos: **Operación** y **Gestión**. En PC se pliega a una regleta de iconos y lo recuerda por dispositivo; entre 768 y 1023 px es regleta siempre. En su pie van quién es el usuario —que lleva a `/perfil`— junto a la salida, y debajo el idioma y el tema. El mismo componente, con `cajon`, es el menú del celular | [panel-lateral.ts](src/app/disenio/panel-lateral.ts) |
-| [barra-superior.ts](src/app/disenio/barra-superior.ts) | La barra del celular | Por debajo de 768 px el panel desaparece: una regleta se comía un sexto del ancho. La barra lleva el menú, la marca, el reloj para marcar entrada y salida, el idioma y el tema; el menú se abre en un `<dialog>` a la izquierda que se cierra al elegir destino | [barra-superior.ts](src/app/disenio/barra-superior.ts) |
+| [panel-lateral.ts](src/app/disenio/panel-lateral.ts) | Navegación entre superficies | Solo lista destinos que el rol permite, en dos grupos: **Operación** y **Gestión**. En PC se pliega a una regleta de iconos y lo recuerda por dispositivo; entre 768 y 1023 px es regleta siempre. En su pie van quién es el usuario —que lleva a `/perfil`— junto a la salida, y debajo el idioma, la campana del llamado si es mozo, y el tema. El mismo componente, con `cajon`, es el menú del celular | [panel-lateral.ts](src/app/disenio/panel-lateral.ts) |
+| [barra-superior.ts](src/app/disenio/barra-superior.ts) | La barra del celular | Por debajo de 768 px el panel desaparece: una regleta se comía un sexto del ancho. La barra lleva el menú, la marca, el reloj para marcar entrada y salida, el idioma, la campana del llamado (solo mozos) y el tema; el menú se abre en un `<dialog>` a la izquierda que se cierra al elegir destino | [barra-superior.ts](src/app/disenio/barra-superior.ts) |
 | [pila-avisos.ts](src/app/disenio/pila-avisos.ts) | Los avisos en pantalla | `role="status"` + `aria-live="polite"`: el lector de pantalla los anuncia sin interrumpir. Se apilan en la esquina inferior derecha |
 | [selector-idioma.ts](src/app/disenio/selector-idioma.ts) | El desplegable de idioma | `integrada` en el pie del panel, en la barra superior y en Mi perfil; sin sesión, fijo arriba a la derecha. `compacto` deja solo la bandera (barra del celular y regleta). El botón se anuncia como «Idioma de la interfaz: Español»: dice para qué sirve y qué idioma tiene puesto | [selector-idioma.ts](src/app/disenio/selector-idioma.ts) · [bandera.ts](src/app/disenio/bandera.ts) |
 | [icono.ts](src/app/disenio/icono.ts) + [iconos.ts](src/app/disenio/iconos.ts) | Iconos de un solo juego | Tabler Icons 3.46.0 (MIT), de contorno: se copian los `d` de los que se usan, sin instalar la librería. Nada de emojis ni glifos como `★` en lugar de iconos. `aria-hidden` va fijo, porque un icono nunca es la única forma de nombrar algo | [iconos.ts](src/app/disenio/iconos.ts) |
@@ -141,6 +146,8 @@ src/
 | [metodos-pago.ts](src/app/disenio/metodos-pago.ts) | Lo cobrado por método | Barras horizontales, no torta: tres porciones parecidas no se distinguen a ojo. Los tres métodos siempre, también el que quedó en cero | [metodos-pago.ts](src/app/disenio/metodos-pago.ts) |
 | [mapa.ts](src/app/disenio/mapa.ts) | El mapa | Leaflet 1.9 con las teselas de OpenStreetMap, gratuitas y sin clave, como en el mapa de OpenRouteService (que no sirve fondos de mapa). En tema oscuro se invierten con un filtro CSS solo sobre las teselas: el pin conserva su color. Leaflet y su hoja de estilos se descargan con el primer mapa: la hoja se copia a `leaflet/` en la compilación y se enlaza en ese momento, fuera del presupuesto de estilos del componente. Dibuja como mucho el pin del punto elegido y un círculo para el local; con `editable`, tocar el mapa o soltar el pin avisa con `elegir` | [mapa.ts](src/app/disenio/mapa.ts) |
 | [selector-ubicacion.ts](src/app/disenio/selector-ubicacion.ts) | Una dirección con su punto | En los dos sentidos: tocar el mapa completa la dirección con la calle más cercana, y escribirla ofrece sugerencias cerca del local que ubican el pin. Lo segundo es también el camino del teclado y del lector de pantalla. La referencia (piso, dpto) va aparte, y en el delivery muestra la distancia y el tiempo en auto desde el local. Sin clave de OpenRouteService el mapa sigue marcando el punto y lo dice. Lo usan el delivery del POS, Configuración (el local), Clientes (la dirección habitual) | [selector-ubicacion.ts](src/app/disenio/selector-ubicacion.ts) · [ubicacion-local.service.ts](src/app/nucleo/mapa/ubicacion-local.service.ts) |
+| [aviso-llamado.ts](src/app/disenio/aviso-llamado.ts) | El llamado en la pantalla del mozo | Una franja sobre el contenido y no un diálogo, como el aviso de inactividad: quien está a medio tomar una comanda la termina. Se queda fija al bajar por la página, en el celular justo debajo de la barra. Muestra los tres llamados que más esperan y cuenta el resto; suena y vibra al llegar y cada 30 s mientras alguno espera. Si el canal lleva más de 10 s caído, lo dice | [aviso-llamado.spec.ts](src/app/disenio/aviso-llamado.spec.ts) |
+| [campana-llamados.ts](src/app/disenio/campana-llamados.ts) | Silenciar el llamado | Junto al tema y solo para mozos, para poder apagarla antes de que llegue un llamado. El nombre accesible no cambia y el estado va en `aria-pressed`. Al encenderla suena una vez: se oye cómo suena y el toque deja el audio desbloqueado | [campana-llamados.spec.ts](src/app/disenio/campana-llamados.spec.ts) |
 | [selector-tema.ts](src/app/disenio/selector-tema.ts) | Claro, oscuro o sistema | Un botón en el pie del panel que recorre los tres. `TemaService` escribe `data-tema` en `<html>` y lo recuerda por dispositivo, como el idioma | [tema.service.ts](src/app/nucleo/tema/tema.service.ts) |
 | [styles.scss](src/styles.scss) + [estilos/](src/estilos/) | Tokens y piezas comunes | Diez parciales: fuentes, tokens de claro y oscuro, base, botones, formularios, tarjetas, insignias, alertas, tablas y utilidades. `.bloque`, `.chip`, `.tabla`, `.cabecera` y `.cifra` viven aquí porque varias superficies los pintan igual | [_tokens.scss](src/estilos/_tokens.scss) |
 
@@ -261,24 +268,31 @@ existiendo como redirecciones a `/inventario` y `/reportes`.
 #### `/kds` — la cocina
 
 - **Dos relojes distintos.** La cola se repinta con cada aviso de cocina —y cada
-  15 s si se cae el tiempo real— ([:123](src/app/paginas/kds/kds.page.ts#L123)),
-  y el cronómetro late cada segundo ([:129](src/app/paginas/kds/kds.page.ts#L129)):
+  15 s si se cae el tiempo real— ([:138](src/app/paginas/kds/kds.page.ts#L138)),
+  y el cronómetro late cada segundo ([:144](src/app/paginas/kds/kds.page.ts#L144)):
   los minutos que manda el servidor ya están viejos en una tarjeta que lleva un
   rato en pantalla, así que se re-derivan de `recibida`.
 - **El refresco automático es «silencioso»**: no vacía la pantalla, que en cocina
-  se leería como que la cola desapareció ([:145](src/app/paginas/kds/kds.page.ts#L145)).
+  se leería como que la cola desapareció ([:160](src/app/paginas/kds/kds.page.ts#L160)).
 - **El aviso sonoro es opcional** y viene apagado: en una cocina con extractor
   puede no oírse y en una pequeña sobra. Son dos notas generadas con Web Audio,
   sin archivo que descargar; suenan cuando la cola trae una comanda que la
   pantalla no había visto, y la primera carga no cuenta
-  ([:173](src/app/paginas/kds/kds.page.ts#L173)). Encenderlo lo hace sonar ahí
+  ([:188](src/app/paginas/kds/kds.page.ts#L188)). Encenderlo lo hace sonar ahí
   mismo: el navegador solo deja sonar después de un gesto.
 - Las tres columnas se derivan del estado más `flagCierrePlatillo`
-  ([:103](src/app/paginas/kds/kds.page.ts#L103)).
+  ([:108](src/app/paginas/kds/kds.page.ts#L108)).
 - **«Tarde» se mide contra la promesa de la propia cocina**; solo si aún no hay
-  promesa se respeta el veredicto del servidor ([:234](src/app/paginas/kds/kds.page.ts#L234)).
+  promesa se respeta el veredicto del servidor ([:232](src/app/paginas/kds/kds.page.ts#L232)).
 - El aviso de insumo faltante **no cambia el estado** de la comanda: va al mozo,
-  que es quien puede hablar con el comensal ([:339](src/app/paginas/kds/kds.page.ts#L339)).
+  que es quien puede hablar con el comensal ([:350](src/app/paginas/kds/kds.page.ts#L350)).
+- **Llamar al mozo** es el botón de las comandas listas. Mientras nadie
+  responde, la tarjeta dice «Llamando… 2 mozos conectados» —o «Ningún mozo
+  conectado: el llamado esperará»— y ofrece «Llamar otra vez», que vuelve a
+  hacerlos sonar; cuando uno responde, «Rosa va en camino · respondió en 12 s».
+  La cabecera dice siempre cuántos mozos tienen el canal abierto: es lo que se
+  mira antes de llamar ([:302](src/app/paginas/kds/kds.page.ts#L302)). Va por
+  WebSocket, no por el SSE ([El llamado de cocina](#el-llamado-de-cocina-websocket)).
 
 #### `/caja` — cobrar y cerrar
 
@@ -561,7 +575,7 @@ además por cargo: la cocina no se entera del ritmo de la caja.
 
 | Pantalla | Escucha | Si se cae la conexión, cada | Evidencia |
 |---|---|---|---|
-| `/kds` — la cola | `COCINA` | 15 s (el cronómetro va aparte, cada 1 s) | [kds.page.ts:123](src/app/paginas/kds/kds.page.ts#L123) |
+| `/kds` — la cola | `COCINA` | 15 s (el cronómetro va aparte, cada 1 s) | [kds.page.ts:138](src/app/paginas/kds/kds.page.ts#L138) |
 | `/despacho` — comandas y conductores | `REPARTO` | 20 s | [despacho.page.ts:129](src/app/paginas/despacho/despacho.page.ts#L129) |
 | `/tablero` — el día y los pendientes | `COMANDAS`, `CAJA`, `MESAS`, `STOCK` | 60 s | [tablero.page.ts:214](src/app/paginas/tablero/tablero.page.ts#L214) |
 | `/ordenes` — la página abierta | `COMANDAS` | 30 s | [ordenes.page.ts:179](src/app/paginas/ordenes/ordenes.page.ts#L179) |
@@ -587,6 +601,35 @@ nadie tenga que acordarse de cortarla.
 ([nginx.conf:47](nginx.conf#L47)): con buffering, los avisos se quedarían en
 Nginx y la cocina no recibiría nada. El backend manda además
 `X-Accel-Buffering: no`, por si hay otro proxy delante.
+
+### El llamado de cocina (WebSocket)
+
+El llamado no va por el SSE: el mozo tiene que contestar «Voy» por el mismo
+canal y el servidor tiene que saber cuántos mozos están conectados, y SSE solo
+habla en un sentido. Va por **WebSocket con STOMP** en `/api/v1/ws`
+([llamados.service.ts](src/app/nucleo/llamados/llamados.service.ts)).
+
+- **El token va en la trama `CONNECT`**, porque el navegador no deja poner
+  cabeceras al abrir un WebSocket, y se lee en cada intento: una reconexión
+  lleva el vigente. Cerrar la sesión corta el canal.
+- **Cada rol escucha lo suyo.** El mozo, `/topic/llamados/mozos`; Cocina y
+  ADMIN, `/topic/llamados/cocina`, que trae además cuántos mozos hay. Todos se
+  suscriben a `/app/llamados/estado`, la foto inicial, que llega una vez —así el
+  mozo que entra tarde recibe los llamados que lo esperaban—, y a
+  `/user/queue/llamados`, por donde llegan solo sus propios errores.
+- **Reconecta solo**, a 1, 2, 4... hasta 30 s, con latidos de 10 s en los dos
+  sentidos. Si faltan, el socket se cierra en el acto en vez de esperar a que el
+  sistema se entere, como en un celular que cambió de red. El mozo ve «Sin
+  conexión con cocina» solo si la caída pasa de 10 s.
+- **`@stomp/stompjs` no está en el arranque.** El servicio la pide con
+  `import()` al abrir el canal: 23 kB en su propio trozo, que solo descarga
+  quien llama o responde. Para el navegador la librería se publica como UMD, y
+  el empaquetador la deja entera en `default`: `crearClienteStomp` acepta las
+  dos formas, porque las pruebas resuelven la versión ESM. Por eso figura en
+  `allowedCommonJsDependencies`; aquel aviso de compilación era la pista.
+- **Detrás de Nginx**, `/api/v1/ws` tiene su propio bloque con `Upgrade` y
+  `Connection "upgrade"` ([nginx.conf](nginx.conf)): el de `/api/` fuerza
+  `Connection ""` para el SSE y rompería el saludo.
 
 ---
 
@@ -684,16 +727,23 @@ en caché. El diálogo de confirmación tampoco: `ConfirmacionService` lo descar
 con `import()` la primera vez que alguien pide confirmar. Con `@defer` el
 runtime añadido pesaba más que lo que sacaba del inicial.
 
+**El llamado de cocina sumó 13,8 kB al inicial (3,2 kB transferidos):** el
+aviso del mozo con su servicio, la campana y sus textos. El cliente STOMP no:
+llega aparte, como se cuenta en [El llamado de cocina](#el-llamado-de-cocina-websocket).
+Se probó a diferir también el aviso con `@defer` y pasó lo mismo que con el
+diálogo: el runtime del diferido pesa lo que el aviso, y lo transferido quedaba
+igual. Se dejó sin diferir.
+
 ---
 
 ## Pruebas
 
 ```bash
-pnpm test        # Vitest 4 + jsdom · 26 archivos, 92 pruebas, ~5 s
+pnpm test        # Vitest 4 + jsdom · 42 archivos, 192 pruebas, ~7 s
 ```
 
-Las veintiséis suites cubren lo que falla en silencio, que es lo que no se ve al
-mirar la pantalla:
+Las suites cubren lo que falla en silencio, que es lo que no se ve al mirar la
+pantalla:
 
 | Suite | Qué guarda |
 |---|---|
@@ -706,7 +756,11 @@ mirar la pantalla:
 | [i18n.service.spec.ts](src/app/nucleo/i18n/i18n.service.spec.ts) | Que los tres diccionarios estén completos y con los mismos huecos, y que el idioma se recuerde al recargar |
 | [tema.service.spec.ts](src/app/nucleo/tema/tema.service.spec.ts) | Que el tema elegido se escriba en `data-tema`, se recuerde y se aplique al recargar: si falla, la interfaz sigue en claro sin ningún error |
 | [confirmacion.service.spec.ts](src/app/nucleo/confirmacion/confirmacion.service.spec.ts) | Que la confirmación de peligro resuelva su promesa y que una nueva dé por rechazada la anterior: una promesa colgada es una acción que nunca ocurre |
-| [formatos.spec.ts](src/app/nucleo/i18n/formatos.spec.ts) | Que los minutos se lean como se dicen: «8 d 4 h» y no «11803 min» |
+| [formatos.spec.ts](src/app/nucleo/i18n/formatos.spec.ts) | Que los minutos se lean como se dicen: «8 d 4 h» y no «11803 min»; y los segundos que tardó un mozo en responder, «1 min 5 s» |
+| [llamados.service.spec.ts](src/app/nucleo/llamados/llamados.service.spec.ts) | Que el canal se abra con el Bearer y solo para quien llama o responde, que cada rol escuche su tema, que «Voy» y «Llamar» se manden una vez y esperen la confirmación, que llegar tarde a un llamado se lea como información y no como error, y que el mozo se entere de una caída solo si pasa de 10 s. El cliente STOMP es uno falso que la prueba maneja a mano, cambiado por el token `FABRICA_CLIENTE_STOMP` |
+| [llamado.spec.ts](src/app/nucleo/llamados/llamado.spec.ts) | Que un llamado repetido se ponga al día en vez de duplicarse, que el cierre lo quite y que de una comanda cuente el pendiente antes que uno ya respondido |
+| [aviso-llamado.spec.ts](src/app/disenio/aviso-llamado.spec.ts) | Que la franja muestre los tres que más esperan y cuente el resto, que «Voy» mande el llamado correcto, que desaparezca cuando alguien responde y que deje de vibrar si el mozo la silencia |
+| [campana-llamados.spec.ts](src/app/disenio/campana-llamados.spec.ts) | Que la campana cambie `aria-pressed` sin cambiar de nombre y que se recuerde en el dispositivo |
 | [tablero.page.spec.ts](src/app/paginas/tablero/tablero.page.spec.ts) | Que la caja vea enlazado lo que puede resolver y en cifra lo que no: un enlace a una pantalla sin permiso es un 403 en mitad del turno |
 | [ordenes.page.spec.ts](src/app/paginas/ordenes/ordenes.page.spec.ts) | Que el día se pida con el desfase del local, que `?orden=` abra la comanda y que solo se ofrezcan los pasos que el servidor permite y no son de la caja |
 | [mesas.page.spec.ts](src/app/paginas/mesas/mesas.page.spec.ts) | Que las mesas se agrupen por zona con la 2 antes que la 10, que la ocupada diga cuánto lleva y que solo ADMIN pueda dar de alta |
@@ -760,13 +814,20 @@ orden, nueva reserva y nuevo turno—, en tema claro y oscuro, a 1440 px, y a
 sin violaciones. En POS, Caja, Tablero y Órdenes se
 recorrió además la página con Tab: todas las paradas muestran el foco
 (`:focus-visible`, contorno de 2 px en el acento) y ninguna cae en un elemento
-oculto.
+oculto. El llamado de cocina pasó la misma comprobación: el POS del mozo con un
+llamado a la vista, a 390 px, y Cocina llamando y sin mozos, a 1440 px, en claro
+y oscuro, sin violaciones.
 
 Lo que esa verificación enseñó, y ahora es regla:
 
 - **`--tenue` no va sobre `--hundido`.** Da 4,4:1. Los selectores segmentados
   (`.rangos`, los tipos de comanda del POS) pintan lo no elegido en `--texto` y
   separan lo elegido con superficie, borde y tinta.
+- **Ni sobre los fondos suaves de estado.** En Cocina, el rótulo de «Fuera de
+  objetivo» quedaba en `--tenue` sobre `--critico-suave` cuando había comandas
+  tarde, y en claro no llegaba a 4,5:1; mientras la cifra está en alerta va en
+  `--texto`. Solo apareció porque la pasada se hizo con comandas atrasadas: los
+  estados que dependen de los datos también hay que provocarlos.
 - **Lo inactivo se apaga con color, nunca con opacidad.** Una fila dada de baja
   al 55 % bajaba el texto a 3:1. `tr.baja` usa `--tenue`, que pasa AA sobre
   cualquier fondo de tabla, y en Personal lleva además el chip «De baja», porque
