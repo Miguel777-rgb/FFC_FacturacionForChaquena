@@ -16,6 +16,7 @@ import { I18nService } from '../nucleo/i18n/i18n.service';
 import type { ClaveI18n } from '../nucleo/i18n/traducciones/es';
 import type { Rol } from '../nucleo/sesion/rol';
 import { SelectorIdioma } from './selector-idioma';
+import { CampanaLlamados } from './campana-llamados';
 import { Icono } from './icono';
 import { SelectorTema } from './selector-tema';
 import type { NombreIcono } from './iconos';
@@ -163,7 +164,7 @@ let siguientePanel = 0;
  */
 @Component({
   selector: 'app-panel-lateral',
-  imports: [RouterLink, RouterLinkActive, Icono, SelectorTema, SelectorIdioma],
+  imports: [RouterLink, RouterLinkActive, Icono, SelectorTema, SelectorIdioma, CampanaLlamados],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <aside [class.plegado]="regleta()" [class.cajon]="cajon()">
@@ -267,6 +268,11 @@ let siguientePanel = 0;
 
         <div class="controles">
           <app-selector-idioma variante="integrada" [compacto]="regleta()" />
+          <!-- Silenciar el llamado de cocina es, como el tema, cosa de este
+               dispositivo: va en la misma fila. -->
+          @if (esMozo()) {
+            <app-campana-llamados />
+          }
           <app-selector-tema />
         </div>
       </footer>
@@ -589,6 +595,7 @@ let siguientePanel = 0;
 })
 export class PanelLateral {
   protected readonly sesion = inject(SesionService);
+  protected readonly esMozo = computed(() => this.sesion.tieneAlgunRol(['MOZO']));
   protected readonly logo = inject(LogoService);
   protected readonly t = inject(I18nService).t;
   private readonly router = inject(Router);

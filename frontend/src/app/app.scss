@@ -26,6 +26,15 @@ main {
   min-width: 0;
 }
 
+/* El llamado de cocina sigue a la vista al bajar por la pantalla: arriba del
+   todo en PC y, en el celular, justo debajo de la barra. Queda por debajo de la
+   barra y del cajon. */
+app-aviso-llamado {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+}
+
 /* La barra superior es solo del celular. */
 app-barra-superior {
   display: none;
@@ -43,5 +52,10 @@ app-barra-superior {
     position: sticky;
     top: 0;
     z-index: 20;
+  }
+
+  /* El alto de la barra: un control mas su relleno. */
+  app-aviso-llamado {
+    top: calc(var(--control) + var(--e2));
   }
 }

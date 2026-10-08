@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  computed,
   effect,
   inject,
   signal,
@@ -14,7 +15,9 @@ import { filter } from 'rxjs/operators';
 import { AsistenciaService } from '../nucleo/asistencia/asistencia.service';
 import { I18nService } from '../nucleo/i18n/i18n.service';
 import { LogoService } from '../nucleo/marca/logo.service';
+import { SesionService } from '../nucleo/sesion/sesion.service';
 import { SelectorIdioma } from './selector-idioma';
+import { CampanaLlamados } from './campana-llamados';
 import { Icono } from './icono';
 import { PanelLateral } from './panel-lateral';
 import { SelectorTema } from './selector-tema';
@@ -33,7 +36,7 @@ import { SelectorTema } from './selector-tema';
  */
 @Component({
   selector: 'app-barra-superior',
-  imports: [PanelLateral, SelectorIdioma, SelectorTema, Icono],
+  imports: [PanelLateral, SelectorIdioma, SelectorTema, CampanaLlamados, Icono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="barra">
@@ -77,6 +80,9 @@ import { SelectorTema } from './selector-tema';
       }
 
       <app-selector-idioma variante="integrada" compacto />
+      @if (esMozo()) {
+        <app-campana-llamados />
+      }
       <app-selector-tema />
     </header>
 
@@ -186,6 +192,8 @@ export class BarraSuperior {
   protected readonly t = inject(I18nService).t;
   protected readonly logo = inject(LogoService);
   protected readonly asistencia = inject(AsistenciaService);
+  private readonly sesion = inject(SesionService);
+  protected readonly esMozo = computed(() => this.sesion.tieneAlgunRol(['MOZO']));
 
   protected readonly abierto = signal(false);
 

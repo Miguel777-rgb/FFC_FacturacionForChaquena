@@ -7,6 +7,13 @@
     <div class="contenido">
       <app-barra-superior />
       <app-aviso-inactividad />
+      <!-- El llamado de cocina, en cualquier pantalla del mozo. Sin @defer:
+           el aviso pesa menos que el runtime que lo diferiria. Lo que pesa, el
+           cliente STOMP, ya llega aparte con import() y solo si hay a quien
+           llamar. -->
+      @if (esMozo()) {
+        <app-aviso-llamado />
+      }
       <main>
         <router-outlet />
       </main>

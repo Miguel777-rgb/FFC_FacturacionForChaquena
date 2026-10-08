@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { SesionService } from './nucleo/sesion/sesion.service';
 import { AvisosService } from './nucleo/http/avisos.service';
 import { TemaService } from './nucleo/tema/tema.service';
 import { AvisoInactividad } from './disenio/aviso-inactividad';
+import { AvisoLlamado } from './disenio/aviso-llamado';
 import { PanelLateral } from './disenio/panel-lateral';
 import { BarraSuperior } from './disenio/barra-superior';
 import { PilaAvisos } from './disenio/pila-avisos';
@@ -15,6 +16,7 @@ import { SelectorIdioma } from './disenio/selector-idioma';
   imports: [
     RouterOutlet,
     AvisoInactividad,
+    AvisoLlamado,
     PanelLateral,
     BarraSuperior,
     PilaAvisos,
@@ -27,6 +29,7 @@ import { SelectorIdioma } from './disenio/selector-idioma';
 export class App {
   protected readonly sesion = inject(SesionService);
   protected readonly avisos = inject(AvisosService);
+  protected readonly esMozo = computed(() => this.sesion.tieneAlgunRol(['MOZO']));
 
   constructor() {
     // Se construye al arrancar para aplicar el tema guardado antes de pintar
