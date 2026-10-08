@@ -10,7 +10,7 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { EnVivo } from '../../disenio/en-vivo';
 import { Icono } from '../../disenio/icono';
-import { formatearDuracion } from '../../nucleo/i18n/formatos';
+import { formatearDuracion, formatearSegundos } from '../../nucleo/i18n/formatos';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, interval, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -26,6 +26,8 @@ import {
 } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import { LlamadosService } from '../../nucleo/llamados/llamados.service';
+import { TIMBRE_COMANDA, tocarNotas } from '../../nucleo/sonido/timbre';
 import { TiempoRealService } from '../../nucleo/tiempo-real/tiempo-real.service';
 
 /**
@@ -61,9 +63,12 @@ export class KdsPage implements OnInit {
   private readonly insumosApi = inject(InventarioInsumosApi);
   private readonly avisos = inject(AvisosService);
   private readonly i18n = inject(I18nService);
+  protected readonly llamados = inject(LlamadosService);
   protected readonly duracion = formatearDuracion;
+  protected readonly segundos = formatearSegundos;
 
   protected readonly t = this.i18n.t;
+  protected readonly tp = this.i18n.tp;
   protected readonly tEnum = this.i18n.tEnum;
 
   protected readonly MINUTOS_SUGERIDOS = MINUTOS_SUGERIDOS;
@@ -116,7 +121,17 @@ export class KdsPage implements OnInit {
     ),
   );
 
+  /** Lo que cocina sabe de los mozos antes de llamar: cuantos hay, ninguno o sin canal. */
+  protected readonly presencia = computed(() => {
+    if (!this.llamados.conectado()) return this.t('kds.mozosSinConexion');
+    const mozos = this.llamados.mozosConectados() ?? 0;
+    return mozos > 0 ? this.tp('kds.mozosConectados', mozos) : this.t('kds.mozosNinguno');
+  });
+
   constructor() {
+    // El canal del llamado al mozo, mientras la pantalla este abierta.
+    this.llamados.usar();
+
     // Se repinta con cada aviso del servidor; si el tiempo real se cae, cada
     // REFRESCO_MS como antes.
     inject(TiempoRealService)
@@ -192,28 +207,11 @@ export class KdsPage implements OnInit {
     if ([...ids].some((id) => !antes.has(id))) this.sonar();
   }
 
-  /**
-   * Dos notas cortas, como el timbre de un mostrador. Se generan con Web Audio
-   * en vez de cargar un archivo: no hay nada que descargar ni que pueda faltar.
-   */
+  /** Dos notas cortas, como el timbre de un mostrador. Las genera `tocarNotas`, sin archivos. */
   private sonar(): void {
     if (typeof AudioContext === 'undefined') return;
     this.audio ??= new AudioContext();
-    const contexto = this.audio;
-    if (contexto.state === 'suspended') void contexto.resume();
-
-    [880, 1175].forEach((frecuencia, i) => {
-      const inicio = contexto.currentTime + i * 0.18;
-      const oscilador = contexto.createOscillator();
-      const volumen = contexto.createGain();
-      oscilador.frequency.value = frecuencia;
-      volumen.gain.setValueAtTime(0.0001, inicio);
-      volumen.gain.exponentialRampToValueAtTime(0.3, inicio + 0.02);
-      volumen.gain.exponentialRampToValueAtTime(0.0001, inicio + 0.16);
-      oscilador.connect(volumen).connect(contexto.destination);
-      oscilador.start(inicio);
-      oscilador.stop(inicio + 0.18);
-    });
+    tocarNotas(this.audio, TIMBRE_COMANDA);
   }
 
   // --- cronometro -----------------------------------------------------------
@@ -295,6 +293,19 @@ export class KdsPage implements OnInit {
       },
       error: () => this.ocupada.set(null),
     });
+  }
+
+  /**
+   * Llama a los mozos por una comanda lista; repetirlo vuelve a hacerlos sonar.
+   * Si no hay ninguno conectado, el llamado espera al primero que entre.
+   */
+  protected llamar(comanda: ComandaKdsDto): void {
+    this.llamados.llamar(comanda.ordenId);
+  }
+
+  /** Si el «Llamar» de esta comanda espera confirmacion, o no hay canal para mandarlo. */
+  protected sinLlamar(comanda: ComandaKdsDto): boolean {
+    return !this.llamados.conectado() || this.llamados.llamando().has(comanda.ordenId ?? '');
   }
 
   /**

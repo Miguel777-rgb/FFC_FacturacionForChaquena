@@ -239,6 +239,36 @@
   color: var(--ok);
 }
 
+/* El llamado al mozo, mientras nadie responde. Va en su propia linea, debajo
+   del estado y de «Llamar otra vez»: al lado no cabe sin empujar el boton a
+   una fila suelta. En el DOM va antes que el boton, que es el orden en que se
+   lee: primero que pasa, despues que se puede hacer. Sin mozos conectados
+   pasa al color del aviso: el llamado no se perdio, pero va a esperar. */
+.llamando {
+  flex-basis: 100%;
+  order: 1;
+  font-size: var(--t-chico);
+  color: var(--info);
+}
+
+.llamando.espera {
+  color: var(--aviso);
+}
+
+/* Junto a los botones de la cabecera: es lo que se mira antes de llamar. */
+.presencia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e1);
+  font-size: var(--t-chico);
+  color: var(--texto);
+  white-space: nowrap;
+}
+
+.presencia.nadie {
+  color: var(--aviso);
+}
+
 .vacio {
   margin: 0;
   padding: var(--e6);

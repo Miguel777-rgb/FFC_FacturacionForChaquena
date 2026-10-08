@@ -36,7 +36,7 @@
               }
             ],
             "styles": ["src/styles.scss"],
-            "allowedCommonJsDependencies": ["leaflet"]
+            "allowedCommonJsDependencies": ["leaflet", "@stomp/stompjs"]
           },
           "configurations": {
             "production": {

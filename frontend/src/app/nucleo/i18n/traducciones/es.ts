@@ -351,7 +351,6 @@ export const ES = {
   'kds.cuantoTarda': '¿Cuánto tarda?',
   'kds.tomar': 'Tomar',
   'kds.listo': 'Listo',
-  'kds.servida': 'Lista · esperando al mozo',
   'kds.faltaAlgo': 'Falta algo',
   'kds.insumoFalta': 'Insumo que falta',
   'kds.queInsumoFalta': '¿Qué insumo falta?',
@@ -1396,6 +1395,37 @@ export const ES = {
   'reportes.descargarPlatillos': 'Todos los platillos',
   'inventario.descargar': 'Inventario al momento',
   'asistencia.descargar': 'Asistencia de la semana',
+
+  // --- llamado de cocina al mozo (WebSocket) ---
+  // el aviso del mozo, en cualquier pantalla, y su campana. El espacio duro
+  // ( ) une cada dato a su palabra: en el celular la linea se parte por
+  // los puntos y no deja el nombre solo abajo.
+  'llamado.region': 'Llamados de cocina',
+  'llamado.titulo': 'Cocina te llama',
+  'llamado.detalle': '{donde} · comanda {correlativo} · llamó {nombre}',
+  'llamado.voy': 'Voy',
+  'llamado.voyA': 'Voy: {donde}, comanda {correlativo}',
+  'llamado.mas.uno': 'Y {n} llamado más',
+  'llamado.mas.otros': 'Y {n} llamados más',
+  'llamado.vas': 'Vas en camino: {donde}.',
+  'llamado.sinConexion': 'Sin conexión con cocina: reconectando…',
+  'llamado.sonido': 'Sonido de los llamados de cocina',
+  'llamado.silenciar': 'Silenciar los llamados de cocina',
+  'llamado.activarSonido': 'Activar el sonido de los llamados de cocina',
+  'llamado.noSePudo': 'No se pudo completar el llamado. Inténtalo otra vez.',
+  // cocina: llamar, insistir y ver quién va
+  'kds.llamarMozo': 'Llamar al mozo',
+  'kds.llamarMozoAria': 'Llamar al mozo por la comanda {correlativo}',
+  'kds.llamarOtraVez': 'Llamar otra vez',
+  'kds.llamarOtraVezAria': 'Llamar otra vez al mozo por la comanda {correlativo}',
+  'kds.llamandoMozos.uno': 'Llamando… {n} mozo conectado',
+  'kds.llamandoMozos.otros': 'Llamando… {n} mozos conectados',
+  'kds.llamadoEspera': 'Ningún mozo conectado: el llamado esperará',
+  'kds.vaEnCamino': '{nombre} va en camino · respondió en {tiempo}',
+  'kds.mozosConectados.uno': '{n} mozo conectado',
+  'kds.mozosConectados.otros': '{n} mozos conectados',
+  'kds.mozosNinguno': 'Ningún mozo conectado',
+  'kds.mozosSinConexion': 'Sin conexión con los mozos',
 } as const satisfies Record<string, string>;
 
 /** Toda clave que existe. Los otros diccionarios tienen que cubrirlas todas. */

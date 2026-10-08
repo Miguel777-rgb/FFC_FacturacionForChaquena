@@ -2,6 +2,12 @@
   <header class="cabecera">
     <h1>{{ t('panel.kds') }}</h1>
     <app-en-vivo />
+    <!-- Antes de llamar, cocina sabe si hay a quien: los mozos con el canal
+         del llamado abierto ahora mismo. -->
+    <span class="presencia" [class.nadie]="llamados.conectado() && !llamados.mozosConectados()">
+      <app-icono nombre="personal" [tamano]="16" />
+      {{ presencia() }}
+    </span>
     <button
       type="button"
       class="secundario"
@@ -181,7 +187,46 @@
                   {{ t('kds.listo') }}
                 </button>
               } @else {
-                <span class="servida">{{ t('kds.servida') }}</span>
+                <!-- Lista: el pase es del mozo. Se le llama desde aqui y se ve
+                     quien va; mientras nadie responde, se puede insistir. -->
+                @let llamado = llamados.deOrden(c.ordenId);
+                @if (llamado?.estado === 'ATENDIDO') {
+                  <span class="servida">{{
+                    t('kds.vaEnCamino', {
+                      nombre: llamado?.atendidoPor ?? '',
+                      tiempo: segundos(llamado?.segundosRespuesta),
+                    })
+                  }}</span>
+                } @else if (llamado?.estado === 'PENDIENTE') {
+                  @let mozos = llamados.mozosConectados() ?? 0;
+                  <span class="llamando" [class.espera]="mozos === 0">
+                    {{ mozos > 0 ? tp('kds.llamandoMozos', mozos) : t('kds.llamadoEspera') }}
+                  </span>
+                  <button
+                    type="button"
+                    class="secundario"
+                    [disabled]="sinLlamar(c)"
+                    [attr.aria-busy]="llamados.llamando().has(c.ordenId ?? '')"
+                    [attr.aria-label]="
+                      t('kds.llamarOtraVezAria', { correlativo: c.correlativo ?? '' })
+                    "
+                    (click)="llamar(c)"
+                  >
+                    {{ t('kds.llamarOtraVez') }}
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    [disabled]="sinLlamar(c)"
+                    [attr.aria-busy]="llamados.llamando().has(c.ordenId ?? '')"
+                    [attr.aria-label]="
+                      t('kds.llamarMozoAria', { correlativo: c.correlativo ?? '' })
+                    "
+                    (click)="llamar(c)"
+                  >
+                    {{ t('kds.llamarMozo') }}
+                  </button>
+                }
               }
 
               @if (!c.flagCierrePlatillo) {

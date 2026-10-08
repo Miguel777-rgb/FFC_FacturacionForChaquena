@@ -1,6 +1,28 @@
 import { describe, it, expect } from 'vitest';
 
-import { formatearDuracion } from './formatos';
+import { formatearDuracion, formatearSegundos } from './formatos';
+
+/** Lo que tardo el mozo en decir «Voy»: casi siempre segundos, a veces minutos. */
+describe('formatearSegundos', () => {
+  it('por debajo del minuto se queda en segundos', () => {
+    expect(formatearSegundos(0)).toBe('0 s');
+    expect(formatearSegundos(12)).toBe('12 s');
+  });
+
+  it('pasa a minutos y omite los segundos en punto', () => {
+    expect(formatearSegundos(65)).toBe('1 min 5 s');
+    expect(formatearSegundos(180)).toBe('3 min');
+  });
+
+  it('pasada la hora se escribe como una duracion', () => {
+    expect(formatearSegundos(3_900)).toBe('1 h 5 min');
+  });
+
+  it('sin dato devuelve la raya', () => {
+    expect(formatearSegundos(null)).toBe('—');
+    expect(formatearSegundos(undefined)).toBe('—');
+  });
+});
 
 /**
  * «11803 min» fue lo que salio en el POS y en la cocina con una comanda de hace

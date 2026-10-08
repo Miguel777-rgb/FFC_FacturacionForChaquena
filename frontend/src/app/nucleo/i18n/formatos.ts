@@ -171,6 +171,23 @@ export function formatearDuracion(minutos: number | null | undefined): string {
 }
 
 /**
+ * Segundos escritos como se dicen: «12 s», «1 min 5 s», «3 min». Es lo que
+ * tarda un mozo en responder al llamado de cocina, que casi siempre cabe en
+ * segundos; pasada la hora se escribe como `formatearDuracion`.
+ */
+export function formatearSegundos(segundos: number | null | undefined): string {
+  if (segundos === null || segundos === undefined || !Number.isFinite(segundos)) return '—';
+
+  const total = Math.max(0, Math.round(segundos));
+  if (total < 60) return `${total} s`;
+
+  const minutos = Math.floor(total / 60);
+  if (minutos >= 60) return formatearDuracion(minutos);
+  const resto = total % 60;
+  return resto > 0 ? `${minutos} min ${resto} s` : `${minutos} min`;
+}
+
+/**
  * Una distancia por calles: en metros por debajo del kilometro —redondeados a
  * la decena, que es la precision que tiene sentido para un delivery— y en
  * kilometros con un decimal despues. El separador decimal es el de quien lee,
