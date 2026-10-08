@@ -47,6 +47,7 @@ sesión; la columna «Quién» dice quién puede cambiarlos.
 | Reservas y plano (`mesas`) | `GET` y `POST /reservas` · `PATCH /reservas/{id}/estado` · `PUT /mesas/plano` | reservas: ADMIN, MOZO, CAJA; plano: ADMIN | Una mesa no guarda que está reservada: lo calcula la agenda, desde una hora antes de la reserva. El plano se guarda entero de una vez, porque dos mesas que intercambian sitio se pisarían guardadas por separado |
 | Turnos, asistencia y desempeño (`asistencia`) | `/turnos` · `POST /asistencia/entrada` y `/salida` · `GET /asistencia/mia` · `GET /asistencia/dia` · `GET /trabajadores/{id}/desempeno` | marcar: cada sesión sobre sí misma; lo demás: ADMIN | La tardanza y la falta no se escriben: se calculan comparando turnos y marcaciones, con diez minutos de tolerancia |
 | Tiempo real (`tiemporeal`) | `GET /eventos/stream` | cualquier sesión, filtrado por cargo | Ver abajo |
+| Llamado de cocina al mozo (`cocina`) | WebSocket `/ws` con STOMP | llama: COCINA, ADMIN; responde: MOZO | Ver abajo |
 | Reportes (`reportes`) | `GET /reportes/ventas-por-metodo-pago` · `GET /reportes/{ventas,productos,inventario,asistencia}/exportar` | los cargos de cada pantalla | Ver abajo |
 | Lectura de la carta (`inventario`) | `GET /carta/lector` · `POST /carta/lecturas` · `POST /carta/importaciones` | ADMIN | Ver abajo |
 | Recuperar la contraseña (`auth`) | `POST /auth/recuperacion` · `POST /auth/recuperacion/confirmacion` | público | Ver abajo |
@@ -71,6 +72,49 @@ memoria: sirve con una sola instancia del backend.
 ```bash
 curl -N http://localhost:8080/api/v1/eventos/stream -H "Authorization: Bearer $TOKEN"
 ```
+
+### Llamado de cocina al mozo
+
+Cuando una comanda está lista, cocina llama al mozo desde su pantalla y el
+primero que responde «Voy» se la lleva; a los demás se les quita el aviso. Va por
+**WebSocket con STOMP** y no por el SSE de arriba porque necesita dos cosas que
+SSE no da: que el navegador conteste por el mismo canal y que el servidor sepa
+cuántos mozos están conectados.
+
+La conexión es `ws://localhost:8080/api/v1/ws`, WebSocket puro (sin SockJS) con
+latidos cada 10 segundos. El navegador no deja poner cabeceras al abrir un
+WebSocket, así que el saludo HTTP es público y el JWT viaja en la cabecera
+`Authorization` de la trama `CONNECT`. Lo valida `AutenticacionStomp` con la
+misma extracción de roles que el filtro HTTP (`AutoridadesDelToken`), y el mismo
+interceptor decide qué puede hacer cada rol, porque los mensajes no pasan por los
+`@PreAuthorize`. Es una lista blanca: un destino que no figura se rechaza.
+
+| Trama | Destino | Quién | Qué lleva |
+|---|---|---|---|
+| `SUBSCRIBE` | `/app/llamados/estado` | MOZO, COCINA, ADMIN | Una sola vez, al suscribirse: al mozo, los llamados pendientes; a cocina, los de las comandas en el pase. A los dos, cuántos mozos hay conectados |
+| `SUBSCRIBE` | `/topic/llamados/mozos` | MOZO | Llamados nuevos, atendidos y cerrados |
+| `SUBSCRIBE` | `/topic/llamados/cocina` | COCINA, ADMIN | Lo mismo, y la presencia cada vez que cambia |
+| `SUBSCRIBE` | `/user/queue/llamados` | MOZO, COCINA, ADMIN | Los errores de la propia sesión |
+| `SEND` | `/app/llamados/llamar` con `{"ordenId": "…"}` | COCINA, ADMIN | Solo con la comanda marcada «Lista» |
+| `SEND` | `/app/llamados/atender` con `{"llamadoId": "…"}` | MOZO | El «Voy» |
+
+Un fallo de autenticación o de permisos responde con una trama `ERROR` y cierra
+la conexión. Un error de negocio —llamar por una comanda que no está lista,
+responder a un llamado que ya tomó otro mozo— llega solo a quien lo provocó, por
+`/user/queue/llamados`, y la conexión sigue abierta.
+
+Cada llamado queda en `llamados_cocina`: quién llamó y cuándo, quién respondió y
+cuándo. El primer «Voy» gana en la base de datos, con un `UPDATE … WHERE estado =
+'PENDIENTE'`: si dos mozos pulsan a la vez, pasa uno solo, y al otro se le dice
+quién va. Si no hay mozos conectados, el llamado espera y lo recibe el primero
+que se suscriba. Cuando la comanda sale del pase (entregada, a despacho o
+cancelada), `MaquinaEstadosOrden` publica `EstadoOrdenCambiadoEvent` y, después
+de confirmar la transacción, sus llamados pendientes pasan a `CERRADO`.
+
+El broker es el simple de Spring, en memoria: como el SSE, sirve con una sola
+instancia del backend. Cualquier proxy que vaya delante tiene que dejar pasar
+`Upgrade` y `Connection: upgrade` en `/api/v1/ws`; el `nginx.conf` del frontend
+le da su propio bloque, porque el de `/api/` fuerza `Connection ""` para el SSE.
 
 ### Exportaciones
 
