@@ -40,5 +40,8 @@ public interface PlatilloRepository extends JpaRepository<Platillo, UUID> {
     @EntityGraph(attributePaths = { "receta", "receta.insumo", "categoria" })
     List<Platillo> findByActivoTrue();
 
+    /** A estos les toca una foto del catalogo al arrancar. */
+    List<Platillo> findByFotoIsNull();
+
     boolean existsByCategoriaId(Integer categoriaId);
 }

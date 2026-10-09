@@ -61,7 +61,12 @@ public class ArchivoServiceImpl implements ArchivoService {
                     + " KB y el maximo es 2 MB.");
         }
 
-        byte[] recibidos = leerBytes(archivo);
+        return ArchivoDto.fromEntity(guardar(leerBytes(archivo), archivo.getOriginalFilename()));
+    }
+
+    @Override
+    @Transactional
+    public Archivo guardar(byte[] recibidos, String nombreOriginal) {
         ReglaImagen.Tipo recibido = ReglaImagen.detectar(recibidos)
                 .orElseThrow(() -> new IllegalArgumentException("Solo se aceptan imagenes WebP, PNG o JPEG."));
 
@@ -74,7 +79,7 @@ public class ArchivoServiceImpl implements ArchivoService {
         Archivo guardado = archivoRepository.save(Archivo.builder()
                 .tipoContenido(tipo.contenido())
                 .tamanoBytes((long) bytes.length)
-                .nombreOriginal(recortado(archivo.getOriginalFilename()))
+                .nombreOriginal(recortado(nombreOriginal))
                 .createdBy(UsuarioActual.username())
                 .build());
 
@@ -86,7 +91,7 @@ public class ArchivoServiceImpl implements ArchivoService {
         } catch (IOException e) {
             throw new UncheckedIOException("No se pudo guardar la imagen en el servidor.", e);
         }
-        return ArchivoDto.fromEntity(guardado);
+        return guardado;
     }
 
     @Override

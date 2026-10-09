@@ -15,6 +15,12 @@ public interface ArchivoService {
 
     ArchivoDto subir(MultipartFile archivo);
 
+    /**
+     * Guarda una imagen que no llega por una subida (las fotos del catalogo de
+     * la carta). Pasa por las mismas comprobaciones: firma y conversion a WebP.
+     */
+    Archivo guardar(byte[] imagen, String nombreOriginal);
+
     Contenido leer(UUID id);
 
     /** La fila, para colgarla de un platillo o del local. 404 si no existe. */
