@@ -53,7 +53,13 @@ RUN mkdir -p /aplicacion/tessdata \
     && echo "${TESSDATA_SHA256}  /aplicacion/tessdata/spa.traineddata" | sha256sum -c -
 
 # Usuario sin privilegios: si algo se cuela por un endpoint, no lo hace como root.
-RUN groupadd -r chaquena && useradd -r -g chaquena chaquena
+#
+# Con uid y gid fijos. Sin ellos, useradd toma el primero libre de la imagen
+# base, y cambiar de base lo mueve en silencio: al pasar de Alpine (uid 100) a
+# Debian (999), el volumen de fotos creado antes siguio siendo del 100 y toda
+# subida fallaba por permisos. Un volumen de esa epoca se arregla una vez con
+# chown; el backend lo avisa al arrancar si no puede escribir en el.
+RUN groupadd -r -g 999 chaquena && useradd -r -u 999 -g chaquena chaquena
 
 WORKDIR /aplicacion
 COPY --from=compilacion --chown=chaquena:chaquena /construccion/aplicacion.jar ./aplicacion.jar
