@@ -143,6 +143,15 @@ Las que se subieron antes de esto se convierten solas al arrancar
 siguen apuntando a ellas. Se sirven con caché de un año y como inmutables: quien
 ya tenía la versión anterior sigue viendo la misma foto.
 
+Los platillos sin foto reciben una del catálogo al arrancar
+(`FotosDelCatalogo`): 55 fotos con licencia libre que viajan dentro de la
+aplicación, en `src/main/resources/carta/fotos/`, elegidas por el nombre del
+platillo. Cada uno recibe su propia copia y la que suba alguien nunca se
+reemplaza; a un platillo del catálogo al que se le quita la foto a mano le
+vuelve una en el siguiente arranque. El log dice cuántos la recibieron y cuáles
+no están en el catálogo. Autores y licencias, en el
+[README de esa carpeta](src/main/resources/carta/fotos/README.md).
+
 **El volumen de las imágenes tiene que ser del usuario de la aplicación**, el
 uid 999, que la imagen fija. Un volumen creado con la imagen anterior, en
 Alpine, quedó del uid 100 y toda subida devolvía 500. Al arrancar, el backend
