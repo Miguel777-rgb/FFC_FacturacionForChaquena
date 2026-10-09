@@ -42,7 +42,7 @@ sesión; la columna «Quién» dice quién puede cambiarlos.
 | Datos del local e IGV (`local`) | `GET` y `PUT /local` · `PUT` y `DELETE /local/logo` | ADMIN | Los precios ya incluyen el IGV. Cada comanda guarda la tasa con la que se vendió (`ordenes.porcentaje_igv`): cambiarla no reescribe las ventas pasadas |
 | Niveles de lealtad (`fidelizacion`) | `/niveles-lealtad` · `GET /clientes/{id}/fidelizacion` | ADMIN | El descuento del nivel lo aplica el servidor al crear la comanda en el POS y no se suma al cupón: gana el que más rebaja |
 | Proveedores y lotes (`inventario`) | `/proveedores` · `GET /inventario/lotes/{insumoId}` · `GET /inventario/valorizado` · `GET /insumos/alertas` | ADMIN, ALMACEN | Cada compra crea un lote con proveedor, costo y vencimiento, todos opcionales. El consumo descuenta primero lo que vence antes; `stock_actual` sigue siendo el total |
-| Fotos y logo (`archivos`) | `POST /archivos` · `GET /archivos/{id}` | subir: ADMIN, ALMACEN; ver: público | WebP, PNG o JPEG hasta 2 MB. El tipo se lee de los bytes, no de lo que dice la subida, y SVG se rechaza porque puede llevar scripts. Se sirven por UUID sin token, porque un `<img>` no manda cabeceras |
+| Fotos y logo (`archivos`) | `POST /archivos` · `GET /archivos/{id}` | subir: ADMIN, ALMACEN; ver: público | WebP, PNG o JPEG hasta 2 MB. El tipo se lee de los bytes, no de lo que dice la subida, y SVG se rechaza porque puede llevar scripts. Se guardan en WebP. Se sirven por UUID sin token, porque un `<img>` no manda cabeceras. Ver abajo |
 | Alérgenos (`inventario`) | `/alergenos` | ADMIN, ALMACEN | Llega sembrado con los catorce habituales. El costo y el margen de un platillo no se guardan: se calculan con su receta y la última compra de cada insumo |
 | Reservas y plano (`mesas`) | `GET` y `POST /reservas` · `PATCH /reservas/{id}/estado` · `PUT /mesas/plano` | reservas: ADMIN, MOZO, CAJA; plano: ADMIN | Una mesa no guarda que está reservada: lo calcula la agenda, desde una hora antes de la reserva. El plano se guarda entero de una vez, porque dos mesas que intercambian sitio se pisarían guardadas por separado |
 | Turnos, asistencia y desempeño (`asistencia`) | `/turnos` · `POST /asistencia/entrada` y `/salida` · `GET /asistencia/mia` · `GET /asistencia/dia` · `GET /trabajadores/{id}/desempeno` | marcar: cada sesión sobre sí misma; lo demás: ADMIN | La tardanza y la falta no se escriben: se calculan comparando turnos y marcaciones, con diez minutos de tolerancia |
@@ -125,6 +125,33 @@ Cada reporte se arma una sola vez y se escribe con Apache POI o con OpenPDF, as�
 que el PDF y el Excel del mismo rango nunca dicen cosas distintas. Los textos
 salen en español, inglés o portugués según `Accept-Language`; sin esa cabecera,
 en español.
+
+### Fotos y logo
+
+Toda imagen que se sube se guarda en WebP, llegue como llegue: pesa menos para
+el celular del mozo y todas se sirven igual. La convierte el programa `cwebp`,
+llamado como proceso igual que Tesseract (`ConversorWebp`): las fotos JPEG van
+con pérdida y calidad 82, los PNG —logos y dibujos de bordes netos— sin
+pérdida, y en ningún caso pasan los metadatos, que en una foto de celular
+incluyen la ubicación. El límite de subida sigue en 2 MB y no se cambia el
+tamaño de la imagen. Sin `cwebp` (el backend corriendo fuera de Docker) se
+guarda tal como llega y se avisa en el log; `app.archivos.cwebp` apunta al
+programa.
+
+Las que se subieron antes de esto se convierten solas al arrancar
+(`MigracionWebp`), en su sitio y con el mismo id, así que los platos y el logo
+siguen apuntando a ellas. Se sirven con caché de un año y como inmutables: quien
+ya tenía la versión anterior sigue viendo la misma foto.
+
+**El volumen de las imágenes tiene que ser del usuario de la aplicación**, el
+uid 999, que la imagen fija. Un volumen creado con la imagen anterior, en
+Alpine, quedó del uid 100 y toda subida devolvía 500. Al arrancar, el backend
+comprueba que puede escribir en la carpeta y, si no, lo dice en el log con los
+dos uid (`ComprobacionCarpetaArchivos`). Se arregla una sola vez:
+
+```bash
+docker exec -u root <contenedor-del-backend> chown -R chaquena:chaquena /aplicacion/archivos
+```
 
 ### Leer la carta desde fotos
 
