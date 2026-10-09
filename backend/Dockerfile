@@ -37,9 +37,10 @@ FROM eclipse-temurin:21-jre AS ejecucion
 
 # curl lo usa el healthcheck del compose para saber cuando la aplicacion esta
 # lista de verdad, no solo cuando el proceso arranco. tesseract-ocr trae el
-# programa; el modelo del idioma se baja aparte.
+# programa; el modelo del idioma se baja aparte. webp trae cwebp, que pasa a
+# WebP cada imagen que se sube.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates tesseract-ocr \
+    && apt-get install -y --no-install-recommends curl ca-certificates tesseract-ocr webp \
     && rm -rf /var/lib/apt/lists/*
 
 # El modelo de espanol va fijado a un commit y comprobado por hash: es el mismo

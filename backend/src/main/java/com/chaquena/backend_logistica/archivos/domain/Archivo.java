@@ -17,7 +17,9 @@ import java.util.UUID;
  * pagina dentro del sistema.
  *
  * <p>No se edita. Una foto nueva es otro archivo, y por eso cada uno se puede
- * cachear para siempre.
+ * cachear para siempre. La unica excepcion es pasar a WebP las que se subieron
+ * antes de que se convirtiera todo (MigracionWebp): es la misma foto con otra
+ * codificacion, asi que quien ya la tenia en cache sigue viendo lo mismo.
  */
 @Entity
 @Table(name = "archivos")

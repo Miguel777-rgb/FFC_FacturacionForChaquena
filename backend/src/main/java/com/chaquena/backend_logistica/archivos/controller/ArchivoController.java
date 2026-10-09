@@ -37,12 +37,13 @@ public class ArchivoController {
      * UUID aleatorio, asi que no se puede recorrer, y lo que hay detras es la
      * foto de un plato o el logo que ya esta en la puerta del local.
      *
-     * <p>Un archivo nunca cambia, asi que se cachea doce meses. La politica de
-     * contenido vacia es por si alguien abre la URL directamente: no hay nada
-     * que ejecutar en una imagen.
+     * <p>Lo que muestra un archivo nunca cambia, asi que se cachea doce meses:
+     * ni siquiera pasarlo a WebP cambia la foto. La politica de contenido vacia
+     * es por si alguien abre la URL directamente: no hay nada que ejecutar en una
+     * imagen.
      */
     @GetMapping("/{id}")
-    @Operation(operationId = "descargarArchivo", summary = "La imagen tal como se subio")
+    @Operation(operationId = "descargarArchivo", summary = "La imagen, en WebP si se pudo convertir")
     public ResponseEntity<Resource> descargar(@PathVariable UUID id) {
         ArchivoService.Contenido contenido = archivoService.leer(id);
         return ResponseEntity.ok()

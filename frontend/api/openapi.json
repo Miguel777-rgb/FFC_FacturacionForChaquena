@@ -4762,7 +4762,7 @@
             "description": "OK"
           }
         },
-        "summary": "La imagen tal como se subio",
+        "summary": "La imagen, en WebP si se pudo convertir",
         "tags": [
           "Archivos"
         ]

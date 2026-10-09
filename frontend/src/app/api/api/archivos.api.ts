@@ -50,7 +50,7 @@ export class ArchivosApi extends BaseService {
   }
 
   /**
-   * La imagen tal como se subio
+   * La imagen, en WebP si se pudo convertir
    * @endpoint get /api/v1/archivos/{id}
    * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

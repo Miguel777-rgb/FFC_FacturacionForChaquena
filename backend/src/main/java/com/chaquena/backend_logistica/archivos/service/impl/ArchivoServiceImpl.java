@@ -4,6 +4,7 @@ import com.chaquena.backend_logistica.archivos.domain.Archivo;
 import com.chaquena.backend_logistica.archivos.dto.ArchivoDto;
 import com.chaquena.backend_logistica.archivos.repository.ArchivoRepository;
 import com.chaquena.backend_logistica.archivos.service.ArchivoService;
+import com.chaquena.backend_logistica.archivos.service.ConversorWebp;
 import com.chaquena.backend_logistica.archivos.service.ReglaImagen;
 import com.chaquena.backend_logistica.shared.exception.RecursoNoEncontradoException;
 import com.chaquena.backend_logistica.shared.security.UsuarioActual;
@@ -26,17 +27,22 @@ import java.util.UUID;
 /**
  * Las imagenes en un directorio del servidor, sin servicios externos. En Docker
  * ese directorio es un volumen: reconstruir el contenedor no borra la carta.
+ *
+ * <p>Se guardan en WebP, lleguen como lleguen: pesan menos para el celular del
+ * mozo y todas se sirven igual. Si no se pueden convertir, se guardan tal cual.
  */
 @Service
 @Slf4j
 public class ArchivoServiceImpl implements ArchivoService {
 
     private final ArchivoRepository archivoRepository;
+    private final ConversorWebp conversor;
     private final Path directorio;
 
-    public ArchivoServiceImpl(ArchivoRepository archivoRepository,
+    public ArchivoServiceImpl(ArchivoRepository archivoRepository, ConversorWebp conversor,
             @Value("${app.archivos.directorio:./archivos}") String directorio) {
         this.archivoRepository = archivoRepository;
+        this.conversor = conversor;
         this.directorio = Path.of(directorio).toAbsolutePath().normalize();
     }
 
@@ -55,9 +61,15 @@ public class ArchivoServiceImpl implements ArchivoService {
                     + " KB y el maximo es 2 MB.");
         }
 
-        byte[] bytes = leerBytes(archivo);
-        ReglaImagen.Tipo tipo = ReglaImagen.detectar(bytes)
+        byte[] recibidos = leerBytes(archivo);
+        ReglaImagen.Tipo recibido = ReglaImagen.detectar(recibidos)
                 .orElseThrow(() -> new IllegalArgumentException("Solo se aceptan imagenes WebP, PNG o JPEG."));
+
+        // La firma se comprobo antes: a cwebp solo le llega lo que es de verdad
+        // una imagen. Si no la convierte, se guarda la original con su tipo.
+        byte[] webp = conversor.aWebp(recibidos, recibido).orElse(null);
+        byte[] bytes = webp != null ? webp : recibidos;
+        ReglaImagen.Tipo tipo = webp != null ? ReglaImagen.Tipo.WEBP : recibido;
 
         Archivo guardado = archivoRepository.save(Archivo.builder()
                 .tipoContenido(tipo.contenido())
