@@ -69,6 +69,8 @@ export const EN: Record<ClaveI18n, string> = {
   'comun.documentoIdentidad': 'National ID',
   'comun.celular': 'Phone',
   'comun.correo': 'Email',
+  'comun.opcional': 'optional',
+  'telefono.llamar': 'Call {numero}',
   'comun.cargo': 'Job title',
   'comun.usuario': 'Username',
   'comun.contrasena': 'Password',
@@ -174,6 +176,8 @@ export const EN: Record<ClaveI18n, string> = {
 
   // --- form validation (regular expressions) --------------------------------
   'validacion.dni': 'The ID number is eight digits, with no dots or spaces.',
+  'validacion.documento':
+    'An eight-digit DNI, or a foreigner ID card or passport of up to 15 letters and digits.',
   'validacion.celular':
     'A Peruvian mobile is nine digits starting with 9; the 51 prefix is allowed.',
   'validacion.correo': 'Type an address with an at sign and a domain, such as name@chaquena.pe.',
@@ -182,6 +186,7 @@ export const EN: Record<ClaveI18n, string> = {
   'validacion.contrasena':
     'At least eight characters, with one uppercase, one lowercase and one digit.',
   'validacion.revisa': 'Check the marked fields before saving.',
+  'validacion.obligatorio': 'This field is required.',
 
   'login.olvide': 'Forgot your password?',
   'titulo.recuperar': 'Recover password',
@@ -1058,6 +1063,14 @@ export const EN: Record<ClaveI18n, string> = {
   'clientes.progresoNivelAria': 'Progress towards the {nivel} tier',
   'clientes.faltanPuntos.uno': '{n} more point to the {nivel} tier.',
   'clientes.faltanPuntos.otros': '{n} more points to the {nivel} tier.',
+  'clientes.nuevo': 'New customer',
+  'clientes.editarDatos': 'Edit details',
+  'clientes.editarTitulo': 'Edit {nombre}',
+  'clientes.registrar': 'Register customer',
+  'clientes.direccionAyuda': 'The one the POS suggests, already on the map, when they order delivery.',
+  'clientes.avisoCreado': '{nombre} has been registered.',
+  'clientes.avisoEditado': "{nombre}'s details saved.",
+  'clientes.avisoFaltanDatos': 'The document, first names or last names are missing.',
 
   // --- my profile -----------------------------------------------------------
   'perfil.datos': 'Your details',

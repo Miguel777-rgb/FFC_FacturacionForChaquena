@@ -81,6 +81,8 @@ export const ES = {
   'comun.documentoIdentidad': 'Documento de identidad',
   'comun.celular': 'Celular',
   'comun.correo': 'Correo',
+  'comun.opcional': 'opcional',
+  'telefono.llamar': 'Llamar al {numero}',
   'comun.cargo': 'Cargo',
   'comun.usuario': 'Usuario',
   'comun.contrasena': 'Contraseña',
@@ -188,6 +190,8 @@ export const ES = {
 
   // --- validación de formularios (expresiones regulares) --------------------
   'validacion.dni': 'El DNI son ocho dígitos, sin puntos ni espacios.',
+  'validacion.documento':
+    'DNI de ocho cifras, o carné de extranjería o pasaporte de hasta 15 letras y cifras.',
   'validacion.celular':
     'El celular peruano son nueve dígitos y empieza en 9; se admite el 51 delante.',
   'validacion.correo': 'Escribe un correo con arroba y dominio, como nombre@chaquena.pe.',
@@ -195,6 +199,7 @@ export const ES = {
   'validacion.usuario': 'Entre 3 y 20 caracteres en minúscula, empezando por letra.',
   'validacion.contrasena': 'Mínimo ocho caracteres, con una mayúscula, una minúscula y un número.',
   'validacion.revisa': 'Revisa los campos marcados antes de guardar.',
+  'validacion.obligatorio': 'Este dato es obligatorio.',
 
   'login.olvide': '¿Olvidaste tu contraseña?',
   'titulo.recuperar': 'Recuperar contraseña',
@@ -1088,6 +1093,14 @@ export const ES = {
   'clientes.progresoNivelAria': 'Avance hacia el nivel {nivel}',
   'clientes.faltanPuntos.uno': 'Le falta {n} punto para el nivel {nivel}.',
   'clientes.faltanPuntos.otros': 'Le faltan {n} puntos para el nivel {nivel}.',
+  'clientes.nuevo': 'Nuevo cliente',
+  'clientes.editarDatos': 'Editar datos',
+  'clientes.editarTitulo': 'Editar a {nombre}',
+  'clientes.registrar': 'Registrar cliente',
+  'clientes.direccionAyuda': 'La que el POS propone, ya ubicada, cuando pide delivery.',
+  'clientes.avisoCreado': '{nombre} quedó registrado.',
+  'clientes.avisoEditado': 'Datos de {nombre} guardados.',
+  'clientes.avisoFaltanDatos': 'Faltan el documento, los nombres o los apellidos.',
 
   // --- mi perfil ------------------------------------------------------------
   'perfil.datos': 'Tus datos',

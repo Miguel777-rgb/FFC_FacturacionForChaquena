@@ -66,6 +66,8 @@ export const PT: Record<ClaveI18n, string> = {
   'comun.documentoIdentidad': 'Documento de identidade',
   'comun.celular': 'Celular',
   'comun.correo': 'E-mail',
+  'comun.opcional': 'opcional',
+  'telefono.llamar': 'Ligar para {numero}',
   'comun.cargo': 'Cargo',
   'comun.usuario': 'Usuário',
   'comun.contrasena': 'Senha',
@@ -171,6 +173,8 @@ export const PT: Record<ClaveI18n, string> = {
 
   // --- validação de formulários (expressões regulares) ----------------------
   'validacion.dni': 'O documento tem oito dígitos, sem pontos nem espaços.',
+  'validacion.documento':
+    'DNI de oito dígitos, ou carteira de estrangeiro ou passaporte de até 15 letras e números.',
   'validacion.celular':
     'O celular peruano tem nove dígitos e começa com 9; o 51 na frente é aceito.',
   'validacion.correo': 'Escreva um e-mail com arroba e domínio, como nome@chaquena.pe.',
@@ -179,6 +183,7 @@ export const PT: Record<ClaveI18n, string> = {
   'validacion.contrasena':
     'No mínimo oito caracteres, com uma maiúscula, uma minúscula e um número.',
   'validacion.revisa': 'Revise os campos marcados antes de salvar.',
+  'validacion.obligatorio': 'Este campo é obrigatório.',
 
   'login.olvide': 'Esqueceu sua senha?',
   'titulo.recuperar': 'Recuperar senha',
@@ -1054,6 +1059,14 @@ export const PT: Record<ClaveI18n, string> = {
   'clientes.progresoNivelAria': 'Progresso até o nível {nivel}',
   'clientes.faltanPuntos.uno': 'Falta {n} ponto para o nível {nivel}.',
   'clientes.faltanPuntos.otros': 'Faltam {n} pontos para o nível {nivel}.',
+  'clientes.nuevo': 'Novo cliente',
+  'clientes.editarDatos': 'Editar dados',
+  'clientes.editarTitulo': 'Editar {nombre}',
+  'clientes.registrar': 'Cadastrar cliente',
+  'clientes.direccionAyuda': 'O que o PDV sugere, já no mapa, quando pede delivery.',
+  'clientes.avisoCreado': '{nombre} foi cadastrado.',
+  'clientes.avisoEditado': 'Dados de {nombre} salvos.',
+  'clientes.avisoFaltanDatos': 'Faltam o documento, os nomes ou os sobrenomes.',
 
   // --- meu perfil -----------------------------------------------------------
   'perfil.datos': 'Seus dados',
