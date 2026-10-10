@@ -6,6 +6,7 @@ import com.chaquena.backend_logistica.inventario.dto.*;
 import com.chaquena.backend_logistica.inventario.repository.*;
 import com.chaquena.backend_logistica.inventario.service.PlatilloService;
 import com.chaquena.backend_logistica.inventario.service.ReglaCosto;
+import com.chaquena.backend_logistica.inventario.service.ReglaNombresCarta;
 import com.chaquena.backend_logistica.shared.dto.PageResponseDto;
 import com.chaquena.backend_logistica.shared.exception.RecursoNoEncontradoException;
 import com.chaquena.backend_logistica.shared.security.UsuarioActual;
@@ -123,7 +124,8 @@ public class PlatilloServiceImpl implements PlatilloService {
     /**
      * Reemplaza la receta completa en una sola transaccion. Se hace por
      * sustitucion y no por diferencias para que el BOM del platillo sea
-     * siempre exactamente lo que envio el administrador.
+     * siempre exactamente lo que envio el administrador. Los pasos solo se
+     * reemplazan si llegan: quien guarda solo los insumos no los borra.
      */
     @Override
     @Transactional
@@ -141,6 +143,14 @@ public class PlatilloServiceImpl implements PlatilloService {
                     .createdBy(UsuarioActual.username())
                     .build();
             platillo.getReceta().add(linea);
+        }
+
+        if (request.getPasos() != null) {
+            platillo.getPasos().clear();
+            request.getPasos().stream()
+                    .map(ReglaNombresCarta::limpio)
+                    .filter(Objects::nonNull)
+                    .forEach(platillo.getPasos()::add);
         }
 
         platillo.setModifiedBy(UsuarioActual.username());

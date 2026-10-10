@@ -73,6 +73,19 @@ public class Platillo {
     @OneToMany(mappedBy = "platillo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<InsumoPlatillo> receta = new ArrayList<>();
 
+    /**
+     * Como se prepara, en orden. Sin auditoria propia por la misma razon que los
+     * alergenos: quien cambio los pasos queda en el modifiedBy del platillo. Y
+     * tambien se carga por lotes, fuera del grafo de la receta.
+     */
+    @Builder.Default
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "platillo_pasos", joinColumns = @JoinColumn(name = "platillo_id"))
+    @OrderColumn(name = "orden")
+    @Column(name = "texto", nullable = false, length = 500)
+    @BatchSize(size = 50)
+    private List<String> pasos = new ArrayList<>();
+
     // Auditoría
     @Column(name = "created_by", nullable = false, length = 50)
     private String createdBy;

@@ -54,7 +54,7 @@ public class PlatilloController {
     }
 
     @GetMapping("/{id}")
-    @Operation(operationId = "obtenerPlatillo", summary = "Obtener platillo con su receta")
+    @Operation(operationId = "obtenerPlatillo", summary = "Obtener platillo con su receta y los pasos de su preparacion")
     public ResponseEntity<PlatilloResponseDto> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(platilloService.obtenerPorId(id));
     }
@@ -76,14 +76,14 @@ public class PlatilloController {
     }
 
     @GetMapping("/{id}/receta")
-    @Operation(summary = "Receta del platillo (lista de insumos y cantidades)")
+    @Operation(summary = "Receta del platillo (lista de insumos y cantidades; los pasos vienen en GET /platillos/{id})")
     public ResponseEntity<List<RecetaItemDto>> obtenerReceta(@PathVariable UUID id) {
         return ResponseEntity.ok(platilloService.obtenerReceta(id));
     }
 
     @PutMapping("/{id}/receta")
     @PreAuthorize("hasAnyRole('ADMIN','ALMACEN')")
-    @Operation(summary = "Reemplazar la receta completa del platillo")
+    @Operation(summary = "Reemplazar la receta completa del platillo; los pasos, solo si llegan")
     public ResponseEntity<List<RecetaItemDto>> reemplazarReceta(@PathVariable UUID id,
             @Valid @RequestBody RecetaRequestDto request) {
         return ResponseEntity.ok(platilloService.reemplazarReceta(id, request));

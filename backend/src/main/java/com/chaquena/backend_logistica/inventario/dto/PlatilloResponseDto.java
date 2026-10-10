@@ -28,6 +28,8 @@ public class PlatilloResponseDto {
     private BigDecimal precioVentaBase;
     private Boolean activo;
     private List<RecetaItemDto> receta;
+    /** Como se prepara, en orden. Viaja junto con la receta: nulo en los listados. */
+    private List<String> pasos;
 
     /** La foto, servida en /api/v1/archivos/{fotoId}. Nulo si no tiene. */
     private UUID fotoId;
@@ -75,6 +77,7 @@ public class PlatilloResponseDto {
                 .receta(incluirReceta && platillo.getReceta() != null
                         ? platillo.getReceta().stream().map(RecetaItemDto::fromEntity).toList()
                         : null)
+                .pasos(incluirReceta && platillo.getPasos() != null ? List.copyOf(platillo.getPasos()) : null)
                 .fotoId(platillo.getFoto() != null ? platillo.getFoto().getId() : null)
                 .tiempoPreparacionMinutos(platillo.getTiempoPreparacionMinutos())
                 .alergenos(platillo.getAlergenos() == null ? List.of()
