@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { SesionService } from './nucleo/sesion/sesion.service';
 import { AvisosService } from './nucleo/http/avisos.service';
 import { TemaService } from './nucleo/tema/tema.service';
+import { IconoPestanaService } from './nucleo/marca/icono-pestana.service';
 import { AvisoInactividad } from './disenio/aviso-inactividad';
 import { AvisoLlamado } from './disenio/aviso-llamado';
 import { PanelLateral } from './disenio/panel-lateral';
@@ -35,5 +36,8 @@ export class App {
     // Se construye al arrancar para aplicar el tema guardado antes de pintar
     // nada, tambien en la pantalla de entrar.
     inject(TemaService);
+    // Construirlo es lo que pone el logo del local en la pestana al entrar y
+    // devuelve el propio al salir.
+    inject(IconoPestanaService);
   }
 }

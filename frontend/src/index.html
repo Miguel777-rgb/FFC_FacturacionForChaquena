@@ -5,7 +5,13 @@
     <title>Chaquena · Logistica</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <!-- El icono de la pestana cuando no hay sesion; con ella,
+         IconoPestanaService pone en este mismo enlace el logo del local. Sin
+         type, porque el logo subido es WebP. Nginx cachea los .ico 365 dias
+         como inmutables: un icono nuevo necesita otro nombre de archivo, no el
+         mismo nombre con otro contenido. -->
+    <link rel="icon" href="chaquena.ico" />
 
     <!-- Inter es la letra del texto y de los botones: se adelanta para que la
          primera pantalla no se pinte con la del sistema y luego salte. -->
