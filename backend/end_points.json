@@ -1977,7 +1977,7 @@
                 }
               ]
             },
-            "description": "Obtener platillo con su receta"
+            "description": "El platillo con su receta (`receta`), los pasos de su preparacion en orden (`pasos`) y el costo y el margen calculados. En los listados `receta` y `pasos` vienen nulos."
           },
           "response": []
         },
@@ -2085,7 +2085,7 @@
                 }
               ]
             },
-            "description": "Receta del platillo (lista de insumos y cantidades)"
+            "description": "Receta del platillo (lista de insumos y cantidades). Los pasos de la preparacion vienen en `GET /platillos/{id}`."
           },
           "response": []
         },
@@ -2119,10 +2119,10 @@
                 }
               ]
             },
-            "description": "Reemplazar la receta completa del platillo",
+            "description": "Reemplaza la receta completa: lo que no venga en `insumos` deja de formar parte del plato. `pasos` es opcional y sigue la regla de los alergenos: sin la lista no se tocan, y una lista vacia los quita todos. Cada paso va sin numerar (el orden de la lista es el orden de la preparacion), no puede ir en blanco y admite hasta 500 caracteres.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"insumos\": [\n    {\n      \"insumoId\": \"{{insumoId}}\",\n      \"cantidadRequerida\": 0.25\n    },\n    {\n      \"insumoId\": \"{{insumoCocidoId}}\",\n      \"cantidadRequerida\": 0.2\n    }\n  ]\n}",
+              "raw": "{\n  \"insumos\": [\n    {\n      \"insumoId\": \"{{insumoId}}\",\n      \"cantidadRequerida\": 0.25\n    },\n    {\n      \"insumoId\": \"{{insumoCocidoId}}\",\n      \"cantidadRequerida\": 0.2\n    }\n  ],\n  \"pasos\": [\n    \"Cortar la carne en tiras y sazonar con sal, pimienta y comino.\",\n    \"Saltear a fuego alto con cebolla y tomate.\",\n    \"Servir con arroz y papas fritas.\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
