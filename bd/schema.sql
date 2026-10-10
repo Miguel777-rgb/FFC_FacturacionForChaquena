@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict GyQM0NkR0MScgMmjkRkTBMVGZOevgMwM1mf5QU5Gd8GYSuKOlzq8xFJ4buwqv3w
+\restrict QhzabJ7BGN5i5N7ivP9E5Eem28KnETsg3TXasX5tkhcmPQNw4PUptMcJIXWzgcs
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -761,6 +761,18 @@ CREATE TABLE public.platillo_alergenos (
 
 
 --
+-- Name: platillo_pasos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.platillo_pasos (
+    platillo_id uuid NOT NULL,
+    texto character varying(500) NOT NULL,
+    orden integer NOT NULL,
+    CONSTRAINT platillo_pasos_orden_check CHECK ((orden >= 0))
+);
+
+
+--
 -- Name: platillos; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1246,6 +1258,14 @@ ALTER TABLE ONLY public.personas
 
 ALTER TABLE ONLY public.platillo_alergenos
     ADD CONSTRAINT platillo_alergenos_pkey PRIMARY KEY (platillo_id, alergeno_id);
+
+
+--
+-- Name: platillo_pasos platillo_pasos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platillo_pasos
+    ADD CONSTRAINT platillo_pasos_pkey PRIMARY KEY (platillo_id, orden);
 
 
 --
@@ -1835,6 +1855,14 @@ ALTER TABLE ONLY public.ordenes
 
 
 --
+-- Name: platillo_pasos fkno9epabqqt4760n4tcspry7aj; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platillo_pasos
+    ADD CONSTRAINT fkno9epabqqt4760n4tcspry7aj FOREIGN KEY (platillo_id) REFERENCES public.platillos(id);
+
+
+--
 -- Name: insumos_platillo fko0pmftyjjiolej50ky5c8f3rc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1918,5 +1946,5 @@ ALTER TABLE ONLY public.cliente_empresas
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GyQM0NkR0MScgMmjkRkTBMVGZOevgMwM1mf5QU5Gd8GYSuKOlzq8xFJ4buwqv3w
+\unrestrict QhzabJ7BGN5i5N7ivP9E5Eem28KnETsg3TXasX5tkhcmPQNw4PUptMcJIXWzgcs
 
