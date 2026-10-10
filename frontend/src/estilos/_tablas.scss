@@ -110,9 +110,14 @@
       display: block;
     }
 
+    /* Cada registro es una tarjeta: el borde dice donde acaba uno y empieza el
+       siguiente, cosa que una sola linea entre fichas no dejaba clara. */
     tr:not(.expandida) {
-      padding: var(--e3) 0;
-      border-bottom: 1px solid var(--linea);
+      margin-bottom: var(--e2);
+      padding: var(--e1) var(--e3);
+      background: var(--superficie);
+      border: 1px solid var(--linea-fuerte);
+      border-radius: var(--radio);
     }
 
     tr:not(.expandida) > td {
@@ -120,14 +125,46 @@
       align-items: baseline;
       justify-content: space-between;
       gap: var(--e3);
-      padding: 2px 0;
+      padding: var(--e2) 0;
       text-align: right;
       border-bottom: none;
     }
 
+    /* Lo que en la tabla va debajo del dato (`.bajada`: el porcentaje bajo el
+       margen, el motivo bajo «Sin costo») en la ficha tambien va debajo, en su
+       propia linea y alineado con el valor. Como una pieza mas de la fila, el
+       margen automatico que lo alinea en la tabla lo mandaba al otro extremo y
+       dejaba el dato a media fila. */
+    tr:not(.expandida) > td:has(> .bajada) {
+      flex-wrap: wrap;
+    }
+
+    tr:not(.expandida) > td > .bajada {
+      flex-basis: 100%;
+      max-width: none;
+      margin: 0;
+      text-align: right;
+    }
+
+    /* Una linea entre cada rotulo y el siguiente. Con el rotulo a un lado y el
+       valor al otro, el ojo cruzaba la pantalla sin guia y saltaba de fila. */
+    tr:not(.expandida) > td[data-etiqueta] + td[data-etiqueta] {
+      border-top: 1px solid var(--linea);
+    }
+
+    /* El estado vacio no es un registro: va sin tarjeta. */
+    tr:not(.expandida):has(> td.vacio) {
+      padding-inline: 0;
+      background: none;
+      border-color: transparent;
+    }
+
+    /* El margen automatico empuja todo el valor a la derecha, aunque sean dos
+       piezas (importe y porcentaje): repartidas, una quedaba a media fila. */
     tr:not(.expandida) > td[data-etiqueta]::before {
       content: attr(data-etiqueta);
       flex: none;
+      margin-inline-end: auto;
       font-family: var(--f-texto);
       font-size: var(--t-chico);
       font-weight: 600;
@@ -139,7 +176,7 @@
        y su descripcion se lean seguidos y no repartidos a los lados. */
     tr:not(.expandida) > td:first-child {
       display: block;
-      padding-bottom: var(--e1);
+      padding: var(--e2) 0 var(--e1);
       font-weight: 600;
       text-align: left;
     }
@@ -160,14 +197,32 @@
       text-align: left;
     }
 
+    /* Bajo minimo: el mismo filete que en la tabla, ahora en la tarjeta. */
+    tr.bajo {
+      box-shadow: inset 3px 0 0 var(--critico);
+    }
+
     tr.bajo td:first-child {
       box-shadow: none;
       color: var(--critico);
     }
 
+    /* Lo desplegado cuelga de su tarjeta, sin hueco entre las dos. */
+    tr:not(.expandida):has(+ tr.expandida) {
+      margin-bottom: 0;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    tr.expandida {
+      margin-bottom: var(--e2);
+    }
+
     tr.expandida > td {
       padding: var(--e3);
-      border-radius: var(--radio);
+      border: 1px solid var(--linea-fuerte);
+      border-top: none;
+      border-radius: 0 0 var(--radio) var(--radio);
     }
 
     tbody tr:not(.expandida):hover > td {
