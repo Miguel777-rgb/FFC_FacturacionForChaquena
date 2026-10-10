@@ -89,7 +89,7 @@ src/
     │   ├── llamados/     llamados.service · llamado · silencio.service
     │   ├── sonido/       timbre
     │   ├── mapa/         ubicacion-local.service
-    │   └── marca/        logo.service · archivos
+    │   └── marca/        logo.service · icono-pestana.service · archivos
     ├── disenio/          panel-lateral · pila-avisos · icono · selector-idioma · bandera
     │                     barra-superior · dialogo · confirmacion · selector-tema
     │                     en-vivo · descarga · metodos-pago · mapa · selector-ubicacion
@@ -112,7 +112,7 @@ src/
 | [app.config.ts](src/app/app.config.ts) | Los cuatro *providers* raíz | Zoneless, `withComponentInputBinding`, el interceptor de errores y la `Configuration` del cliente generado con el `bearerAuth` conectado a la sesión | [:23](src/app/app.config.ts#L23), [:34](src/app/app.config.ts#L34), [:50](src/app/app.config.ts#L50) |
 | [app.ts](src/app/app.ts) + [app.html](src/app/app.html) | El cascarón | Con sesión pinta panel lateral + `<router-outlet>`; sin sesión, solo el outlet. La pila de avisos está **fuera** del `@if`: un error de login también se ve. A los mozos les monta además el aviso del llamado de cocina, sobre el contenido de cualquier pantalla | [app.html](src/app/app.html) |
 | [app.routes.ts](src/app/app.routes.ts) | Diecisiete rutas + dos redirecciones | Todas `loadComponent`. Toda ruta salvo el login lleva `sesionAbierta`, y las trece superficies además `exigeRol(...)` copiado del controlador; `/perfil` solo pide sesión | [app.routes.ts](src/app/app.routes.ts) |
-| [index.html](src/index.html) | Documento base | Carga `accounts.google.com/gsi/client` con `async defer`. Si no hay red, el botón de Google no aparece y el login con contraseña sigue funcionando | [index.html:15](src/index.html#L15) |
+| [index.html](src/index.html) | Documento base | Carga `accounts.google.com/gsi/client` con `async defer`. Si no hay red, el botón de Google no aparece y el login con contraseña sigue funcionando | [index.html:31](src/index.html#L31) |
 | [environments/](src/environments/) | Dos constantes | En producción `apiBasePath` va **vacío**: el navegador habla con un solo origen y Nginx hace de proxy, así que CORS no interviene | [environment.ts:8](src/environments/environment.ts#L8) |
 
 ### Núcleo — lo que comparten todas las pantallas
@@ -130,6 +130,7 @@ src/
 | [silencio.service.ts](src/app/nucleo/llamados/silencio.service.ts) + [timbre.ts](src/app/nucleo/sonido/timbre.ts) | Si el llamado suena, y cómo | Silenciarlo es preferencia del dispositivo (`localStorage`), como el tema. El timbre son notas de Web Audio, sin archivo: dos para una comanda nueva en Cocina; ding-dong dos veces para el llamado al mozo | [timbre.ts](src/app/nucleo/sonido/timbre.ts) |
 | [descarga.ts](src/app/nucleo/http/descarga.ts) | Guardar un Blob como archivo | El nombre sale de `Content-Disposition` —`filename*` primero, que admite tildes—, así que lo decide el servidor, que sabe qué rango usó. La URL del Blob se libera a los 30 s y no en el acto: Safari cancela la descarga si se revoca antes | [descarga.spec.ts](src/app/nucleo/http/descarga.spec.ts) |
 | [logo.service.ts](src/app/nucleo/marca/logo.service.ts) + [archivos.ts](src/app/nucleo/marca/archivos.ts) | Logo del local y URL de las imágenes subidas | El logo es un dato del local, el mismo en todas las pantallas: se pide al abrir la sesión y **solo ADMIN lo cambia**; los demás lo ven sin ranura. Importa `archivos.api` y `local.api` sueltos, no el barril, porque carga con el panel. Las imágenes se sirven por UUID **sin token** —un `<img>` no manda cabeceras—, y `problemaDeImagen` rechaza SVG y lo que pase de 2 MB antes de subir; el servidor lo vuelve a mirar en los bytes | [logo.service.ts](src/app/nucleo/marca/logo.service.ts), [archivos.ts](src/app/nucleo/marca/archivos.ts) |
+| [icono-pestana.service.ts](src/app/nucleo/marca/icono-pestana.service.ts) | El ícono de la pestaña | Con sesión es el logo del local; sin ella, o si el local no tiene logo, `chaquena.ico`, que trae el propio `index.html`: la pantalla de entrar no puede leer los datos del local. Cambia el `href` del mismo `<link rel="icon">`, porque con dos enlaces cada navegador elige a su manera cuál pinta. Nginx cachea los `.ico` 365 días como inmutables, así que **un ícono nuevo necesita otro nombre de archivo** | [icono-pestana.service.spec.ts](src/app/nucleo/marca/icono-pestana.service.spec.ts) |
 
 ### Diseño — las piezas compartidas
 
