@@ -13,6 +13,7 @@ import { catchError } from 'rxjs/operators';
 import { TrabajadoresApi, type TrabajadorResponseDto, type TurnoDto } from '../../api';
 import { SelectorIdioma } from '../../disenio/selector-idioma';
 import { Icono } from '../../disenio/icono';
+import { TelefonoPipe } from '../../disenio/telefono';
 import { SelectorTema } from '../../disenio/selector-tema';
 import { AsistenciaService } from '../../nucleo/asistencia/asistencia.service';
 import { fechaDeDia } from '../../nucleo/i18n/formatos';
@@ -46,7 +47,7 @@ const DIAS = [
  */
 @Component({
   selector: 'app-perfil',
-  imports: [RouterLink, Icono, SelectorIdioma, SelectorTema],
+  imports: [RouterLink, Icono, SelectorIdioma, SelectorTema, TelefonoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './perfil.page.html',
   styleUrls: ['../../disenio/secciones.scss', './perfil.page.scss'],

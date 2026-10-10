@@ -162,7 +162,7 @@
     </div>
 
     <!-- -------------------------------------------------------------------- -->
-    <aside class="libreta bloque">
+    <section class="libreta bloque">
       <h2>{{ t('despacho.conductores') }}</h2>
 
       <p class="vacio">{{ t('despacho.avisoLibreta') }}</p>
@@ -174,7 +174,8 @@
               <div class="quien">
                 <strong>{{ c.nombreCompleto }}</strong>
                 <span class="detalle">
-                  {{ c.empresaTransporte }} · {{ t('comun.dni') }} {{ c.dni }} · {{ c.celular }}
+                  {{ c.empresaTransporte }} · {{ t('comun.dni') }} {{ c.dni }} ·
+                  <app-telefono [numero]="c.celular" />
                 </span>
               </div>
               <button
@@ -296,7 +297,7 @@
           </button>
         </div>
       }
-    </aside>
+    </section>
   </div>
 </section>
 

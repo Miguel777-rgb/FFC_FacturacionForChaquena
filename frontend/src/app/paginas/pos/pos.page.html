@@ -259,7 +259,7 @@
             <div>
               <strong>{{ c.nombreCompleto || c.nombres || t('pos.cliente') }}</strong>
               @if (c.celular) {
-                <span class="detalle cifra">{{ c.celular }}</span>
+                <span class="detalle cifra">{{ c.celular | telefono }}</span>
               }
               @if (c.puntosFidelidad) {
                 <span class="detalle">{{ t('pos.puntos', { n: c.puntosFidelidad }) }}</span>
@@ -303,7 +303,7 @@
                 <li>
                   <button type="button" class="secundario" (click)="elegirCliente(r)">
                     <span>{{ r.nombreCompleto || r.nombres }}</span>
-                    <span class="detalle cifra">{{ r.dni || r.celular || '—' }}</span>
+                    <span class="detalle cifra">{{ r.dni || (r.celular | telefono) || '—' }}</span>
                   </button>
                 </li>
               }

@@ -269,7 +269,7 @@
                   <td [attr.data-etiqueta]="t('mesas.aNombreDe')">
                     {{ r.nombre }}
                     @if (r.celular) {
-                      <small class="tenue bajada cifra">{{ r.celular }}</small>
+                      <small class="bajada"><app-telefono [numero]="r.celular" /></small>
                     }
                     @if (r.nota) {
                       <small class="tenue bajada">{{ r.nota }}</small>
@@ -332,7 +332,7 @@
           </p>
           <p class="cifra">{{ rangoDe(r) }} · {{ tEnum('reserva', r.estado) }}</p>
           @if (r.celular) {
-            <p class="cifra">{{ r.celular }}</p>
+            <p><app-telefono [numero]="r.celular" /></p>
           }
           @if (r.nota) {
             <p>{{ r.nota }}</p>

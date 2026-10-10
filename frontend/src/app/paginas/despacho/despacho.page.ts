@@ -31,6 +31,7 @@ import { formatearDuracion } from '../../nucleo/i18n/formatos';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { EnVivo } from '../../disenio/en-vivo';
 import { Icono } from '../../disenio/icono';
+import { Telefono } from '../../disenio/telefono';
 import { Mapa, type Punto } from '../../disenio/mapa';
 
 /** Lo que el conductor necesita saber de un destino: la direccion escrita y, si se marco, el punto. */
@@ -82,7 +83,7 @@ const TIPOS_VEHICULO = VehiculoRequestDtoTipoVehiculoEnum;
  */
 @Component({
   selector: 'app-despacho',
-  imports: [NgTemplateOutlet, Icono, EnVivo, Mapa],
+  imports: [NgTemplateOutlet, Icono, EnVivo, Mapa, Telefono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './despacho.page.html',
   styleUrl: './despacho.page.scss',

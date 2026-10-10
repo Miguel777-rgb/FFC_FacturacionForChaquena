@@ -333,7 +333,12 @@
                         </div>
                         <div>
                           <dt>{{ t('comun.celular') }}</dt>
-                          <dd class="cifra">{{ trabajador.celular || t('comun.sinCelular') }}</dd>
+                          <dd>
+                            <app-telefono
+                              [numero]="trabajador.celular"
+                              [vacio]="t('comun.sinCelular')"
+                            />
+                          </dd>
                         </div>
                         <div>
                           <dt>{{ t('comun.cargo') }}</dt>

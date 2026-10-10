@@ -14,6 +14,7 @@ import { catchError } from 'rxjs/operators';
 
 import { Dialogo } from '../../disenio/dialogo';
 import { Icono } from '../../disenio/icono';
+import { TelefonoPipe } from '../../disenio/telefono';
 import type { NombreIcono } from '../../disenio/iconos';
 import type { Punto } from '../../disenio/mapa';
 import { EnDolares } from '../../disenio/en-dolares';
@@ -107,6 +108,7 @@ const ANCHO_CON_COMANDA = '(min-width: 60rem)';
     CartaPos,
     HojaPlatillo,
     HojaDestino,
+    TelefonoPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pos.page.html',

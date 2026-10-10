@@ -9,6 +9,7 @@ import {
 import { NgTemplateOutlet } from '@angular/common';
 
 import { Icono } from '../../disenio/icono';
+import { Telefono } from '../../disenio/telefono';
 import { AsistenciaSeccion } from './asistencia.seccion';
 import { DesempenoTrabajador } from './desempeno-trabajador';
 import { TurnosSeccion } from './turnos.seccion';
@@ -75,7 +76,14 @@ const VISTAS: ReadonlyArray<{ id: Vista; nombre: ClaveI18n }> = [
   selector: 'app-personal',
   // El formulario de cargo se escribe una vez y se proyecta donde toque:
   // crear y editar son la misma operacion sobre el mismo objeto.
-  imports: [NgTemplateOutlet, Icono, DesempenoTrabajador, TurnosSeccion, AsistenciaSeccion],
+  imports: [
+    NgTemplateOutlet,
+    Icono,
+    Telefono,
+    DesempenoTrabajador,
+    TurnosSeccion,
+    AsistenciaSeccion,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './personal.page.html',
   styleUrls: ['../../disenio/secciones.scss', './personal.page.scss'],

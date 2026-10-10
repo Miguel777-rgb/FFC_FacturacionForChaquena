@@ -31,7 +31,7 @@
             </div>
             <div>
               <dt>{{ t('comun.celular') }}</dt>
-              <dd class="cifra">{{ f.celular || t('comun.sinCelular') }}</dd>
+              <dd class="cifra">{{ (f.celular | telefono) || t('comun.sinCelular') }}</dd>
             </div>
           }
           <div>

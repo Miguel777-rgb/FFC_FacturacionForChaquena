@@ -29,6 +29,7 @@ import {
 import { Dialogo } from '../../disenio/dialogo';
 import { EnVivo } from '../../disenio/en-vivo';
 import { Icono } from '../../disenio/icono';
+import { Telefono } from '../../disenio/telefono';
 import { ConfirmacionService } from '../../nucleo/confirmacion/confirmacion.service';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { codigoDeOrden, fechaIsoLocal, formatearDuracion } from '../../nucleo/i18n/formatos';
@@ -135,7 +136,7 @@ function hoyComoCampo(): string {
  */
 @Component({
   selector: 'app-mesas',
-  imports: [DecimalPipe, NgTemplateOutlet, Icono, Dialogo, EnVivo],
+  imports: [DecimalPipe, NgTemplateOutlet, Icono, Dialogo, EnVivo, Telefono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mesas.page.html',
   styleUrls: ['../../disenio/secciones.scss', './mesas.page.scss'],
