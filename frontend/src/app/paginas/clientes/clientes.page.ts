@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -8,6 +15,7 @@ import { catchError, debounceTime, distinctUntilChanged, map, switchMap } from '
 import {
   ClientesApi,
   FeedbackYFidelizacionApi,
+  type ClienteRequestDto,
   type ClienteResponseDto,
   type CuponResponseDto,
   type EmpresaResponseDto,
@@ -20,10 +28,14 @@ import { Dialogo } from '../../disenio/dialogo';
 import { Icono } from '../../disenio/icono';
 import type { Punto } from '../../disenio/mapa';
 import { SelectorUbicacion } from '../../disenio/selector-ubicacion';
+import { Telefono } from '../../disenio/telefono';
 import { AvisosService } from '../../nucleo/http/avisos.service';
 import { codigoDeOrden } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
+import type { ClaveI18n } from '../../nucleo/i18n/traducciones/es';
 import { SesionService } from '../../nucleo/sesion/sesion.service';
+import { formatoTelefono, normalizarCelular } from '../../nucleo/telefono/telefono';
+import { problemaDe } from '../../nucleo/validacion/patrones';
 
 const TAMANO_PAGINA = 20;
 const MINIMO_BUSQUEDA = 2;
@@ -38,6 +50,11 @@ interface Ficha {
   ordenes: OrdenResumenDto[];
 }
 
+/** El formulario sirve para dar de alta a un cliente o para corregir los datos del que esta en la ficha. */
+type ModoFormulario = 'alta' | 'edicion';
+
+type CampoCliente = 'documento' | 'nombres' | 'apellidos' | 'celular' | 'correo';
+
 /**
  * Clientes: quien come aqui y que se sabe de cada uno.
  *
@@ -50,10 +67,15 @@ interface Ficha {
  * Bloquear por fraude es del administrador, y pide motivo: un cliente
  * bloqueado no puede pedir por los bots, y alguien tendra que explicarle por
  * que.
+ *
+ * El alta y la correccion de los datos usan el mismo formulario, en un
+ * dialogo como las demas altas; al corregir se abre encima de la ficha. Quien
+ * registra a un cliente termina viendo su ficha, que es donde se le agrega lo
+ * demas.
  */
 @Component({
   selector: 'app-clientes',
-  imports: [DecimalPipe, Icono, Dialogo, SelectorUbicacion],
+  imports: [DecimalPipe, Icono, Dialogo, SelectorUbicacion, Telefono],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './clientes.page.html',
   styleUrls: ['../../disenio/secciones.scss', './clientes.page.scss'],
@@ -103,9 +125,43 @@ export class ClientesPage implements OnInit {
   protected readonly direccionEditada = signal('');
   protected readonly puntoEditado = signal<Punto | null>(null);
 
+  // --- alta y correccion -----------------------------------------------------
+  protected readonly formularioAbierto = signal(false);
+  protected readonly modoFormulario = signal<ModoFormulario>('alta');
+  protected readonly documento = signal('');
+  protected readonly nombres = signal('');
+  protected readonly apellidos = signal('');
+  protected readonly celular = signal('');
+  protected readonly correo = signal('');
+  protected readonly tipo = signal('');
+  /** Solo en el alta: al corregir, la direccion tiene su propia seccion con el mapa. */
+  protected readonly direccionNueva = signal('');
+  protected readonly puntoNuevo = signal<Punto | null>(null);
+  private readonly tocados = signal<ReadonlySet<CampoCliente>>(new Set());
+
+  /**
+   * Documento, nombres y apellidos los exige el servidor; lo demas, solo si se
+   * escribe, con formato. El celular se valida sin los espacios ni guiones con
+   * que se suele dictar («956 781 234»): se guarda sin ellos.
+   */
+  private readonly errores = computed<Record<CampoCliente, ClaveI18n | null>>(() => ({
+    documento: this.obligatorio(this.documento()) ?? problemaDe('documento', this.documento()),
+    nombres: this.obligatorio(this.nombres()) ?? problemaDe('nombre', this.nombres()),
+    apellidos: this.obligatorio(this.apellidos()) ?? problemaDe('nombre', this.apellidos()),
+    celular: problemaDe('celular', this.celular().replace(/[\s().-]/g, '')),
+    correo: problemaDe('correo', this.correo()),
+  }));
+
   protected readonly tituloCajon = computed(() => {
     const c = this.cliente();
     return c ? this.nombreDe(c) : '';
+  });
+
+  protected readonly tituloFormulario = computed(() => {
+    const c = this.cliente();
+    return this.modoFormulario() === 'edicion' && c
+      ? this.t('clientes.editarTitulo', { nombre: this.nombreDe(c) })
+      : this.t('clientes.nuevo');
   });
 
   /** Cuanto lleva hacia el proximo cupon, en calificaciones. */
@@ -210,9 +266,7 @@ export class ClientesPage implements OnInit {
       empresas: this.clientesApi
         .empresas({ id })
         .pipe(catchError(() => of([] as EmpresaResponseDto[]))),
-      ordenes: this.clientesApi
-        .ordenes({ id })
-        .pipe(catchError(() => of([] as OrdenResumenDto[]))),
+      ordenes: this.clientesApi.ordenes({ id }).pipe(catchError(() => of([] as OrdenResumenDto[]))),
     }).subscribe((ficha) =>
       this.ficha.set({
         ...ficha,
@@ -245,23 +299,21 @@ export class ClientesPage implements OnInit {
     if (!c?.id || (bloqueado && !motivo) || this.guardando()) return;
 
     this.guardando.set(true);
-    this.clientesApi
-      .bloqueoFraude({ id: c.id, bloqueado, motivo: motivo || undefined })
-      .subscribe({
-        next: () => {
-          this.guardando.set(false);
-          this.bloqueando.set(false);
-          const actualizado = { ...c, bloqueadoPorFraude: bloqueado };
-          this.cliente.set(actualizado);
-          this.reemplazar(actualizado);
-          this.avisos.exito(
-            this.t(bloqueado ? 'clientes.avisoBloqueado' : 'clientes.avisoDesbloqueado', {
-              nombre: this.nombreDe(c),
-            }),
-          );
-        },
-        error: () => this.guardando.set(false),
-      });
+    this.clientesApi.bloqueoFraude({ id: c.id, bloqueado, motivo: motivo || undefined }).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.bloqueando.set(false);
+        const actualizado = { ...c, bloqueadoPorFraude: bloqueado };
+        this.cliente.set(actualizado);
+        this.reemplazar(actualizado);
+        this.avisos.exito(
+          this.t(bloqueado ? 'clientes.avisoBloqueado' : 'clientes.avisoDesbloqueado', {
+            nombre: this.nombreDe(c),
+          }),
+        );
+      },
+      error: () => this.guardando.set(false),
+    });
   }
 
   protected editarDireccion(c: ClienteResponseDto): void {
@@ -309,6 +361,123 @@ export class ClientesPage implements OnInit {
         },
         error: () => this.guardando.set(false),
       });
+  }
+
+  // --- alta y correccion -----------------------------------------------------
+
+  protected abrirAlta(): void {
+    this.llenarFormulario(null);
+    this.direccionNueva.set('');
+    this.puntoNuevo.set(null);
+    this.modoFormulario.set('alta');
+    this.formularioAbierto.set(true);
+  }
+
+  /** Corregir se abre encima de la ficha: al cerrar, la ficha sigue ahi. */
+  protected abrirEdicion(): void {
+    const c = this.cliente();
+    if (!c) return;
+    this.llenarFormulario(c);
+    this.bloqueando.set(false);
+    this.editandoDireccion.set(false);
+    this.modoFormulario.set('edicion');
+    this.formularioAbierto.set(true);
+  }
+
+  protected errorDe(campo: CampoCliente): string | null {
+    const clave = this.errores()[campo];
+    return clave && this.tocados().has(campo) ? this.t(clave) : null;
+  }
+
+  protected marcarTocado(campo: CampoCliente): void {
+    this.tocados.update((antes) => new Set(antes).add(campo));
+  }
+
+  /**
+   * El `PUT` reemplaza la ficha entera, asi que al corregir se reenvia la
+   * direccion tal como esta. El celular se guarda como lo traen los bots
+   * (`51` y nueve cifras), para que el mismo cliente escrito a mano y
+   * escribiendo por el bot se encuentren por su numero.
+   */
+  protected guardarFormulario(): void {
+    if (this.guardando()) return;
+
+    // Se comprueba todo otra vez: se puede llegar al boton sin salir de un campo mal escrito.
+    const errores = this.errores();
+    if (Object.values(errores).some((e) => e !== null)) {
+      this.tocados.set(new Set(Object.keys(errores) as CampoCliente[]));
+      const faltan = [this.documento(), this.nombres(), this.apellidos()].some((v) => !v.trim());
+      this.avisos.error(this.t(faltan ? 'clientes.avisoFaltanDatos' : 'validacion.revisa'));
+      return;
+    }
+
+    const datos: ClienteRequestDto = {
+      dni: this.documento().trim(),
+      nombres: this.nombres().trim(),
+      apellidos: this.apellidos().trim(),
+      celular: normalizarCelular(this.celular()) || undefined,
+      correo: this.correo().trim() || undefined,
+      tipoCliente: this.tipo().trim() || undefined,
+    };
+
+    const editando = this.modoFormulario() === 'edicion' ? this.cliente() : null;
+    if (this.modoFormulario() === 'edicion' && !editando?.id) return;
+    const punto = this.puntoNuevo();
+
+    this.guardando.set(true);
+    const peticion = editando?.id
+      ? this.clientesApi.actualizarCliente({
+          id: editando.id,
+          clienteRequestDto: {
+            ...datos,
+            direccionHabitual: editando.direccionHabitual,
+            latitud: editando.latitud,
+            longitud: editando.longitud,
+          },
+        })
+      : this.clientesApi.crearCliente({
+          clienteRequestDto: {
+            ...datos,
+            direccionHabitual: this.direccionNueva().trim() || undefined,
+            latitud: punto?.latitud,
+            longitud: punto?.longitud,
+          },
+        });
+
+    peticion.subscribe({
+      next: (guardado) => {
+        this.guardando.set(false);
+        this.formularioAbierto.set(false);
+        this.avisos.exito(
+          this.t(editando ? 'clientes.avisoEditado' : 'clientes.avisoCreado', {
+            nombre: this.nombreDe(guardado),
+          }),
+        );
+        if (editando) {
+          this.cliente.set(guardado);
+          this.reemplazar(guardado);
+        } else {
+          this.cargar();
+          this.abrir(guardado);
+        }
+      },
+      error: () => this.guardando.set(false),
+    });
+  }
+
+  private llenarFormulario(c: ClienteResponseDto | null): void {
+    this.documento.set(c?.dni ?? '');
+    this.nombres.set(c?.nombres ?? '');
+    this.apellidos.set(c?.apellidos ?? '');
+    // Se ve agrupado, como en la ficha; al guardar vuelve a la forma de los bots.
+    this.celular.set(formatoTelefono(c?.celular));
+    this.correo.set(c?.correo ?? '');
+    this.tipo.set(c?.tipoCliente ?? '');
+    this.tocados.set(new Set());
+  }
+
+  private obligatorio(valor: string): ClaveI18n | null {
+    return valor.trim() ? null : 'validacion.obligatorio';
   }
 
   private reemplazar(c: ClienteResponseDto): void {

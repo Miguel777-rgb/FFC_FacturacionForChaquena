@@ -17,6 +17,18 @@ describe('patrones de validacion', () => {
     expect(PATRONES.dni.test('mi dni es 70123456, ya')).toBe(false);
   });
 
+  it('el documento de un cliente es un DNI, un carne de extranjeria o un pasaporte', () => {
+    expect(PATRONES.documento.test('70123456')).toBe(true);
+    expect(PATRONES.documento.test('001234567')).toBe(true);
+    expect(PATRONES.documento.test('AB1234567')).toBe(true);
+    expect(PATRONES.documento.test('ANON-DEMO0001')).toBe(true);
+    // A un DNI de siete cifras le falta una: no es otro documento.
+    expect(PATRONES.documento.test('7012345')).toBe(false);
+    expect(PATRONES.documento.test('1234567890123')).toBe(false);
+    expect(PATRONES.documento.test('AB 1234567')).toBe(false);
+    expect(PATRONES.documento.test('PASAPORTE123456X')).toBe(false);
+  });
+
   it('el celular peruano empieza en 9, con o sin el prefijo del pais', () => {
     expect(PATRONES.celular.test('987654321')).toBe(true);
     expect(PATRONES.celular.test('51987654321')).toBe(true);

@@ -7,6 +7,36 @@ td .chip {
   font-size: var(--t-chico);
 }
 
+/* --- alta y correccion ------------------------------------------------------- */
+.formulario-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+}
+
+/* El campo con su error debajo, fuera de la etiqueta: dentro, el lector de
+   pantalla leeria el mensaje como parte del nombre del campo. */
+.campo-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+}
+
+.opcional {
+  font-weight: 400;
+  color: var(--tenue);
+}
+
+.direccion-alta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+
+  small {
+    font-size: var(--t-chico);
+  }
+}
+
 /* --- ficha ------------------------------------------------------------------- */
 .puntos {
   display: flex;

@@ -1,14 +1,17 @@
 import type { ClaveI18n } from '../i18n/traducciones/es';
 
 /**
- * Las expresiones regulares que validan el alta de un trabajador.
+ * Las expresiones regulares que validan el alta de un trabajador y la de un
+ * cliente.
  *
  * Viven en un solo archivo, y no sueltas en la plantilla, por tres razones. La
- * primera es que cada patron tiene un gemelo en el `@Pattern` del DTO del
- * servidor: al estar juntos se ve de un vistazo cual hay que cambiar tambien
- * alla. La segunda es que asi se prueban sin montar la pantalla. La tercera es
- * que el mensaje va pegado al patron: una expresion sin su explicacion deja al
- * usuario adivinando que quiere el campo.
+ * primera es que cada patron del trabajador tiene un gemelo en el `@Pattern`
+ * del DTO del servidor: al estar juntos se ve de un vistazo cual hay que
+ * cambiar tambien alla. (Los del cliente no lo tienen: el servidor solo pide el
+ * documento y su largo, y endurecerlo alla rechazaria clientes que ya existen.)
+ * La segunda es que asi se prueban sin montar la pantalla. La tercera es que el
+ * mensaje va pegado al patron: una expresion sin su explicacion deja al usuario
+ * adivinando que quiere el campo.
  *
  * Todas van ancladas con `^` y `$`. Sin las anclas, `\d{8}` acepta un DNI de
  * ocho cifras metido dentro de cualquier otra cosa —«mi dni es 12345678, ya»—,
@@ -17,6 +20,14 @@ import type { ClaveI18n } from '../i18n/traducciones/es';
 
 /** Ocho digitos exactos: el documento nacional de identidad peruano. */
 const DNI = /^\d{8}$/;
+
+/**
+ * Documento de un cliente, que puede ser extranjero: el DNI, un carne de
+ * extranjeria de hasta doce cifras o un pasaporte con letras, sin pasar de los
+ * quince caracteres de la columna. Solo cifras y menos de ocho no es ninguno de
+ * ellos: es un DNI al que le falta una.
+ */
+const DOCUMENTO = /^(?:\d{8,12}|(?=.*[A-Za-z])[A-Za-z0-9-]{6,15})$/;
 
 /**
  * Celular peruano: nueve cifras que empiezan en 9. Se admite el prefijo del
@@ -58,6 +69,7 @@ const CONTRASENA = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 export const PATRONES = {
   dni: DNI,
+  documento: DOCUMENTO,
   celular: CELULAR,
   correo: CORREO,
   nombre: NOMBRE,
@@ -70,6 +82,7 @@ export type CampoValidado = keyof typeof PATRONES;
 /** El mensaje de cada campo: dice que se espera, no que lo escrito esta mal. */
 const MENSAJES: Record<CampoValidado, ClaveI18n> = {
   dni: 'validacion.dni',
+  documento: 'validacion.documento',
   celular: 'validacion.celular',
   correo: 'validacion.correo',
   nombre: 'validacion.nombre',

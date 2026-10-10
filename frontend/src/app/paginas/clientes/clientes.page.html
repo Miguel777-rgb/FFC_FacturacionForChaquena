@@ -22,6 +22,10 @@
         (input)="buscar($any($event.target).value)"
         [attr.aria-label]="t('clientes.buscar')"
       />
+      <button type="button" class="secundario" (click)="abrirAlta()">
+        <app-icono nombre="alta" [tamano]="18" />
+        {{ t('clientes.nuevo') }}
+      </button>
     </div>
 
     @if (encontrados(); as lista) {
@@ -37,7 +41,9 @@
             <th>{{ t('comun.celular') }}</th>
             <th>{{ t('clientes.tipo') }}</th>
             <th class="num">{{ t('clientes.puntos') }}</th>
-            <th><span class="visualmente-oculto">{{ t('comun.acciones') }}</span></th>
+            <th>
+              <span class="visualmente-oculto">{{ t('comun.acciones') }}</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -52,8 +58,8 @@
               <td class="cifra tenue" [attr.data-etiqueta]="t('comun.documento')">
                 {{ c.dni || '—' }}
               </td>
-              <td class="cifra tenue" [attr.data-etiqueta]="t('comun.celular')">
-                {{ c.celular || '—' }}
+              <td class="tenue" [attr.data-etiqueta]="t('comun.celular')">
+                <app-telefono [numero]="c.celular" />
               </td>
               <td class="tenue" [attr.data-etiqueta]="t('clientes.tipo')">
                 {{ c.tipoCliente || '—' }}
@@ -138,7 +144,7 @@
         </div>
         <div>
           <dt>{{ t('comun.celular') }}</dt>
-          <dd class="cifra">{{ c.celular || t('comun.sinCelular') }}</dd>
+          <dd><app-telefono [numero]="c.celular" [vacio]="t('comun.sinCelular')" /></dd>
         </div>
         <div>
           <dt>{{ t('comun.correo') }}</dt>
@@ -220,7 +226,11 @@
             <span [style.width.%]="avanceNivel()"></span>
           </div>
           <p class="tenue">
-            {{ tp('clientes.faltanPuntos', f.progreso?.puntosParaSiguiente ?? 0, { nivel: siguiente.nombre }) }}
+            {{
+              tp('clientes.faltanPuntos', f.progreso?.puntosParaSiguiente ?? 0, {
+                nivel: siguiente.nombre,
+              })
+            }}
           </p>
         }
         @if (avance() !== null) {
@@ -242,7 +252,9 @@
           @for (cu of f.cupones; track cu.id) {
             <li>
               <span class="cifra">{{ cu.codigo }}</span>
-              <span class="chip" [attr.data-estado]="cu.estado">{{ tEnum('cupon', cu.estado) }}</span>
+              <span class="chip" [attr.data-estado]="cu.estado">{{
+                tEnum('cupon', cu.estado)
+              }}</span>
               <span class="tenue">
                 {{ descuentoDe(cu) }} ·
                 {{ t('clientes.vence', { fecha: fecha(cu.fechaVencimiento, 'dia') }) }}
@@ -286,7 +298,9 @@
           @for (o of f.ordenes; track o.id) {
             <li>
               <span class="cifra">#{{ codigo(o.id) }}</span>
-              <span class="chip" [attr.data-estado]="o.estado">{{ tEnum('estado', o.estado) }}</span>
+              <span class="chip" [attr.data-estado]="o.estado">{{
+                tEnum('estado', o.estado)
+              }}</span>
               <span class="tenue">{{ fecha(o.tiempoInicioGlobal) }}</span>
               <span class="cifra empuje">S/ {{ o.montoTotal ?? 0 | number: '1.2-2' }}</span>
               <button
@@ -332,6 +346,12 @@
   }
 
   <div pie>
+    @if (cliente()) {
+      <button type="button" class="secundario" (click)="abrirEdicion()">
+        <app-icono nombre="lapiz" [tamano]="18" />
+        {{ t('clientes.editarDatos') }}
+      </button>
+    }
     @if (esAdmin()) {
       @if (cliente(); as c) {
         @if (c.bloqueadoPorFraude) {
@@ -350,5 +370,168 @@
         }
       }
     }
+  </div>
+</app-dialogo>
+
+<!-- Alta y correccion: el mismo formulario, en un dialogo como las demas altas;
+     al corregir se abre encima de la ficha. Los botones viven en el pie y se
+     asocian por `form`, asi que Enter en cualquier campo tambien guarda. -->
+<app-dialogo class="dialogo-cliente" [titulo]="tituloFormulario()" [(abierto)]="formularioAbierto">
+  @if (formularioAbierto()) {
+    <form
+      id="formulario-cliente"
+      class="formulario-cliente"
+      novalidate
+      (submit)="$event.preventDefault(); guardarFormulario()"
+    >
+      <div class="campo-cliente">
+        <label class="campo">
+          <span>{{ t('comun.documentoIdentidad') }}</span>
+          <input
+            type="text"
+            autocomplete="off"
+            maxlength="15"
+            [value]="documento()"
+            (input)="documento.set($any($event.target).value)"
+            (blur)="marcarTocado('documento')"
+            [attr.aria-invalid]="errorDe('documento') !== null"
+            [attr.aria-describedby]="errorDe('documento') ? 'error-documento' : null"
+          />
+        </label>
+        @if (errorDe('documento'); as problema) {
+          <small class="error-campo" id="error-documento">{{ problema }}</small>
+        }
+      </div>
+
+      <div class="campo-cliente">
+        <label class="campo">
+          <span>{{ t('comun.nombres') }}</span>
+          <input
+            type="text"
+            autocomplete="off"
+            maxlength="100"
+            [value]="nombres()"
+            (input)="nombres.set($any($event.target).value)"
+            (blur)="marcarTocado('nombres')"
+            [attr.aria-invalid]="errorDe('nombres') !== null"
+            [attr.aria-describedby]="errorDe('nombres') ? 'error-nombres' : null"
+          />
+        </label>
+        @if (errorDe('nombres'); as problema) {
+          <small class="error-campo" id="error-nombres">{{ problema }}</small>
+        }
+      </div>
+
+      <div class="campo-cliente">
+        <label class="campo">
+          <span>{{ t('comun.apellidos') }}</span>
+          <input
+            type="text"
+            autocomplete="off"
+            maxlength="100"
+            [value]="apellidos()"
+            (input)="apellidos.set($any($event.target).value)"
+            (blur)="marcarTocado('apellidos')"
+            [attr.aria-invalid]="errorDe('apellidos') !== null"
+            [attr.aria-describedby]="errorDe('apellidos') ? 'error-apellidos' : null"
+          />
+        </label>
+        @if (errorDe('apellidos'); as problema) {
+          <small class="error-campo" id="error-apellidos">{{ problema }}</small>
+        }
+      </div>
+
+      <div class="campo-cliente">
+        <label class="campo">
+          <span
+            >{{ t('comun.celular') }}
+            <span class="opcional">({{ t('comun.opcional') }})</span></span
+          >
+          <input
+            type="tel"
+            autocomplete="off"
+            maxlength="20"
+            [value]="celular()"
+            (input)="celular.set($any($event.target).value)"
+            (blur)="marcarTocado('celular')"
+            [attr.aria-invalid]="errorDe('celular') !== null"
+            [attr.aria-describedby]="errorDe('celular') ? 'error-celular' : null"
+          />
+        </label>
+        @if (errorDe('celular'); as problema) {
+          <small class="error-campo" id="error-celular">{{ problema }}</small>
+        }
+      </div>
+
+      <div class="campo-cliente">
+        <label class="campo">
+          <span
+            >{{ t('comun.correo') }} <span class="opcional">({{ t('comun.opcional') }})</span></span
+          >
+          <input
+            type="email"
+            autocomplete="off"
+            maxlength="100"
+            [value]="correo()"
+            (input)="correo.set($any($event.target).value)"
+            (blur)="marcarTocado('correo')"
+            [attr.aria-invalid]="errorDe('correo') !== null"
+            [attr.aria-describedby]="errorDe('correo') ? 'error-correo' : null"
+          />
+        </label>
+        @if (errorDe('correo'); as problema) {
+          <small class="error-campo" id="error-correo">{{ problema }}</small>
+        }
+      </div>
+
+      <div class="campo-cliente">
+        <label class="campo">
+          <span
+            >{{ t('clientes.tipo') }}
+            <span class="opcional">({{ t('comun.opcional') }})</span></span
+          >
+          <input
+            type="text"
+            autocomplete="off"
+            maxlength="50"
+            [value]="tipo()"
+            (input)="tipo.set($any($event.target).value)"
+          />
+        </label>
+      </div>
+
+      @if (modoFormulario() === 'alta') {
+        <div class="direccion-alta">
+          <app-selector-ubicacion
+            [etiqueta]="t('clientes.direccion') + ' (' + t('comun.opcional') + ')'"
+            [(direccion)]="direccionNueva"
+            [(punto)]="puntoNuevo"
+          />
+          <small class="tenue">{{ t('clientes.direccionAyuda') }}</small>
+        </div>
+      }
+    </form>
+  }
+
+  <div pie>
+    <button type="button" class="secundario" (click)="formularioAbierto.set(false)">
+      {{ t('comun.descartar') }}
+    </button>
+    <button
+      type="submit"
+      form="formulario-cliente"
+      [disabled]="guardando()"
+      [attr.aria-busy]="guardando()"
+    >
+      {{
+        t(
+          guardando()
+            ? 'comun.guardando'
+            : modoFormulario() === 'alta'
+              ? 'clientes.registrar'
+              : 'comun.guardar'
+        )
+      }}
+    </button>
   </div>
 </app-dialogo>
