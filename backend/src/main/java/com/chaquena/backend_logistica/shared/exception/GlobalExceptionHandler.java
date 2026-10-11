@@ -2,6 +2,9 @@ package com.chaquena.backend_logistica.shared.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,8 +23,16 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+/** Titulos y textos propios en el idioma de la peticion (messages*.properties); los de dominio pasan tal cual. */
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final MessageSource mensajes;
+
+    private String texto(String clave, Object... argumentos) {
+        return mensajes.getMessage(clave, argumentos, LocaleContextHolder.getLocale());
+    }
 
     private ErrorResponseDto construir(HttpStatus status, String error, String mensaje,
             List<String> detalles, HttpServletRequest request) {
@@ -38,14 +49,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({ EntityNotFoundException.class, RecursoNoEncontradoException.class })
     public ResponseEntity<ErrorResponseDto> noEncontrado(RuntimeException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(construir(HttpStatus.NOT_FOUND, "Recurso No Encontrado", ex.getMessage(), null, request));
+                .body(construir(HttpStatus.NOT_FOUND, texto("error.titulo.recursoNoEncontrado"), ex.getMessage(),
+                        null, request));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponseDto> peticionInvalida(IllegalArgumentException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(construir(HttpStatus.BAD_REQUEST, "Peticion Invalida", ex.getMessage(), null, request));
+                .body(construir(HttpStatus.BAD_REQUEST, texto("error.titulo.peticionInvalida"), ex.getMessage(),
+                        null, request));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -55,8 +68,8 @@ public class GlobalExceptionHandler {
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .toList();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(construir(HttpStatus.BAD_REQUEST, "Error de Validacion de Datos",
-                        "Uno o mas campos contienen errores de validacion", detalles, request));
+                .body(construir(HttpStatus.BAD_REQUEST, texto("error.titulo.validacion"),
+                        texto("error.mensaje.validacion"), detalles, request));
     }
 
     /**
@@ -67,7 +80,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictoException.class)
     public ResponseEntity<ErrorResponseDto> conflicto(ConflictoException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(construir(HttpStatus.CONFLICT, "Conflicto con el Estado Actual", ex.getMessage(), null,
+                .body(construir(HttpStatus.CONFLICT, texto("error.titulo.conflicto"), ex.getMessage(), null,
                         request));
     }
 
@@ -80,8 +93,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> stockInsuficiente(StockInsuficienteException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(construir(HttpStatus.UNPROCESSABLE_ENTITY, "Stock Insuficiente", ex.getMessage(),
-                        ex.getFaltantes(), request));
+                .body(construir(HttpStatus.UNPROCESSABLE_ENTITY, texto("error.titulo.stockInsuficiente"),
+                        ex.getMessage(), ex.getFaltantes(), request));
     }
 
     /**
@@ -94,23 +107,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> autenticacionFallida(AutenticacionFallidaException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(construir(HttpStatus.UNAUTHORIZED, "No Autenticado", ex.getMessage(), null, request));
+                .body(construir(HttpStatus.UNAUTHORIZED, texto("error.titulo.noAutenticado"), ex.getMessage(),
+                        null, request));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDto> accesoDenegado(AccessDeniedException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(construir(HttpStatus.FORBIDDEN, "Acceso Denegado",
-                        "Tu cargo no tiene permiso para esta operacion.", null, request));
+                .body(construir(HttpStatus.FORBIDDEN, texto("error.titulo.accesoDenegado"),
+                        texto("error.mensaje.accesoDenegado"), null, request));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDto> integridad(DataIntegrityViolationException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(construir(HttpStatus.CONFLICT, "Violacion de Integridad",
-                        "El dato ya existe o esta referenciado por otro registro.", null, request));
+                .body(construir(HttpStatus.CONFLICT, texto("error.titulo.integridad"),
+                        texto("error.mensaje.integridad"), null, request));
     }
 
     /**
@@ -121,8 +135,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> rutaInexistente(NoResourceFoundException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(construir(HttpStatus.NOT_FOUND, "Ruta No Encontrada",
-                        "No existe el recurso " + request.getRequestURI() + ".", null, request));
+                .body(construir(HttpStatus.NOT_FOUND, texto("error.titulo.rutaNoEncontrada"),
+                        texto("error.mensaje.rutaNoEncontrada", request.getRequestURI()), null, request));
     }
 
     /**
@@ -139,11 +153,11 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         String esperado = ex.getRequiredType() != null
                 ? ex.getRequiredType().getSimpleName()
-                : "otro tipo";
+                : texto("error.mensaje.otroTipo");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(construir(HttpStatus.BAD_REQUEST, "Parametro Invalido",
-                        "El valor '" + ex.getValue() + "' no sirve para '" + ex.getName()
-                                + "': se esperaba " + esperado + ".",
+                .body(construir(HttpStatus.BAD_REQUEST, texto("error.titulo.parametroInvalido"),
+                        texto("error.mensaje.parametroInvalido", String.valueOf(ex.getValue()), ex.getName(),
+                                esperado),
                         null, request));
     }
 
@@ -158,7 +172,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> faltaCabeceraOParametro(ServletRequestBindingException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(construir(HttpStatus.BAD_REQUEST, "Falta un Dato Obligatorio en la Peticion",
+                .body(construir(HttpStatus.BAD_REQUEST, texto("error.titulo.faltaDato"),
                         ex.getMessage(), null, request));
     }
 
@@ -171,8 +185,8 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         String causa = ex.getMostSpecificCause().getMessage();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(construir(HttpStatus.BAD_REQUEST, "Cuerpo de la Peticion Invalido",
-                        "No se pudo interpretar el cuerpo de la peticion.",
+                .body(construir(HttpStatus.BAD_REQUEST, texto("error.titulo.cuerpoInvalido"),
+                        texto("error.mensaje.cuerpoInvalido"),
                         causa != null ? List.of(causa) : null, request));
     }
 
@@ -184,23 +198,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> archivoDemasiadoGrande(MaxUploadSizeExceededException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
-                .body(construir(HttpStatus.CONTENT_TOO_LARGE, "Archivo Demasiado Grande",
-                        "La imagen supera el maximo de 2 MB.", null, request));
+                .body(construir(HttpStatus.CONTENT_TOO_LARGE, texto("error.titulo.archivoGrande"),
+                        texto("error.mensaje.archivoGrande"), null, request));
     }
 
     /** Un envio de archivo sin la parte que el endpoint espera, o que no es multipart. */
     @ExceptionHandler({ MissingServletRequestPartException.class, MultipartException.class })
     public ResponseEntity<ErrorResponseDto> envioDeArchivoInvalido(Exception ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(construir(HttpStatus.BAD_REQUEST, "Envio de Archivo Invalido",
-                        "La peticion no trae la imagen en el campo 'archivo'.",
+                .body(construir(HttpStatus.BAD_REQUEST, texto("error.titulo.envioArchivo"),
+                        texto("error.mensaje.envioArchivo"),
                         List.of(ex.getMessage()), request));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> generico(Exception ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(construir(HttpStatus.INTERNAL_SERVER_ERROR, "Error Interno del Servidor",
+                .body(construir(HttpStatus.INTERNAL_SERVER_ERROR, texto("error.titulo.interno"),
                         ex.getMessage(), null, request));
     }
 }
