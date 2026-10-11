@@ -11,28 +11,15 @@ export const LIMITE_MS = 30 * 60 * 1000;
 /** Los ultimos cinco minutos se avisan con la cuenta atras a la vista. */
 export const AVISO_MS = 5 * 60 * 1000;
 
-/**
- * Pantallas que viven abiertas todo el turno sin que nadie las toque: la cola
- * de cocina y el tablero de reparto son paneles de pared. Cerrarles la sesion a
- * media noche de servicio dejaria la cocina sin comandas hasta que alguien se
- * acuerde de volver a entrar.
- */
+/** Paneles de pared que nadie toca en todo el turno: cerrarles la sesion dejaria la cocina sin comandas. */
 const EXENTAS = ['/kds', '/despacho'];
 
 /** Lo que cuenta como "sigo aqui". Pasivos: no bloquean el desplazamiento. */
 const SENALES = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 
 /**
- * Cierra la sesion tras media hora sin actividad.
- *
- * Es para el terminal compartido: la caja y el POS se quedan abiertos entre
- * cliente y cliente, y quien se siente despues hereda la sesion del turno
- * anterior. Con esto, la hereda como mucho treinta minutos.
- *
- * No mide con un temporizador que se reinicia, sino con la marca de tiempo del
- * ultimo gesto: un navegador en segundo plano estrangula los intervalos, y si
- * la cuenta dependiera de cuantas veces corrio el intervalo, una pestana
- * dormida nunca llegaria al limite.
+ * Cierra la sesion del terminal compartido tras media hora sin actividad. Mide con la marca del ultimo
+ * gesto y no con un temporizador: el navegador estrangula los intervalos de una pestana dormida.
  */
 @Injectable({ providedIn: 'root' })
 export class InactividadService {

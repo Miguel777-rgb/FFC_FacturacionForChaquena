@@ -24,15 +24,8 @@ const REPETIR_MS = 30_000;
 const VIBRACION = [300, 150, 300];
 
 /**
- * El llamado de cocina en la pantalla del mozo, sea cual sea la pantalla.
- *
- * Es una franja sobre el contenido y no un dialogo, como el aviso de
- * inactividad: quien esta a medio tomar una comanda la termina sin apartar
- * antes un modal. Se queda hasta que algun mozo pulsa «Voy»; entonces
- * desaparece de todos.
- *
- * Solo la monta el armazon, y solo para sesiones de mozo. El cliente STOMP no
- * viene con ella: lo descarga el servicio con `import()` al abrir el canal.
+ * El llamado en la pantalla del mozo: una franja y no un dialogo, para terminar la comanda a medias sin
+ * cerrar un modal. Se va de todos cuando alguien pulsa «Voy».
  */
 @Component({
   selector: 'app-aviso-llamado',
@@ -177,9 +170,8 @@ export class AvisoLlamado {
       alLimpiar(() => clearInterval(repeticion));
     });
 
-    // El navegador solo deja sonar despues de un gesto. Al recargar, la sesion
-    // sigue abierta pero no hubo ninguno: el primer toque o tecla, donde sea,
-    // deja el audio listo para cuando llegue un llamado.
+    // El navegador solo deja sonar tras un gesto, y al recargar no hubo ninguno: el primer
+    // toque o tecla, donde sea, deja el audio listo.
     const desbloquear = () => void contextoCompartido();
     for (const evento of ['pointerdown', 'keydown'] as const) {
       document.addEventListener(evento, desbloquear, { once: true, capture: true });

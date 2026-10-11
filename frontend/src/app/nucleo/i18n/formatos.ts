@@ -1,18 +1,8 @@
 import type { Idioma } from './idioma';
 
 /**
- * La region con la que se formatean las fechas de cada idioma.
- *
- * `idioma.ts` deja los codigos sin region —`es` y no `es-PE`— porque eso es lo
- * que viaja en `<html lang>` y en `Accept-Language`, donde lo que importa es la
- * lengua. Aqui hace falta lo contrario: `Intl` no sabe ordenar dia y mes con un
- * `en` a secas, necesita saber de que ingles se habla.
- *
- * Las tres regiones son las de quien lee, no las del local. El peruano escribe
- * 11/09; el estadounidense escribe esa misma fecha 09/11 y lee 11/09 como el 9
- * de noviembre. No es una preferencia estetica: es la diferencia entre dos
- * dias distintos, y por eso la fecha si cambia de formato con el idioma aunque
- * los importes no lo hagan —un sol es un sol lo lea quien lo lea.
+ * `Intl` necesita la region para ordenar dia y mes, y son las de quien lee: 11/09 es septiembre en Lima y
+ * noviembre en Estados Unidos. Por eso la fecha cambia de formato con el idioma y los importes no.
  */
 const REGION: Record<Idioma, string> = {
   es: 'es-PE',
@@ -20,15 +10,7 @@ const REGION: Record<Idioma, string> = {
   pt: 'pt-BR',
 };
 
-/**
- * Los estilos de fecha que usa la interfaz.
- *
- * `corta` va en las tablas, donde la fecha es una columna estrecha al lado de
- * datos mas importantes. `larga` va en los detalles, donde hay sitio y donde
- * conviene que no quede ninguna duda sobre que dia es: el mes con letras no se
- * puede leer al reves. `hora` va donde el dia ya se sabe, como la agenda de
- * reservas de un dia.
- */
+/** `corta` en tablas, `larga` en detalles (el mes con letras no se lee al reves), `hora` donde el dia ya se sabe. */
 export type EstiloFecha = 'corta' | 'larga' | 'dia' | 'hora';
 
 const OPCIONES: Record<EstiloFecha, Intl.DateTimeFormatOptions> = {
@@ -57,11 +39,7 @@ const OPCIONES: Record<EstiloFecha, Intl.DateTimeFormatOptions> = {
   },
 };
 
-/**
- * Construir un `Intl.DateTimeFormat` no es gratis y la tabla del kardex lo
- * pediria una vez por fila. Como solo hay tres idiomas y cuatro estilos, el cache
- * tiene como mucho doce entradas y no hace falta vaciarlo nunca.
- */
+/** Un `Intl.DateTimeFormat` no es gratis y el kardex lo pediria por fila; son doce entradas como mucho. */
 const CACHE = new Map<string, Intl.DateTimeFormat>();
 
 function formateador(idioma: Idioma, estilo: EstiloFecha): Intl.DateTimeFormat {
@@ -76,14 +54,7 @@ function formateador(idioma: Idioma, estilo: EstiloFecha): Intl.DateTimeFormat {
   return formateador;
 }
 
-/**
- * La fecha escrita como la escribe quien la esta leyendo.
- *
- * Lo que llega del backend es una cadena ISO 8601, que es inequivoca pero no se
- * le ensena a nadie. Si no llega nada, o llega algo que no es una fecha, se
- * devuelve la raya —igual que en `tEnum`— en vez de «Invalid Date», que es un
- * mensaje para quien programa y no para quien mira la pantalla.
- */
+/** Sin fecha valida devuelve la raya, como `tEnum`, y no «Invalid Date», que es un mensaje para quien programa. */
 export function formatearFecha(
   valor: string | number | Date | null | undefined,
   idioma: Idioma,
@@ -98,12 +69,8 @@ export function formatearFecha(
 }
 
 /**
- * Fecha en ISO pero con el desfase local, no en Z.
- *
- * `toISOString()` da el instante correcto en UTC, y con eso el servidor agrupa
- * por horas de Greenwich: en Lima la cena del sabado aparece repartida entre el
- * sabado y el domingo. Mandando el desfase, el dia empieza y termina donde lo
- * vive el local.
+ * ISO con el desfase local y no en Z: con UTC el servidor agrupa por horas de Greenwich y la cena del
+ * sabado en Lima se reparte entre sabado y domingo.
  */
 export function fechaIsoLocal(fecha: Date): string {
   const dos = (n: number) => String(n).padStart(2, '0');
@@ -127,34 +94,20 @@ export function inicioDelDia(dias = 0): Date {
   return fecha;
 }
 
-/**
- * Un dia sin hora («2026-09-16») como fecha local. `new Date('2026-09-16')` lo
- * lee como medianoche UTC, que en Lima es el dia anterior a las siete de la
- * noche: un lote que vence el 16 se pintaria como del 15.
- */
+/** `new Date('2026-09-16')` es medianoche UTC, el dia anterior en Lima: un lote que vence el 16 saldria del 15. */
 export function fechaDeDia(dia: string | null | undefined): Date | null {
   const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dia ?? '');
   return partes ? new Date(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3])) : null;
 }
 
-/**
- * El codigo corto con el que se nombra una comanda en voz alta: los ocho
- * primeros caracteres del UUID, los mismos que el POS imprime como correlativo.
- */
+/** Los ocho primeros caracteres del UUID: el correlativo que imprime el POS y que se dice en voz alta. */
 export function codigoDeOrden(id: string | null | undefined): string {
   return (id ?? '').slice(0, 8).toUpperCase();
 }
 
 /**
- * Minutos transcurridos escritos como se dicen: «47 min», «3 h 5 min», «8 d 4 h».
- *
- * El backend manda minutos a secas, y una comanda olvidada de hace ocho dias se
- * pintaba «11803 min»: un numero que nadie convierte de cabeza y que ademas
- * rompia la tarjeta de cocina. Pasado un dia los minutos dejan de importar y se
- * omiten.
- *
- * Las unidades son las mismas abreviaturas en espanol, ingles y portugues, por
- * eso no pasan por el diccionario.
+ * «47 min», «3 h 5 min», «8 d 4 h»: una comanda olvidada se pintaba «11803 min». Las abreviaturas son las
+ * mismas en los tres idiomas, por eso no pasan por el diccionario.
  */
 export function formatearDuracion(minutos: number | null | undefined): string {
   if (minutos === null || minutos === undefined || !Number.isFinite(minutos)) return '—';
@@ -170,11 +123,7 @@ export function formatearDuracion(minutos: number | null | undefined): string {
   return resto > 0 ? `${horas} h ${resto} min` : `${horas} h`;
 }
 
-/**
- * Segundos escritos como se dicen: «12 s», «1 min 5 s», «3 min». Es lo que
- * tarda un mozo en responder al llamado de cocina, que casi siempre cabe en
- * segundos; pasada la hora se escribe como `formatearDuracion`.
- */
+/** «12 s», «1 min 5 s»: lo que tarda un mozo en responder; pasada la hora, como `formatearDuracion`. */
 export function formatearSegundos(segundos: number | null | undefined): string {
   if (segundos === null || segundos === undefined || !Number.isFinite(segundos)) return '—';
 
@@ -188,11 +137,8 @@ export function formatearSegundos(segundos: number | null | undefined): string {
 }
 
 /**
- * Una distancia por calles: en metros por debajo del kilometro —redondeados a
- * la decena, que es la precision que tiene sentido para un delivery— y en
- * kilometros con un decimal despues. El separador decimal es el de quien lee,
- * como en las fechas: «3.2 km» en el espanol del Peru —el mismo punto de
- * «S/ 32.00»— y en ingles, «3,2 km» en el portugues de Brasil.
+ * Metros redondeados a la decena bajo el kilometro, despues kilometros con un decimal y el separador de
+ * quien lee: «3.2 km» en Peru y en ingles, «3,2 km» en Brasil.
  */
 export function formatearDistancia(metros: number | null | undefined, idioma: Idioma): string {
   if (metros === null || metros === undefined || Number.isNaN(metros)) return '—';

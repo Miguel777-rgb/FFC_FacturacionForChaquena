@@ -3,25 +3,16 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { I18nService } from '../i18n/i18n.service';
 import { normalizarRol, type Rol, esRol } from './rol';
 
-/**
- * Claims que el backend mete en el JWT. `cargo` es el que siempre viene;
- * `roles` y `permisos` los lee `JwtAuthenticationFilter` si estan presentes.
- */
+/** Claims del JWT: `cargo` siempre viene; `roles` y `permisos`, si estan, los lee `AutoridadesDelToken`. */
 interface ClaimsToken {
   /** El backend firma con el correo como subject, no con el username. */
   sub?: string;
   username?: string;
   nombres?: string;
   apellidos?: string;
-  /**
-   * El puesto: "ADMINISTRADOR", "JEFE DE COCINA", "CAJERO". No es el rol de
-   * autorizacion, aunque en MOZO coincidan por casualidad.
-   */
+  /** El puesto ("JEFE DE COCINA"); no es el rol de autorizacion, aunque en MOZO coincidan. */
   cargo?: string;
-  /**
-   * Los roles de verdad, que salen de la tabla cargo_roles: ADMIN, COCINA,
-   * CAJA... Son los que evaluan los `@PreAuthorize`.
-   */
+  /** Los roles de verdad, de la tabla cargo_roles: los que evaluan los `@PreAuthorize`. */
   roles?: string[];
   permisos?: string[];
   exp?: number;
@@ -41,16 +32,8 @@ export interface Sesion {
 const CLAVE = 'chaquena.sesion';
 
 /**
- * Guarda la sesion y responde quien es el usuario.
- *
- * El token se **decodifica, nunca se verifica**. El backend lo firma con HMAC
- * simetrico (`JwtService` usa `Keys.hmacShaKeyFor`), asi que el secreto no
- * esta —ni puede estar— en el navegador. Lo que sale de aqui sirve para
- * decidir que pintar; quien decide que se puede hacer son los 69
- * `@PreAuthorize` del servidor.
- *
- * Se persiste en `sessionStorage` y no en `localStorage`: en un POS compartido,
- * cerrar la pestaña tiene que cerrar el turno.
+ * El token se decodifica y nunca se verifica: el secreto HMAC no esta en el navegador. Va en
+ * `sessionStorage` y no en `localStorage`: en un POS compartido, cerrar la pestana cierra el turno.
  */
 @Injectable({ providedIn: 'root' })
 export class SesionService {
@@ -63,11 +46,7 @@ export class SesionService {
   readonly roles = computed<Rol[]>(() => this._sesion()?.roles ?? []);
   readonly nombre = computed(() => this._sesion()?.nombre ?? '');
 
-  /**
-   * Lo lee el cliente generado a traves de `credentials.bearerAuth`. Devuelve
-   * `undefined` cuando no hay sesion para que la peticion salga sin cabecera
-   * en vez de mandar la cadena "undefined".
-   */
+  /** Para `credentials.bearerAuth`: sin sesion devuelve `undefined` y la peticion sale sin cabecera. */
   readonly tokenActual = (): string | undefined => this._sesion()?.token;
 
   tieneAlgunRol(permitidos: readonly Rol[]): boolean {
@@ -112,15 +91,8 @@ export class SesionService {
   }
 
   /**
-   * Reproduce como el backend arma las autoridades: el `cargo` cuenta como rol,
-   * y ademas se suman los de la lista `roles`. Lo que no sea uno de los seis
-   * roles conocidos se descarta.
-   *
-   * El descarte importa: los cargos sembrados se llaman ADMINISTRADOR, CAJERO
-   * o ALMACENERO, mientras que los `@PreAuthorize` piden ADMIN, CAJA y ALMACEN.
-   * El puente lo hace la tabla cargo_roles, que llega en el claim `roles`. Un
-   * cargo sin rol asociado —los hay— deja al usuario sin ninguno, y entonces
-   * ve la pantalla de sin permiso en vez de una superficie que le daria 403.
+   * Como el backend: el `cargo` cuenta como rol y se suman los de `roles`. Lo que no es uno de los seis se
+   * descarta, y un cargo sin rol ve "sin permiso" en vez de una superficie que le daria 403.
    */
   private extraerRoles(claims: ClaimsToken): Rol[] {
     const candidatos = [claims.cargo, ...(claims.roles ?? [])]

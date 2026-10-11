@@ -34,11 +34,7 @@ const ESPERA_MAXIMA_MS = 30_000;
 /** Cuanto sigue abierto el canal despues de que la ultima pantalla lo suelta. */
 const GRACIA_AL_SALIR_MS = 5_000;
 
-/**
- * Sin conexion durante mas de esto, el mozo lo ve. Antes no: un celular que
- * cambia de red reconecta en un par de segundos, y avisarlo cada vez seria
- * ruido.
- */
+/** Solo entonces lo ve el mozo: un celular que cambia de red reconecta en dos segundos, y avisarlo seria ruido. */
 const AVISAR_CAIDA_MS = 10_000;
 
 /** Sin confirmacion del servidor en este tiempo, el boton vuelve a estar disponible. */
@@ -60,11 +56,7 @@ export interface ConfigClienteStomp {
   alCaerse: () => void;
 }
 
-/**
- * Crea el cliente. El de verdad carga `@stomp/stompjs` con `import()`, asi la
- * libreria va en su propio trozo y solo la descarga quien abre el canal; las
- * pruebas lo cambian por uno falso.
- */
+/** El de verdad carga `@stomp/stompjs` con `import()`, en su propio trozo; las pruebas lo cambian por uno falso. */
 export const FABRICA_CLIENTE_STOMP = new InjectionToken<
   (config: ConfigClienteStomp) => Promise<ClienteStomp>
 >('FABRICA_CLIENTE_STOMP', { providedIn: 'root', factory: () => crearClienteStomp });
@@ -72,9 +64,8 @@ export const FABRICA_CLIENTE_STOMP = new InjectionToken<
 type ModuloStomp = typeof import('@stomp/stompjs');
 
 async function crearClienteStomp(config: ConfigClienteStomp): Promise<ClienteStomp> {
-  // Para el navegador la libreria se publica como UMD, y al cargarla en su
-  // propio trozo el empaquetador la deja entera en `default`. Las pruebas, que
-  // resuelven la version ESM, la ven con sus nombres sueltos: valen las dos.
+  // En el navegador la libreria llega como UMD, entera en `default`; las pruebas resuelven la
+  // version ESM, con sus nombres sueltos: valen las dos.
   const modulo: ModuloStomp & { default?: ModuloStomp } = await import('@stomp/stompjs');
   const { Client, ReconnectionTimeMode } = modulo.default ?? modulo;
   const cliente = new Client({
@@ -84,13 +75,11 @@ async function crearClienteStomp(config: ConfigClienteStomp): Promise<ClienteSto
     reconnectDelay: ESPERA_INICIAL_MS,
     maxReconnectDelay: ESPERA_MAXIMA_MS,
     reconnectTimeMode: ReconnectionTimeMode.EXPONENTIAL,
-    // Un celular que cambio de red deja el socket abierto y mudo: cuando faltan
-    // los latidos se cierra en el acto, en vez de esperar a que el sistema se
-    // entere.
+    // Un celular que cambio de red deja el socket abierto y mudo: sin latidos se cierra en el
+    // acto, sin esperar a que el sistema se entere.
     discardWebsocketOnCommFailure: true,
-    // El token se lee en cada intento: una reconexion lleva el vigente. Si el
-    // servidor lo rechaza, manda ERROR, cierra, y el siguiente intento vuelve
-    // a pasar por aqui.
+    // El token se lee en cada intento, asi una reconexion lleva el vigente; sin sesion deja de
+    // intentar.
     beforeConnect: (c) => {
       const cabeceras = config.cabeceras();
       if (cabeceras) c.connectHeaders = cabeceras;
@@ -111,16 +100,8 @@ async function crearClienteStomp(config: ConfigClienteStomp): Promise<ClienteSto
 }
 
 /**
- * El llamado de cocina al mozo, por WebSocket con STOMP.
- *
- * Va por WebSocket y no por el SSE de `TiempoRealService` porque necesita las
- * dos cosas que SSE no da: que el mozo conteste «Voy» por el mismo canal y que
- * el servidor sepa cuantos mozos estan conectados.
- *
- * El navegador no deja poner cabeceras al abrir un WebSocket, asi que el token
- * viaja en la trama CONNECT de STOMP. Un canal por pestana, y solo mientras
- * alguien lo usa: el aviso del mozo, toda la sesion; la pantalla de cocina,
- * mientras esta abierta.
+ * El llamado por WebSocket y no por el SSE: necesita que el mozo conteste «Voy» por el mismo canal y saber
+ * cuantos mozos hay. El token va en la trama CONNECT porque el navegador no deja cabeceras.
  */
 @Injectable({ providedIn: 'root' })
 export class LlamadosService {
@@ -162,10 +143,7 @@ export class LlamadosService {
   readonly respondiendo = this._respondiendo.asReadonly();
 
   private readonly _timbre = new Subject<void>();
-  /**
-   * Cuando el mozo tiene que oirlo: un llamado nuevo, uno que cocina repitio, o
-   * los que lo esperaban cuando se conecto.
-   */
+  /** Cuando el mozo tiene que oirlo: un llamado nuevo, uno repetido o los que esperaban al conectarse. */
   readonly timbre = this._timbre.asObservable();
 
   private cliente: ClienteStomp | null = null;
@@ -194,10 +172,7 @@ export class LlamadosService {
     });
   }
 
-  /**
-   * Mantiene el canal abierto mientras viva quien lo pide. Va en el
-   * constructor de un componente, y se suelta solo al destruirlo.
-   */
+  /** Mantiene el canal abierto mientras viva el componente que lo pide; se suelta solo al destruirlo. */
   usar(): void {
     assertInInjectionContext(this.usar);
     this.oyentes++;
@@ -367,9 +342,8 @@ export class LlamadosService {
   }
 
   /**
-   * El servidor dijo que no: llamar por una comanda que no esta lista, o un
-   * «Voy» que otro dio antes. El mensaje llega en espanol, igual que los de
-   * HTTP. Al mozo que llego tarde no se le pinta de error: alguien ya va.
+   * El servidor dijo que no: comanda que no esta lista, o un «Voy» que otro dio antes (mensaje de dominio,
+   * en espanol). Al mozo que llego tarde no se le pinta de error: alguien ya va.
    */
   private alRechazo(mensaje: string | null): void {
     const eraUnVoy = this._respondiendo().size > 0;
@@ -401,10 +375,7 @@ export class LlamadosService {
     return token && !this.sesion.expirada() ? { Authorization: `Bearer ${token}` } : null;
   }
 
-  /**
-   * El backend en desarrollo (`http://localhost:8080`) o, en produccion, el
-   * mismo origen que sirve la app. El esquema pasa a WebSocket: https da wss.
-   */
+  /** El backend de desarrollo o el mismo origen que sirve la app; el esquema pasa a WebSocket (https da wss). */
   private url(): string {
     const origen = this.basePath || `${location.protocol}//${location.host}`;
     return origen.replace(/^http/, 'ws') + PUNTO_DE_CONEXION;

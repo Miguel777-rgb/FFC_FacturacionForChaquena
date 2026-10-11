@@ -1,12 +1,4 @@
-/**
- * Los seis roles que el backend reconoce. Salen de los `@PreAuthorize` de los
- * controladores, donde aparecen siempre como `hasRole('ADMIN')` o
- * `hasAnyRole('ADMIN','MOZO',...)`.
- *
- * Esta lista existe para que el enrutado y los menus sepan a quien mostrar
- * que. La autorizacion de verdad la hace el servidor: aqui solo se decide
- * que pintar.
- */
+/** Los seis roles de los `@PreAuthorize` del backend; aqui solo deciden que pintar. */
 export const ROLES = ['ADMIN', 'MOZO', 'CAJA', 'COCINA', 'ALMACEN', 'DELIVERY'] as const;
 
 export type Rol = (typeof ROLES)[number];
@@ -16,25 +8,14 @@ export function esRol(valor: string): valor is Rol {
 }
 
 /**
- * Copia exacta de `JwtAuthenticationFilter.normalizar` del backend:
- * recorta, pasa a mayusculas y convierte espacios y guiones en guion bajo.
- * Sin esto, un cargo guardado como "Jefe de Cocina" no casaria con nada.
- *
- * Se replica a proposito en lugar de mejorarla: si aqui se quitaran acentos y
- * alli no, el frontend creeria tener un permiso que el servidor le va a negar,
- * que es peor que no tenerlo.
+ * Copia exacta de `AutoridadesDelToken.normalizar`, sin mejorarla: si aqui se quitaran acentos y alli no,
+ * el front creeria tener un permiso que el servidor le va a negar.
  */
 export function normalizarRol(valor: string): string {
   return valor.trim().toUpperCase().replaceAll(' ', '_').replaceAll('-', '_');
 }
 
-/**
- * Superficie a la que entra cada rol al iniciar sesion.
- *
- * El administrador y la caja entran por el tablero: antes de tocar nada
- * necesitan saber como va el dia y que hay pendiente. El resto entra directo a
- * su puesto, porque su primer gesto del turno siempre es el mismo.
- */
+/** Administrador y caja entran por el tablero, a ver como va el dia; el resto, directo a su puesto. */
 export const INICIO_POR_ROL: Record<Rol, string> = {
   ADMIN: '/tablero',
   MOZO: '/pos',

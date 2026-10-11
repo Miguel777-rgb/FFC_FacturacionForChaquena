@@ -24,9 +24,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
 
-    // Solo el espanol viaja en el bundle inicial; el idioma que este guardado
-    // se descarga aqui, antes de pintar. Sin esta espera, quien dejo la
-    // interfaz en ingles vería la primera pantalla en espanol.
+    // El idioma guardado se descarga antes de pintar: sin esta espera, quien dejo la interfaz
+    // en ingles veria la primera pantalla en espanol.
     provideAppInitializer(() => inject(I18nService).precargar()),
 
     // `withComponentInputBinding` es lo que deja que el `data` de cada ruta
@@ -35,14 +34,12 @@ export const appConfig: ApplicationConfig = {
 
     provideHttpClient(withInterceptors([idiomaInterceptor, erroresInterceptor])),
 
-    // Las rutas declaran la clave de su titulo, no el titulo: lo traduce esta
-    // estrategia, que ademas lo reescribe cuando se cambia de idioma sin
-    // navegar. La pestana es lo unico que vive fuera de una plantilla.
+    // Las rutas declaran la clave de su titulo: esta estrategia la traduce y la reescribe al
+    // cambiar de idioma sin navegar.
     { provide: TitleStrategy, useClass: TituloDeRuta },
 
-    // El token lo pone el propio cliente generado, y solo en los endpoints que
-    // declaran `bearerAuth` en el contrato. Es mas estrecho que un interceptor
-    // que lo pegaria en toda peticion saliente, incluidas las de otros hosts.
+    // El token lo pone el cliente generado solo donde el contrato declara `bearerAuth`: mas
+    // estrecho que un interceptor, que lo pegaria tambien en peticiones a otros hosts.
     {
       provide: Configuration,
       useFactory: () => {

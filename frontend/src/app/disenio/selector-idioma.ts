@@ -17,10 +17,7 @@ import { IDIOMAS, type Idioma } from '../nucleo/i18n/idioma';
 import { Bandera, type Pais } from './bandera';
 import { Icono } from './icono';
 
-/**
- * La bandera que acompana a cada idioma. El espanol lleva la del local, no la
- * de Espana: quien lo ve es el personal de un restaurante peruano.
- */
+/** El espanol lleva la bandera del local, no la de Espana: lo ve el personal de un restaurante peruano. */
 const BANDERA: Record<Idioma, Pais> = { es: 'pe', en: 'us', pt: 'br' };
 
 /** Separacion entre el boton y la lista, y margen minimo con el borde de la pantalla. */
@@ -28,31 +25,8 @@ const HOLGURA = 4;
 const MARGEN = 8;
 
 /**
- * El selector de idioma: un boton que despliega los tres idiomas, cada uno con
- * su bandera.
- *
- * Deja de ser un `<select>` nativo porque el nativo no admite dibujos dentro de
- * las opciones en todos los navegadores (`appearance: base-select` solo existe
- * en Chrome y Edge), y el iPhone del mozo se quedaria sin banderas. Lo que el
- * nativo regalaba se reimplementa siguiendo el patron *select-only combobox* de
- * la APG: el foco se queda siempre en el boton, la opcion activa se senala con
- * `aria-activedescendant`, y el teclado hace lo mismo que en un desplegable del
- * sistema —flechas, Inicio, Fin, la inicial para saltar, Enter o Espacio para
- * elegir y Escape para cerrar—. Tab cierra sin elegir: cambiar de idioma repinta
- * toda la aplicacion, y no debe ocurrir por salir del control.
- *
- * La lista se abre en la capa superior (`popover`) para que ni el `overflow`
- * del panel lateral ni la barra fija del celular la recorten; se coloca a mano
- * debajo del boton, o encima si abajo no cabe (en el pie del panel no cabe).
- *
- * Cada idioma se nombra en su propia lengua —«English», no «Ingles»— porque
- * quien busca la suya en la lista todavia no entiende la que esta viendo, y
- * lleva `lang` para que el lector de pantalla lo pronuncie en esa lengua.
- *
- * Variantes: `flotante` es la de la pantalla de entrar, fija arriba a la
- * derecha porque ahi no hay panel que la sostenga; `integrada` encaja en el pie
- * del panel, en la barra superior y en Mi perfil. `compacto` deja solo la
- * bandera —barra del celular y regleta—, y el nombre pasa al `aria-label`.
+ * Un boton con lista propia y no un `<select>`: el nativo no admite banderas en todos los navegadores.
+ * Sigue el patron select-only combobox de la APG, y cada idioma se nombra en su lengua, con `lang`.
  */
 @Component({
   selector: 'app-selector-idioma',
@@ -331,9 +305,8 @@ export class SelectorIdioma {
         return;
       }
 
-      // Enter y Espacio se atienden aqui y no como clic del boton: asi un mismo
-      // gesto no abre y elige a la vez. El `keyup` del espacio se anula en la
-      // plantilla porque es el que dispararia ese clic.
+      // Enter y Espacio se atienden aqui y no como clic: un mismo gesto no abre y elige a la vez
+      // (el `keyup` del espacio, que dispararia el clic, se anula en la plantilla).
       case 'Enter':
       case ' ':
         evento.preventDefault();

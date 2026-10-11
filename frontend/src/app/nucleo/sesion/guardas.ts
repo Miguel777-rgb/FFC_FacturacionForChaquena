@@ -4,10 +4,7 @@ import { Router, type CanActivateFn } from '@angular/router';
 import { SesionService } from './sesion.service';
 import { INICIO_POR_ROL, type Rol } from './rol';
 
-/**
- * Exige sesion abierta y no vencida. Guarda a donde queria ir el usuario para
- * devolverlo ahi despues del login, en vez de soltarlo siempre en el inicio.
- */
+/** Exige sesion vigente y guarda a donde se queria ir, para volver ahi despues del login. */
 export const sesionAbierta: CanActivateFn = (_ruta, estado) => {
   const sesion = inject(SesionService);
   const router = inject(Router);
@@ -19,12 +16,8 @@ export const sesionAbierta: CanActivateFn = (_ruta, estado) => {
 };
 
 /**
- * Lo contrario: con la sesion abierta, la pantalla de entrar no se ve y se va
- * al puesto del rol.
- *
- * Sin esto, retroceder con el navegador hasta /entrar dibujaba el formulario
- * dentro del cascaron de la sesion: el panel con el nombre y el cargo de quien
- * ya entro, y al lado un login pidiendo usuario y contrasena.
+ * Con sesion abierta, /entrar lleva al puesto del rol: si no, retroceder con el navegador dibujaba el
+ * login dentro del cascaron de la sesion.
  */
 export const sinSesion: CanActivateFn = () => {
   const sesion = inject(SesionService);
@@ -37,13 +30,8 @@ export const sinSesion: CanActivateFn = () => {
 };
 
 /**
- * Restringe una ruta a ciertos roles.
- *
- * Es una comodidad de navegacion, no una medida de seguridad: cualquiera puede
- * editar el token en el navegador y pasar de aqui. Lo que de verdad protege los
- * datos son los `@PreAuthorize` del backend, que responden 403 igual.
- *
- *   { path: 'kds', canActivate: [sesionAbierta, exigeRol('COCINA', 'ADMIN')] }
+ * Comodidad de navegacion, no seguridad: quien edite el token pasa de aqui, y lo que protege los datos
+ * son los `@PreAuthorize` del backend.
  */
 export function exigeRol(...permitidos: Rol[]): CanActivateFn {
   return () => {

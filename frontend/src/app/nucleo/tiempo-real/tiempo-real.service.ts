@@ -14,11 +14,7 @@ export type TemaTiempoReal = `${AvisoTiempoRealDtoTemaEnum}`;
 const ESPERA_INICIAL_MS = 1_000;
 const ESPERA_MAXIMA_MS = 30_000;
 
-/**
- * El servidor manda un comentario cada 25 s. Sin ningun byte en 60 s la
- * conexion esta muerta aunque el navegador no lo sepa, como pasa en un celular
- * que cambio de red: se corta y se vuelve a abrir.
- */
+/** El servidor late cada 25 s: 60 s sin un byte es una conexion muerta aunque el navegador no lo sepa. */
 const SILENCIO_MAXIMO_MS = 60_000;
 
 /** Cuanto se mantiene abierta la conexion despues de que la ultima pantalla deja de escuchar. */
@@ -28,19 +24,8 @@ const GRACIA_AL_SALIR_MS = 5_000;
 const AVISOS_JUNTOS_MS = 1_000;
 
 /**
- * Los avisos en tiempo real del backend, por Server-Sent Events.
- *
- * Se lee con `fetch` y no con `EventSource`, porque `EventSource` no deja poner
- * la cabecera `Authorization` y el token no puede ir en la URL: quedaria en los
- * registros de cada proxy por el que pase.
- *
- * Un aviso no trae datos, solo el tema que cambio: la pantalla vuelve a pedir
- * lo suyo por el endpoint de siempre. Por eso caerse no rompe nada: mientras
- * no hay conexion, `cambios()` vuelve al refresco periodico de antes, y al
- * reconectar pide una recarga por si algo cambio en el hueco.
- *
- * La conexion es una por pestana y solo existe mientras alguna pantalla
- * escucha: el menu o el perfil no la abren.
+ * SSE leido con `fetch`: `EventSource` no deja poner `Authorization`, y en la URL el token quedaria en los
+ * registros. El aviso no trae datos, asi que sin conexion `cambios()` vuelve al refresco periodico.
  */
 @Injectable({ providedIn: 'root' })
 export class TiempoRealService {
@@ -85,11 +70,8 @@ export class TiempoRealService {
   }
 
   /**
-   * Emite cada vez que la pantalla deberia volver a pedir sus datos: al llegar
-   * un aviso de alguno de sus temas, al reconectar despues de una caida y, con
-   * la conexion caida, cada `respaldoMs`.
-   *
-   * No emite al suscribirse: la carga inicial sigue siendo de la pantalla.
+   * Emite cuando la pantalla debe volver a pedir: al llegar un aviso de sus temas, al reconectar y, sin
+   * conexion, cada `respaldoMs`. No emite al suscribirse.
    */
   cambios(temas: readonly TemaTiempoReal[], respaldoMs: number): Observable<void> {
     return new Observable<void>((suscriptor) => {
@@ -167,9 +149,8 @@ export class TiempoRealService {
       }
       if (!respuesta.ok || !respuesta.body) throw new Error(`HTTP ${respuesta.status}`);
 
-      // Termina cuando el servidor cierra a los diez minutos. El `listo` de esa
-      // conexion ya puso los intentos a cero, asi que se reabre enseguida; un
-      // proxy que corta sin dejar pasar nada, en cambio, va esperando mas cada vez.
+      // Termina cuando el servidor cierra a los diez minutos: su `listo` ya puso los intentos a cero
+      // y se reabre enseguida. Un proxy que corta sin dejar pasar nada espera mas cada vez.
       await this.leer(respuesta.body, controlador);
     } catch {
       if (controlador.signal.aborted && this.controlador !== controlador) return;

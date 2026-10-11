@@ -8,12 +8,8 @@ import { I18nService } from '../i18n/i18n.service';
 import { AvisosService } from './avisos.service';
 
 /**
- * Forma que devuelve `GlobalExceptionHandler` en el backend para todo error.
- *
- * Se escribe a mano porque el contrato OpenAPI no la declara: ningun endpoint
- * documenta sus respuestas de error con `@ApiResponse`, asi que el generador no
- * produce el modelo. Si algun dia se documentan, esto se reemplaza por el tipo
- * generado.
+ * La forma de todo error de `GlobalExceptionHandler`, escrita a mano: ningun endpoint documenta sus
+ * errores con `@ApiResponse`, asi que el generador no produce el modelo.
  */
 export interface ErrorResponseDto {
   timestamp?: string;
@@ -24,14 +20,7 @@ export interface ErrorResponseDto {
   details?: string[];
 }
 
-/**
- * Saca el mensaje mas util que traiga la respuesta.
- *
- * Se exporta porque las pantallas que muestran el error por su cuenta —el
- * login, sin ir mas lejos— tienen que leerlo igual que lo lee el interceptor.
- * Duplicar esta logica alli fue justo lo que dejo al login inventando textos
- * a partir del codigo HTTP en vez de decir lo que el servidor explicaba.
- */
+/** El mensaje mas util de la respuesta; se exporta para que el login lo lea igual que el interceptor. */
 export function mensajeDe(error: HttpErrorResponse, porDefecto: string): string {
   const cuerpo = error.error as ErrorResponseDto | string | null;
 
@@ -48,18 +37,8 @@ export function mensajeDe(error: HttpErrorResponse, porDefecto: string): string 
 }
 
 /**
- * Traduce los errores del backend a un aviso legible, y saca al usuario cuando
- * su sesion ya no vale.
- *
- * El token no se toca aqui: lo pone el propio cliente generado a traves de
- * `credentials.bearerAuth`, que solo lo manda a los endpoints que declaran
- * seguridad. Asi no se filtra a un tercero si algun dia se llama a otro host.
- *
- * Lo que se traduce es el texto de respaldo, el que se escribe cuando la
- * respuesta no trae ninguno. El mensaje del servidor se muestra tal cual y en
- * el idioma en que venga: explica cosas que la pantalla no sabe —que
- * transiciones si se permiten, que insumo falto— y reescribirlo aqui seria
- * inventarlo.
+ * Muestra el error del backend y saca al usuario cuando su sesion ya no vale. El mensaje del servidor va
+ * tal cual, en el idioma en que venga: explica cosas que la pantalla no sabe.
  */
 export const erroresInterceptor: HttpInterceptorFn = (peticion, siguiente) => {
   const sesion = inject(SesionService);
@@ -95,9 +74,8 @@ export const erroresInterceptor: HttpInterceptorFn = (peticion, siguiente) => {
           break;
 
         case 409:
-          // Las transiciones invalidas de comanda caen aqui, y el mensaje del
-          // servidor ya explica que transiciones si se permiten. Mostrarlo tal
-          // cual es mas util que cualquier texto propio.
+          // Las transiciones invalidas caen aqui, y el mensaje del servidor ya dice cuales si se
+          // permiten: mas util que cualquier texto propio.
           avisos.error(mensajeDe(error, t('errores.conflicto')));
           break;
 
