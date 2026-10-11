@@ -7,7 +7,11 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.util.Locale;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,5 +102,33 @@ class RegistrarTrabajadorRequestDtoTest {
                 .containsExactly("password");
         assertThat(camposConError(valido().password("Chaquena").build())).containsExactly("password");
         assertThat(camposConError(valido().password("Abc1234").build())).containsExactly("password");
+    }
+
+    /** Con el MessageSource de la aplicacion, el mismo error sale en el idioma de la peticion. */
+    @Test
+    void elMensajeSaleEnElIdiomaDeLaPeticion() {
+        ResourceBundleMessageSource mensajes = new ResourceBundleMessageSource();
+        mensajes.setBasename("messages");
+        mensajes.setDefaultEncoding("UTF-8");
+        mensajes.setFallbackToSystemLocale(false);
+        LocalValidatorFactoryBean conMensajes = new LocalValidatorFactoryBean();
+        conMensajes.setValidationMessageSource(mensajes);
+        conMensajes.afterPropertiesSet();
+        RegistrarTrabajadorRequestDto dniCorto = valido().dni("701234").build();
+        try {
+            assertThat(mensajeEn(conMensajes, dniCorto, Locale.ENGLISH)).isEqualTo("The DNI must be eight digits.");
+            assertThat(mensajeEn(conMensajes, dniCorto, Locale.of("pt", "BR"))).isEqualTo("O DNI deve ter oito dígitos.");
+            assertThat(mensajeEn(conMensajes, dniCorto, Locale.of("es", "PE"))).isEqualTo("El DNI son ocho dígitos.");
+        } finally {
+            conMensajes.close();
+            LocaleContextHolder.resetLocaleContext();
+        }
+    }
+
+    private static String mensajeEn(Validator conMensajes, RegistrarTrabajadorRequestDto dto, Locale idioma) {
+        LocaleContextHolder.setLocale(idioma);
+        Set<ConstraintViolation<RegistrarTrabajadorRequestDto>> errores = conMensajes.validate(dto);
+        assertThat(errores).hasSize(1);
+        return errores.iterator().next().getMessage();
     }
 }

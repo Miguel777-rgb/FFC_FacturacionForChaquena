@@ -14,6 +14,8 @@ import com.chaquena.backend_logistica.shared.dto.PageResponseDto;
 import com.chaquena.backend_logistica.shared.exception.ConflictoException;
 import com.chaquena.backend_logistica.shared.exception.RecursoNoEncontradoException;
 import com.chaquena.backend_logistica.shared.security.UsuarioActual;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -37,6 +39,7 @@ public class TrabajadorServiceImpl implements TrabajadorService {
     private final PersonaRepository personaRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MessageSource mensajes;
 
     @Override
     @Transactional
@@ -44,22 +47,21 @@ public class TrabajadorServiceImpl implements TrabajadorService {
 
         // 1. Validar que el Cargo existe
         Cargo cargo = cargoRepository.findById(request.getCargoId())
-                .orElseThrow(() -> new EntityNotFoundException("Cargo no encontrado con ID: " + request.getCargoId()));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        texto("trabajador.cargo.inexistente", String.valueOf(request.getCargoId()))));
 
         // 2. Validaciones de duplicados en Personas y Trabajadores
         if (personaRepository.existsByDni(request.getDni())) {
-            throw new IllegalArgumentException("Ya existe una persona registrada con el DNI: " + request.getDni());
+            throw new IllegalArgumentException(texto("trabajador.duplicado.dni", request.getDni()));
         }
         if (request.getCorreo() != null && personaRepository.existsByCorreo(request.getCorreo())) {
-            throw new IllegalArgumentException(
-                    "Ya existe una persona registrada con el Correo: " + request.getCorreo());
+            throw new IllegalArgumentException(texto("trabajador.duplicado.correo", request.getCorreo()));
         }
         if (personaRepository.existsByCelular(request.getCelular())) {
-            throw new IllegalArgumentException(
-                    "Ya existe una persona registrada con el Celular: " + request.getCelular());
+            throw new IllegalArgumentException(texto("trabajador.duplicado.celular", request.getCelular()));
         }
         if (trabajadorRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("El username " + request.getUsername() + " ya está en uso.");
+            throw new IllegalArgumentException(texto("trabajador.duplicado.username", request.getUsername()));
         }
 
         // 3. Crear Entidad Trabajador (Hereda atributos de Persona)
@@ -210,5 +212,9 @@ public class TrabajadorServiceImpl implements TrabajadorService {
     private Trabajador buscar(UUID id) {
         return trabajadorRepository.findById(id)
                 .orElseThrow(() -> RecursoNoEncontradoException.de("el trabajador", id));
+    }
+
+    private String texto(String clave, Object... argumentos) {
+        return mensajes.getMessage(clave, argumentos, LocaleContextHolder.getLocale());
     }
 }
