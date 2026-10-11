@@ -1,10 +1,8 @@
 package com.chaquena.backend_logistica.pagos.controller;
 
-import com.chaquena.backend_logistica.pagos.dto.AlertaFraudeRequestDto;
 import com.chaquena.backend_logistica.pagos.dto.PagoResponseDto;
 import com.chaquena.backend_logistica.pagos.dto.RegistrarPagoRequestDto;
 import com.chaquena.backend_logistica.pagos.service.PagoService;
-import com.chaquena.backend_logistica.pedidos.dto.OrdenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

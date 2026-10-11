@@ -4,7 +4,6 @@ import com.chaquena.backend_logistica.auth.service.TrabajadorContexto;
 import com.chaquena.backend_logistica.clientes.domain.Cliente;
 import com.chaquena.backend_logistica.clientes.repository.ClienteRepository;
 import com.chaquena.backend_logistica.fidelizacion.domain.Cupon;
-import com.chaquena.backend_logistica.fidelizacion.domain.EstadoCuponEnum;
 import com.chaquena.backend_logistica.fidelizacion.domain.NivelLealtad;
 import com.chaquena.backend_logistica.fidelizacion.repository.CuponRepository;
 import com.chaquena.backend_logistica.fidelizacion.service.NivelLealtadService;
