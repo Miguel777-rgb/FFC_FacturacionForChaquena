@@ -8,10 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Publica en los dos temas del llamado. Se llama despues de que el servicio
- * confirma su transaccion: un aviso nunca anuncia algo que no quedo escrito.
- */
+/** Publica despues de que el servicio confirma: un aviso nunca anuncia algo que no quedo escrito. */
 @Component
 @RequiredArgsConstructor
 public class DifusorLlamados {

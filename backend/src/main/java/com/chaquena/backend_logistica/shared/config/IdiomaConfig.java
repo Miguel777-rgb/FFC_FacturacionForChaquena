@@ -7,12 +7,7 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import java.util.Locale;
 
-/**
- * El idioma de una peticion sale de {@code Accept-Language}, que el frontend
- * manda siempre. Sin esa cabecera —curl, Postman, un bot— se asume espanol, que
- * es el idioma por defecto de la interfaz, y no el del sistema operativo del
- * contenedor, que suele ser ingles.
- */
+/** Idioma por Accept-Language; sin cabecera, espanol y no el ingles del sistema del contenedor. */
 @Configuration
 public class IdiomaConfig {
 

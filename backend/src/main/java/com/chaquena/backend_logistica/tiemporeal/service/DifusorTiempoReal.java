@@ -17,25 +17,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Las conexiones abiertas del stream y el reparto de avisos entre ellas.
- *
- * <p>Los avisos no salen en el momento en que se anotan, sino en rafagas cada
- * pocos cientos de milisegundos. Vender un lomo saltado escribe la comanda, sus
- * lineas, la mesa, cinco insumos y sus lotes: sin juntar, cocina recibiria una
- * docena de avisos iguales y pediria la cola una docena de veces.
- *
- * <p>Vive en memoria, asi que solo sirve con una instancia del backend. Con
- * varias habria que pasar los avisos por Redis, que ya esta en el stack.
+ * Avisos en rafagas: una venta escribe una docena de filas y, sin juntarlas, cocina pediria la cola una
+ * docena de veces. Vive en memoria: una sola instancia (con varias, los avisos pasarian por Redis).
  */
 @Slf4j
 @Component
 public class DifusorTiempoReal {
 
-    /**
-     * Cuanto dura una conexion antes de que el servidor la cierre. El navegador
-     * reconecta al instante, y en cada reconexion manda el token vigente: una
-     * sesion cerrada o vencida deja de recibir avisos a los pocos minutos.
-     */
+    /** Al cerrarla, el navegador reconecta con el token vigente: una sesion vencida deja de oir. */
     static final Duration VIDA_DE_LA_CONEXION = Duration.ofMinutes(10);
 
     private final Set<Suscripcion> suscripciones = ConcurrentHashMap.newKeySet();
@@ -92,11 +81,7 @@ public class DifusorTiempoReal {
         }
     }
 
-    /**
-     * Un comentario cada 25 segundos. Mantiene viva la conexion a traves de los
-     * proxies y descubre las que se cortaron sin avisar, como la de un celular
-     * que perdio la red.
-     */
+    /** Mantiene viva la conexion en los proxies y descubre las que se cortaron sin avisar. */
     @Scheduled(fixedRate = 25_000)
     public void latir() {
         for (Suscripcion suscripcion : suscripciones) {

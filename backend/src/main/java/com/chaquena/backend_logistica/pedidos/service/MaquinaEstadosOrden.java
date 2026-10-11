@@ -15,11 +15,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Unico lugar que decide si una transicion de estado es legal. El KDS, el
- * despacho y la caja pasan todos por aqui, que es lo que impide que una orden
- * ya entregada vuelva a cocina o que una cancelada se cobre.
- */
+/** Unica autoridad sobre las transiciones: KDS, despacho y caja pasan todos por aqui. */
 @Component
 @RequiredArgsConstructor
 public class MaquinaEstadosOrden {
@@ -49,15 +45,7 @@ public class MaquinaEstadosOrden {
 
     private final ApplicationEventPublisher eventos;
 
-    /**
-     * Los estados a los que se puede pasar desde {@code actual}, en el orden en
-     * que estan declarados en el enum.
-     *
-     * Es estatica a proposito: los DTO la publican para que el frontend pinte
-     * sus botones desde la respuesta en vez de duplicar esta tabla. Un cliente
-     * que la copie se desincroniza en la primera regla nueva, y el sintoma seria
-     * un boton que promete algo que el servidor va a negar con un 409.
-     */
+    /** Estatica a proposito: los DTO la publican y el frontend pinta sus botones sin copiar la tabla. */
     public static Set<EstadoOrdenEnum> transicionesDesde(EstadoOrdenEnum actual) {
         return actual == null ? Set.of() : TRANSICIONES.getOrDefault(actual, Set.of());
     }
@@ -86,10 +74,7 @@ public class MaquinaEstadosOrden {
         }
     }
 
-    /**
-     * Aplica la transicion y sella las marcas de tiempo que correspondan a la
-     * etapa. No persiste: eso queda del lado del servicio que llama.
-     */
+    /** Aplica la transicion y sella los cronometros de la etapa; persistir es cosa del servicio. */
     public void aplicar(Orden orden, EstadoOrdenEnum destino) {
         validar(orden.getEstado(), destino);
 
@@ -129,10 +114,7 @@ public class MaquinaEstadosOrden {
         eventos.publishEvent(new EstadoOrdenCambiadoEvent(orden.getId(), destino));
     }
 
-    /**
-     * Una comanda de mesa o de retiro no pasa por despacho: se entrega en el
-     * mostrador. Delivery si exige el paso intermedio.
-     */
+    /** Mesa y retiro se entregan en el mostrador: solo el delivery pasa por despacho. */
     public boolean requiereDespacho(TipoOrdenEnum tipoOrden) {
         return tipoOrden == TipoOrdenEnum.DELIVERY;
     }

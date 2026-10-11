@@ -19,18 +19,8 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 /**
- * Se entera de cada fila escrita y, si alguna pantalla escucha esa tabla, lo
- * anota para el siguiente aviso.
- *
- * <p>Los tres oyentes son los de "despues de confirmar" de Hibernate: se
- * ejecutan cuando la transaccion ya se escribio, igual que el
- * {@code @TransactionalEventListener(AFTER_COMMIT)} de {@code OrdenCreadaEvent}.
- * Una venta que se deshace por falta de stock no avisa a nadie, y un aviso que
- * falla no puede deshacer la venta.
- *
- * <p>Escuchar a Hibernate, y no publicar un evento desde cada servicio, es lo
- * que evita olvidarse de uno: hay mas de veinte caminos que cambian una
- * comanda, una mesa o un insumo, contando los bots.
+ * Oyentes post-commit de Hibernate: una venta deshecha no avisa a nadie. Se escucha a Hibernate y no a
+ * cada servicio porque mas de veinte caminos cambian una comanda, una mesa o un insumo, y ninguno se olvida.
  */
 @Component
 @RequiredArgsConstructor

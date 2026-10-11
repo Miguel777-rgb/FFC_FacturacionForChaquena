@@ -28,11 +28,7 @@ public class TrabajadorController {
 
     private final TrabajadorService trabajadorService;
 
-    /**
-     * Antes este endpoint era publico y cualquiera podia darse de alta como
-     * trabajador. Ahora exige un token con rol de administrador; el primer
-     * usuario del sistema se crea con POST /api/v1/auth/bootstrap.
-     */
+    /** Ya no es publico: exige ADMIN, y el primer usuario nace en POST /api/v1/auth/bootstrap. */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(operationId = "registrarTrabajador", summary = "Registrar trabajador")

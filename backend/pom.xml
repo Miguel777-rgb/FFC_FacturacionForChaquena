@@ -34,13 +34,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-		<!--
-			El starter bloqueante, no el reactivo. El codigo solo usa
-			RedisTemplate (RedisConfig, MozoBotService, StockBotService) y no
-			hay un solo Mono ni Flux: el reactivo arrastraba Reactor entero sin
-			que nadie lo llamara, y esas clases se pagan en metaspace en cada
-			arranque.
-		-->
+		<!-- El starter bloqueante: no hay un solo Mono ni Flux, y el reactivo arrastraba Reactor entero. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-redis</artifactId>
@@ -66,12 +60,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
-		<!--
-			WebSocket con STOMP para el llamado de cocina al mozo. El tiempo real
-			de las pantallas sigue por SSE: este canal existe porque el llamado
-			necesita lo que SSE no da, que el navegador conteste por el mismo
-			canal y que el servidor sepa quien esta conectado.
-		-->
+		<!-- STOMP para el llamado de cocina: necesita que el mozo conteste y saber quien escucha, y SSE no lo da. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>

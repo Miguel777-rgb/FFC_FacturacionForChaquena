@@ -21,13 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * El stream de avisos en tiempo real, por Server-Sent Events.
- *
- * <p>Cualquier sesion puede abrirlo; lo que recibe depende de su cargo. El
- * navegador lo lee con {@code fetch} y no con {@code EventSource}, porque este
- * no deja mandar la cabecera {@code Authorization}.
- */
+/** SSE por cargo; el navegador lo lee con fetch porque EventSource no deja mandar Authorization. */
 @RestController
 @RequestMapping("/api/v1/eventos")
 @RequiredArgsConstructor

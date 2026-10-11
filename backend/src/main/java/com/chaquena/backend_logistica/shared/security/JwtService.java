@@ -24,9 +24,6 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
-    /**
-     * Genera un JWT firmado por el backend con los claims proporcionados.
-     */
     public String generateToken(String subject, Map<String, Object> extraClaims) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
@@ -41,10 +38,7 @@ public class JwtService {
                 .compact();
     }
 
-    /**
-     * Valida y parsea un JWT emitido por este backend.
-     * Lanza una excepción si el token es inválido o expirado.
-     */
+    /** Lanza una excepcion si la firma no cuadra o el token vencio. */
     public Claims validateToken(String token) {
         return Jwts.parser()
                 .verifyWith(signingKey)
@@ -53,9 +47,6 @@ public class JwtService {
                 .getPayload();
     }
 
-    /**
-     * Extrae el subject (email/username) del token.
-     */
     public String getSubject(String token) {
         return validateToken(token).getSubject();
     }

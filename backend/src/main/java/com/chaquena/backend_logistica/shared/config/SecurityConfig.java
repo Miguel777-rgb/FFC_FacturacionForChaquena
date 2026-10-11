@@ -31,11 +31,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    /**
-     * Origenes del frontend Angular. frontend-logistica va en el 81 y
-     * frontend-facturacion en el 80; en desarrollo Angular sirve en el 4200.
-     * Configurable con app.cors.allowed-origins.
-     */
+    /** Origenes del frontend: logistica en el 81, facturacion en el 80 y desarrollo en el 4200. */
     @Value("${app.cors.allowed-origins:http://localhost:81,http://localhost:80,http://localhost:4200}")
     private String origenesPermitidos;
 
@@ -51,18 +47,12 @@ public class SecurityConfig {
                         // Preflight CORS: el navegador lo manda sin cabecera Authorization.
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // El stream de tiempo real termina con un despacho asincrono
-                        // que ya no pasa por el filtro JWT: la peticion original se
-                        // autorizo al abrirse y este despacho solo la cierra.
+                        // El cierre del stream SSE es un despacho asincrono que ya no pasa por
+                        // el filtro JWT: la peticion original se autorizo al abrirse.
                         .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
 
-                        // Autenticacion y webhooks de Meta: publicos por definicion.
-                        //
-                        // Los bots de Discord no necesitan ninguna regla aqui: no
-                        // reciben por HTTP, sino por el WebSocket que el backend
-                        // abre hacia la pasarela. Estas rutas solo existen con
-                        // app.mensajeria.proveedor=whatsapp, y se quedan porque
-                        // ese adaptador sigue vivo.
+                        // Autenticacion y webhooks de Meta, publicos por definicion. Discord no
+                        // necesita regla: los bots reciben por un WebSocket que abre el backend.
                         .requestMatchers("/api/v1/auth", "/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/whatsapp", "/api/v1/whatsapp/**").permitAll()
                         .requestMatchers("/.well-known/jwks.json").permitAll()
@@ -73,21 +63,16 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
 
-                        // Saludo del WebSocket del llamado de cocina. El navegador no deja
-                        // poner Authorization al abrir un WebSocket, asi que el saludo entra
-                        // sin token y el JWT viaja en la trama STOMP CONNECT, donde lo valida
-                        // AutenticacionStomp. Sin un CONNECT valido no se recibe ni se
-                        // manda nada.
+                        // Saludo del WebSocket del llamado: entra sin token porque el navegador no
+                        // deja ponerlo; el JWT viaja en la trama CONNECT y lo valida AutenticacionStomp.
                         .requestMatchers("/api/v1/ws", "/api/v1/ws/**").permitAll()
 
                         // Fotos de la carta y logo: un <img> no manda Authorization.
                         // Solo lectura y por UUID; subirlas sigue pidiendo sesion y cargo.
                         .requestMatchers(HttpMethod.GET, "/api/v1/archivos/*").permitAll()
 
-                        // El alta de trabajadores ya no es publica: antes cualquiera en
-                        // internet podia darse de alta. El primer administrador se crea
-                        // con POST /api/v1/auth/bootstrap, que solo funciona con la
-                        // tabla vacia.
+                        // El alta de trabajadores ya no es publica; el primer administrador nace
+                        // en POST /api/v1/auth/bootstrap.
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

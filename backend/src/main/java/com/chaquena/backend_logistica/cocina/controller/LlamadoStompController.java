@@ -20,16 +20,7 @@ import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
 
-/**
- * La puerta STOMP del llamado. Los permisos por rol ya los comprobo el
- * interceptor antes de que la trama llegue aqui.
- *
- * <ul>
- *   <li>{@code SEND /app/llamados/llamar} — cocina llama</li>
- *   <li>{@code SEND /app/llamados/atender} — un mozo responde «Voy»</li>
- *   <li>{@code SUBSCRIBE /app/llamados/estado} — la foto inicial, una sola vez</li>
- * </ul>
- */
+/** Puerta STOMP del llamado: llamar, atender («Voy») y la foto inicial; los permisos ya los vio el interceptor. */
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -49,10 +40,7 @@ public class LlamadoStompController {
         difusor.atendido(servicio.atender(pedido.llamadoId(), usuario(principal)));
     }
 
-    /**
-     * Lo que devuelve va solo a quien se suscribe, y una vez. Es lo que hace
-     * que un llamado espere: el mozo que abre sesion tarde lo recibe aqui.
-     */
+    /** Solo a quien se suscribe, una vez: asi un llamado espera al mozo que entra tarde. */
     @SubscribeMapping("/llamados/estado")
     public AvisoLlamadoDto estado(Principal principal) {
         return AvisoLlamadoDto.estado(servicio.estadoPara(usuario(principal)), presencia.mozosConectados());

@@ -68,10 +68,7 @@ public class LlamadoCocinaServiceImpl implements LlamadoCocinaService {
         return LlamadoCocinaDto.de(llamado);
     }
 
-    /**
-     * En una transaccion propia: lo llama el oyente cuando la del cambio de
-     * estado ya se confirmo y no queda ninguna abierta.
-     */
+    /** Transaccion propia: lo llama el oyente cuando la del cambio de estado ya se confirmo. */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<LlamadoCocinaDto> cerrarPendientesDe(UUID ordenId) {

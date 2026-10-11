@@ -20,16 +20,8 @@ import java.time.Instant;
 import java.util.stream.Collectors;
 
 /**
- * Autentica y autoriza cada trama que llega por el WebSocket.
- *
- * <p>El navegador no deja poner la cabecera {@code Authorization} al abrir un
- * WebSocket, asi que el saludo HTTP entra sin token y el JWT viaja dentro, en
- * la cabecera de la trama STOMP {@code CONNECT}. Se valida con el mismo
- * {@link JwtService} y las mismas autoridades que el filtro HTTP. Una conexion
- * sin token valido no llega a abrirse: el cliente recibe una trama ERROR.
- *
- * <p>No se usa la seguridad de mensajes de Spring Security: exige un token
- * CSRF en el CONNECT, y una API sin sesiones no tiene de donde sacarlo.
+ * El JWT viaja en la trama CONNECT porque el navegador no deja cabeceras al abrir un WebSocket. Sin la
+ * seguridad de mensajes de Spring Security: exige un token CSRF, y una API sin sesiones no lo tiene.
  */
 @Slf4j
 @Component
@@ -79,10 +71,7 @@ public class AutenticacionStomp implements ChannelInterceptor {
         }
     }
 
-    /**
-     * El usuario lo fija Spring en la sesion despues del CONNECT. Si no es uno
-     * nuestro, la trama no paso por {@link #autenticar} y no se le deja seguir.
-     */
+    /** Si el usuario de la sesion no es uno nuestro, la trama no paso por el CONNECT y no sigue. */
     private UsuarioStomp usuario(StompHeaderAccessor acceso) {
         Principal principal = acceso.getUser();
         if (principal instanceof UsuarioStomp usuario && !usuario.vencido(Instant.now())) {

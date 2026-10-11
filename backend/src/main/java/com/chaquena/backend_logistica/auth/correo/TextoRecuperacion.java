@@ -3,18 +3,8 @@ package com.chaquena.backend_logistica.auth.correo;
 import java.util.Locale;
 
 /**
- * El texto del correo de recuperacion, en el idioma de quien lo pidio.
- *
- * <p>La interfaz existe en espanol, ingles y portugues, y quien pulso «olvide
- * mi contrasena» en la pantalla en portugues no puede recibir un correo en
- * espanol. El idioma llega en {@code Accept-Language}, la misma cabecera que ya
- * decide el idioma de los PDF exportados; cualquier otro cae en espanol.
- *
- * <p>El cuerpo va en texto plano y no en HTML. Un correo de recuperacion se lee
- * de un vistazo y se pulsa: el HTML solo anadiria peso, riesgo de que el cliente
- * lo recorte y una plantilla mas que mantener. Ademas, el enlace en claro deja
- * ver a donde lleva antes de pulsarlo, que es justo lo que se le pide mirar a
- * alguien antes de escribir una contrasena.
+ * El correo de recuperacion en el idioma de Accept-Language (otro cae en espanol). Texto plano: el enlace
+ * en claro deja ver a donde lleva antes de pulsarlo.
  */
 public enum TextoRecuperacion {
 

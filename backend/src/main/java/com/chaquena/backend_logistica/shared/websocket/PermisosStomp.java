@@ -4,12 +4,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Que puede hacer cada rol por el WebSocket.
- *
- * <p>Los mensajes STOMP no pasan por los {@code @PreAuthorize} de los
- * controladores HTTP, asi que la regla vive aqui y se aplica en el interceptor.
- * La tabla es una lista blanca: un destino que no figura se rechaza, de modo
- * que un canal nuevo nace cerrado hasta que alguien decide quien lo usa.
+ * Que puede hacer cada rol por el WebSocket. STOMP no pasa por los @PreAuthorize, asi que la regla vive
+ * aqui, como lista blanca: un destino que no figura nace cerrado.
  */
 final class PermisosStomp {
 

@@ -13,16 +13,8 @@ import java.util.Map;
 import static java.util.Map.entry;
 
 /**
- * Los textos y formatos de un archivo exportado, en el idioma de quien lo pide.
- *
- * <p>La interfaz existe en espanol, ingles y portugues, y un pdf que se baja
- * desde la pantalla en portugues no puede salir en espanol. El idioma llega en
- * {@code Accept-Language}, que el frontend manda en cada peticion; cualquier
- * otro cae en espanol.
- *
- * <p>Los nombres de los valores de los enums son los mismos del diccionario del
- * frontend, para que la columna "Metodo" diga lo mismo en la pantalla y en el
- * archivo.
+ * Textos y formatos de un archivo exportado en el idioma de Accept-Language (otro cae en espanol). Los
+ * enums se nombran como en el diccionario del frontend, para que pantalla y archivo digan lo mismo.
  */
 public final class Rotulos {
 

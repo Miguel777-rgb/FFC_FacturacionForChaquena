@@ -20,10 +20,7 @@ public class OyenteLlamados {
     private final LlamadoCocinaService servicio;
     private final DifusorLlamados difusor;
 
-    /**
-     * La comanda salio del pase —entregada, a despacho o cancelada— sin que
-     * nadie respondiera: sus avisos desaparecen de los celulares.
-     */
+    /** La comanda salio del pase sin que nadie respondiera: sus avisos desaparecen de los celulares. */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void alCambiarEstado(EstadoOrdenCambiadoEvent evento) {
         if (evento.estado() == EstadoOrdenEnum.EN_PREPARACION) {
