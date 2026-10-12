@@ -3,6 +3,10 @@ package com.chaquena.backend_logistica.shared.security;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * Acceso al usuario autenticado para los campos de auditoria. Antes de esto
  * todas las entidades quedaban con created_by = "SYSTEM" y la auditoria
@@ -29,5 +33,18 @@ public final class UsuarioActual {
             return SISTEMA;
         }
         return auth.getName();
+    }
+
+    /**
+     * Si el usuario autenticado tiene alguno de estos roles, escritos como en
+     * {@code hasAnyRole}: sin el prefijo {@code ROLE_}. Sin sesion, ninguno.
+     */
+    public static boolean tieneAlgunRol(String... roles) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        Set<String> buscadas = Arrays.stream(roles).map(r -> "ROLE_" + r).collect(Collectors.toSet());
+        return auth.getAuthorities().stream().anyMatch(a -> buscadas.contains(a.getAuthority()));
     }
 }

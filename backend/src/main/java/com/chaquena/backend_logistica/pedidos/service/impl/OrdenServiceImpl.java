@@ -54,6 +54,12 @@ public class OrdenServiceImpl implements OrdenService {
     private static final SecureRandom ALEATORIO = new SecureRandom();
     private static final String EVENTO_FACTURA = "FACTURA_REQUERIDA";
 
+    /**
+     * Quien atiende al cliente y puede tener que dictarle el codigo de entrega de
+     * un pedido que no llego por el bot. Nunca el conductor: es quien lo pide.
+     */
+    private static final String[] VEN_EL_OTP = {"ADMIN", "MOZO", "CAJA"};
+
     private final OrdenRepository ordenRepository;
     private final ClienteRepository clienteRepository;
     private final PlatilloRepository platilloRepository;
@@ -186,7 +192,7 @@ public class OrdenServiceImpl implements OrdenService {
     @Override
     @Transactional(readOnly = true)
     public OrdenResponseDto obtenerPorId(UUID id) {
-        return OrdenResponseDto.fromEntity(buscarCompleta(id), false);
+        return OrdenResponseDto.fromEntity(buscarCompleta(id), UsuarioActual.tieneAlgunRol(VEN_EL_OTP));
     }
 
     @Override

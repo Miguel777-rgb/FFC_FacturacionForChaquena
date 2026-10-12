@@ -72,8 +72,9 @@ public class OrdenResponseDto {
     private Boolean editable;
 
     /**
-     * El OTP solo viaja al crear la comanda y hacia el cliente; en las lecturas
-     * generales se omite para que no quede a la vista del repartidor.
+     * El OTP viaja al crear la comanda, hacia el cliente y en el detalle a quien
+     * atiende; en las demas lecturas se omite para que no quede a la vista del
+     * repartidor.
      */
     public static OrdenResponseDto fromEntity(Orden o, boolean incluirOtp) {
         return OrdenResponseDto.builder()

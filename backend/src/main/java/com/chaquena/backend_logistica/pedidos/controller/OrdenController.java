@@ -60,6 +60,7 @@ public class OrdenController {
         return ResponseEntity.ok(ordenService.activas());
     }
 
+    /** Abierto a toda sesion; el codigo de entrega solo lo lleva para ADMIN, MOZO y CAJA. */
     @GetMapping("/{id}")
     @Operation(operationId = "obtenerOrden", summary = "Detalle completo de la comanda")
     public ResponseEntity<OrdenResponseDto> obtener(@PathVariable UUID id) {
