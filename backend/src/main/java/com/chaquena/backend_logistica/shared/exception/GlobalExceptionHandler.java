@@ -92,8 +92,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StockInsuficienteException.class)
     public ResponseEntity<ErrorResponseDto> stockInsuficiente(StockInsuficienteException ex,
             HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(construir(HttpStatus.UNPROCESSABLE_ENTITY, texto("error.titulo.stockInsuficiente"),
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(construir(HttpStatus.UNPROCESSABLE_CONTENT, texto("error.titulo.stockInsuficiente"),
                         ex.getMessage(), ex.getFaltantes(), request));
     }
 
