@@ -89,6 +89,46 @@
           </ul>
         </section>
       }
+
+      <!-- ------------------------------------------------------------------ -->
+      <!-- Billetes falsos o comprobantes adulterados, el ultimo primero. Es a
+           donde lleva la tarjeta «Alertas de fraude» del tablero. -->
+      @if (alertasFraude().length > 0) {
+        <section class="bloque bandeja-fraude">
+          <h2>{{ t('caja.alertasFraudeTitulo') }} ({{ alertasFraude().length }})</h2>
+
+          <ul class="pagos-fraude">
+            @for (p of alertasFraude(); track p.id) {
+              <li>
+                <div class="fila-principal">
+                  <span class="chip peligro">{{ t('pago.FRAUDULENTO') }}</span>
+                  <span class="metodo">{{ tEnum('metodo', p.tipoPago) }}</span>
+                  <span class="monto cifra">S/ {{ p.monto | number: '1.2-2' }}</span>
+                </div>
+
+                <p class="motivo-texto">
+                  <strong>{{ t('caja.motivo') }}:</strong>
+                  {{ p.observacion || t('caja.sinMotivo') }}
+                </p>
+
+                <div class="pie-alerta">
+                  <span class="tenue">
+                    @if (p.registradoPor) {
+                      {{ t('caja.reportadoPor', { cajero: p.registradoPor }) }} ·
+                    }
+                    <span class="cifra">{{ fecha(p.fecha) }}</span>
+                  </span>
+                  @if (p.ordenId) {
+                    <a [routerLink]="['/ordenes']" [queryParams]="{ orden: p.ordenId }">
+                      {{ t('caja.verComanda') }} #{{ codigoDeOrden(p.ordenId) }}
+                    </a>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
     </div>
 
     <!-- -------------------------------------------------------------------- -->

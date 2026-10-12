@@ -410,6 +410,11 @@ export const EN: Record<ClaveI18n, string> = {
   'caja.avisoAcreditado': 'Payment of S/ {monto} cleared.',
   'caja.avisoCerrada': 'Order for table {mesa} closed. The table is free.',
   'caja.avisoFraude': 'The alert went to the administrator. The order is out of the sales figures.',
+  'caja.alertasFraudeTitulo': 'Reported fraud alerts',
+  'caja.motivo': 'Reason',
+  'caja.sinMotivo': 'No details specified',
+  'caja.reportadoPor': 'Reported by {cajero}',
+  'caja.verComanda': 'View order',
   'caja.nivel': '{nivel} tier',
   'caja.cupon': 'Coupon {codigo}',
 

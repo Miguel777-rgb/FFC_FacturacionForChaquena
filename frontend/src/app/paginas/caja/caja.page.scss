@@ -103,6 +103,64 @@
   }
 }
 
+/* Las alertas de fraude, en el rojo de lo critico. Las filas van con borde y sin
+   fondo hundido, como las de acreditar: el pie lleva texto tenue. */
+.bandeja-fraude {
+  border-color: var(--critico);
+
+  > h2 {
+    color: var(--critico);
+  }
+}
+
+.pagos-fraude {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e1);
+    padding: var(--e2) var(--e3);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+  }
+
+  .fila-principal,
+  .pie-alerta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--e2);
+  }
+
+  .metodo {
+    font-weight: 500;
+    color: var(--tinta);
+  }
+
+  .monto {
+    margin-left: auto;
+    font-weight: 600;
+    color: var(--tinta);
+  }
+
+  .motivo-texto {
+    margin: 0;
+    font-size: var(--t-chico);
+    color: var(--texto);
+  }
+
+  .pie-alerta {
+    justify-content: space-between;
+    font-size: var(--t-chico);
+  }
+}
+
 /* --- la cuenta ------------------------------------------------------------- */
 .cuenta {
   display: flex;

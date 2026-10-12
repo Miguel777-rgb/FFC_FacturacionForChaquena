@@ -430,6 +430,11 @@ export const ES = {
   'caja.avisoAcreditado': 'Pago de S/ {monto} acreditado.',
   'caja.avisoCerrada': 'Comanda de la mesa {mesa} cerrada. Mesa libre.',
   'caja.avisoFraude': 'Alerta enviada a administración. La comanda queda fuera de la venta.',
+  'caja.alertasFraudeTitulo': 'Alertas de fraude registradas',
+  'caja.motivo': 'Motivo',
+  'caja.sinMotivo': 'Sin detalle especificado',
+  'caja.reportadoPor': 'Reportado por {cajero}',
+  'caja.verComanda': 'Ver comanda',
   'caja.nivel': 'Nivel {nivel}',
   'caja.cupon': 'Cupón {codigo}',
 

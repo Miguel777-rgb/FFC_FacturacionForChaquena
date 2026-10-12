@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { Icono } from '../../disenio/icono';
 import { EnDolares } from '../../disenio/en-dolares';
 import { forkJoin, of } from 'rxjs';
@@ -32,6 +33,7 @@ import {
   type ReporteVentasDto,
 } from '../../api';
 import { AvisosService } from '../../nucleo/http/avisos.service';
+import { codigoDeOrden } from '../../nucleo/i18n/formatos';
 import { I18nService } from '../../nucleo/i18n/i18n.service';
 
 const METODOS = RegistrarPagoRequestDtoTipoPagoEnum;
@@ -51,7 +53,7 @@ const METODOS = RegistrarPagoRequestDtoTipoPagoEnum;
  */
 @Component({
   selector: 'app-caja',
-  imports: [DecimalPipe, Icono, EnDolares],
+  imports: [DecimalPipe, RouterLink, Icono, EnDolares],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './caja.page.html',
   styleUrl: './caja.page.scss',
@@ -67,6 +69,8 @@ export class CajaPage implements OnInit {
 
   protected readonly t = this.i18n.t;
   protected readonly tEnum = this.i18n.tEnum;
+  protected readonly fecha = this.i18n.fecha;
+  protected readonly codigoDeOrden = codigoDeOrden;
 
   /**
    * Los tres criterios que se califican. Va la clave, no el rotulo: la
@@ -90,6 +94,8 @@ export class CajaPage implements OnInit {
   protected readonly enSalon = signal<OrdenResumenDto[]>([]);
   protected readonly arqueo = signal<ArqueoCajaDto | null>(null);
   protected readonly pendientes = signal<PagoResponseDto[]>([]);
+  /** Los pagos marcados como fraude, el ultimo primero: a esto lleva la tarjeta del tablero. */
+  protected readonly alertasFraude = signal<PagoResponseDto[]>([]);
   protected readonly ventas = signal<ReporteVentasDto | null>(null);
   protected readonly top = signal<ProductoTopDto[]>([]);
 
@@ -216,11 +222,15 @@ export class CajaPage implements OnInit {
       top: this.reportesApi
         .productosTop({ desde: `${hoy}T00:00:00Z`, limite: 5 })
         .pipe(catchError(() => of([] as ProductoTopDto[]))),
+      alertasFraude: this.cajaApi
+        .listarAlertasDeFraude()
+        .pipe(catchError(() => of([] as PagoResponseDto[]))),
     }).subscribe({
-      next: ({ salon, arqueo, pendientes, ventas, top }) => {
+      next: ({ salon, arqueo, pendientes, ventas, top, alertasFraude }) => {
         this.enSalon.set(salon);
         this.arqueo.set(arqueo);
         this.pendientes.set(pendientes);
+        this.alertasFraude.set(alertasFraude);
         this.ventas.set(ventas);
         this.top.set(top);
         this.cargando.set(false);

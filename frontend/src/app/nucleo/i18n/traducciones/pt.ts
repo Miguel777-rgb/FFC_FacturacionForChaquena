@@ -408,6 +408,11 @@ export const PT: Record<ClaveI18n, string> = {
   'caja.avisoAcreditado': 'Pagamento de S/ {monto} confirmado.',
   'caja.avisoCerrada': 'Comanda da mesa {mesa} fechada. A mesa está livre.',
   'caja.avisoFraude': 'O alerta foi para o administrador. A comanda fica fora das vendas.',
+  'caja.alertasFraudeTitulo': 'Alertas de fraude registradas',
+  'caja.motivo': 'Motivo',
+  'caja.sinMotivo': 'Sem detalhes informados',
+  'caja.reportadoPor': 'Reportado por {cajero}',
+  'caja.verComanda': 'Ver comanda',
   'caja.nivel': 'Nível {nivel}',
   'caja.cupon': 'Cupom {codigo}',
 
