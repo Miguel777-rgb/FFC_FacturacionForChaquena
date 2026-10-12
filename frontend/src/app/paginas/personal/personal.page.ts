@@ -227,9 +227,10 @@ export class PersonalPage implements OnInit {
 
   // --- alta -----------------------------------------------------------------
 
+  /** Sin cargo elegido: el primero de la lista es ADMINISTRADOR, y darlo por defecto regalaba el acceso total. */
   protected abrirAlta(): void {
     this.altaAbierta.update((v) => !v);
-    this.cargoId.set(this.cargos()[0]?.id ?? null);
+    this.cargoId.set(null);
   }
 
   protected anotarNombres(v: string): void {

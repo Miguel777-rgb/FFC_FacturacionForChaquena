@@ -145,14 +145,17 @@
                   <small class="error-campo" id="error-correo">{{ problema }}</small>
                 }
               </div>
+              <!-- La eleccion va en cada opcion y no en el select: su [value] llegaba antes de que el
+                   @for creara las opciones, y el select se veia vacio con otro cargo detras. -->
               <select
-                [value]="cargoId() ?? ''"
                 (change)="elegirCargo($any($event.target).value)"
                 [attr.aria-label]="t('comun.cargo')"
               >
-                <option value="">{{ t('personal.cargoPlaceholder') }}</option>
+                <option value="" [selected]="cargoId() === null">
+                  {{ t('personal.cargoPlaceholder') }}
+                </option>
                 @for (c of cargos(); track c.id) {
-                  <option [value]="c.id">{{ c.nombre }}</option>
+                  <option [value]="c.id" [selected]="c.id === cargoId()">{{ c.nombre }}</option>
                 }
               </select>
             </div>
@@ -406,13 +409,16 @@
                           [attr.aria-label]="t('comun.celular')"
                         />
                         <select
-                          [value]="edicionCargoId() ?? ''"
                           (change)="elegirEdicionCargo($any($event.target).value)"
                           [attr.aria-label]="t('comun.cargo')"
                         >
-                          <option value="">{{ t('personal.cargoPlaceholder') }}</option>
+                          <option value="" [selected]="edicionCargoId() === null">
+                            {{ t('personal.cargoPlaceholder') }}
+                          </option>
                           @for (c of cargos(); track c.id) {
-                            <option [value]="c.id">{{ c.nombre }}</option>
+                            <option [value]="c.id" [selected]="c.id === edicionCargoId()">
+                              {{ c.nombre }}
+                            </option>
                           }
                         </select>
                         <button
