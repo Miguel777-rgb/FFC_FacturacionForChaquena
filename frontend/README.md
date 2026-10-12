@@ -249,9 +249,10 @@ existiendo como redirecciones a `/inventario` y `/reportes`.
   Va **después** del envío: si el canje falla, la comida ya está en cocina y lo
   que corresponde es avisar, no fingir que la venta no ocurrió
   ([:622](src/app/paginas/pos/pos.page.ts#L622)).
-- **El OTP de delivery aparece una sola vez.** Solo viaja en la respuesta de
-  `POST /ordenes`; las lecturas posteriores lo omiten. Si no se dicta ahí, nadie
-  del local puede volver a leerlo ([:229](src/app/paginas/pos/pos.page.ts#L229)).
+- **El OTP de delivery sale en el POS al crear la comanda** y, después, solo en
+  el detalle de Órdenes para ADMIN, MOZO y CAJA: un pedido por teléfono no lo
+  recibe por mensaje. Las demás lecturas lo omiten, para que no lo vea el
+  repartidor ([:240](src/app/paginas/pos/pos.page.ts#L240)).
 - **Las comandas enviadas viven en la pestaña «En el salón».** Corregir una se
   abre en un cajón, y solo si el servidor la declara `editable`: cada línea abre
   la misma hoja que al pedirla, y agregar un plato pasa por la carta y su hoja,

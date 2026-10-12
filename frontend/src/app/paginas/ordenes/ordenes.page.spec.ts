@@ -80,4 +80,45 @@ describe('OrdenesPage', () => {
     expect(textos(pagina, '.datos dd.cifra')).toContain('T-0042');
     http.verify();
   });
+
+  it('ensena el codigo de entrega cuando el servidor lo manda, para dictarlo otra vez', () => {
+    const { fixture, http } = crear({ orden: 'def67890-0000' });
+
+    http.expectOne((r) => r.url.endsWith('/api/v1/ordenes')).flush({ contenido: [] });
+    http.expectOne((r) => r.url.endsWith('/ticket')).flush({});
+    http.expectOne((r) => r.url.endsWith('/api/v1/ordenes/def67890-0000')).flush({
+      id: 'def67890-0000',
+      estado: 'EN_DESPACHO',
+      tipoOrden: 'DELIVERY',
+      direccionDelivery: 'Av. Arequipa 1234',
+      codigoOtpEntrega: '4821',
+      detalles: [],
+      transicionesPermitidas: [],
+    });
+    fixture.detectChanges();
+
+    const pagina: HTMLElement = fixture.nativeElement;
+    expect(textos(pagina, '.datos dt')).toContain('Código de entrega');
+    expect(textos(pagina, '.datos dd.cifra')).toContain('4821');
+    http.verify();
+  });
+
+  it('sin codigo, porque el servidor no se lo da a esta sesion, no deja la fila vacia', () => {
+    const { fixture, http } = crear({ orden: 'def67890-0000' });
+
+    http.expectOne((r) => r.url.endsWith('/api/v1/ordenes')).flush({ contenido: [] });
+    http.expectOne((r) => r.url.endsWith('/ticket')).flush({});
+    http.expectOne((r) => r.url.endsWith('/api/v1/ordenes/def67890-0000')).flush({
+      id: 'def67890-0000',
+      estado: 'EN_DESPACHO',
+      tipoOrden: 'DELIVERY',
+      direccionDelivery: 'Av. Arequipa 1234',
+      detalles: [],
+      transicionesPermitidas: [],
+    });
+    fixture.detectChanges();
+
+    expect(textos(fixture.nativeElement, '.datos dt')).not.toContain('Código de entrega');
+    http.verify();
+  });
 });

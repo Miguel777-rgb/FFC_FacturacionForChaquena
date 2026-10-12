@@ -233,10 +233,9 @@ export class PosPage implements OnInit {
   protected readonly selectorAbierto = signal(false);
 
   /**
-   * El OTP de la ultima comanda a domicilio. Solo viaja en la respuesta de
-   * `POST /ordenes` —las lecturas posteriores lo omiten para que no quede a la
-   * vista del repartidor—, asi que si no se muestra aqui, nadie del local puede
-   * volver a leerlo. Se dicta al cliente y se cierra a mano.
+   * El OTP de la ultima comanda a domicilio. Viaja en la respuesta de
+   * `POST /ordenes`; despues solo lo devuelve el detalle de Ordenes a quien
+   * atiende, nunca al repartidor. Se dicta al cliente y se cierra a mano.
    */
   protected readonly entregaPendiente = signal<EntregaPendiente | null>(null);
 
@@ -721,9 +720,8 @@ export class PosPage implements OnInit {
             }),
           );
 
-          // Es la unica ocasion en que el OTP viaja: se retiene en pantalla
-          // hasta que el mozo lo haya dictado y lo cierre. Esta arriba del
-          // todo, y el mozo puede estar al fondo de la carta.
+          // Se retiene en pantalla hasta que el mozo lo haya dictado y lo
+          // cierre. Esta arriba del todo, y el mozo puede estar al fondo de la carta.
           if (orden.codigoOtpEntrega) {
             this.entregaPendiente.set({
               correlativo: (orden.id ?? '').slice(0, 8).toUpperCase(),

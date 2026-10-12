@@ -224,7 +224,7 @@ export const PT: Record<ClaveI18n, string> = {
 
   'pos.otpTitulo': 'Código de entrega · comanda {correlativo}',
   'pos.otpDictar':
-    'Diga ao cliente: é a única coisa que o entregador vai poder verificar. Não aparece de novo.',
+    'Diga ao cliente: é a única coisa que o entregador vai poder verificar. Se perder, está no detalhe do pedido, em Pedidos.',
   'pos.otpCerrar': 'Já falei o código',
   'pos.destino': 'Destino',
   'pos.tipoComanda': 'Tipo de comanda',
@@ -924,6 +924,7 @@ export const PT: Record<ClaveI18n, string> = {
   'ordenes.tituloDetalle': 'Pedido {codigo} · {destino}',
   'ordenes.cargandoDetalle': 'Carregando o pedido…',
   'ordenes.direccion': 'Endereço',
+  'ordenes.codigoEntrega': 'Código de entrega',
   'ordenes.pago': 'Pagamento',
   'ordenes.promocion': 'Promoção',
   'ordenes.cupon': 'Cupom',

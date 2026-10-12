@@ -227,7 +227,7 @@ export const EN: Record<ClaveI18n, string> = {
 
   'pos.otpTitulo': 'Delivery code · order {correlativo}',
   'pos.otpDictar':
-    'Read it out to the customer: it is the only thing the driver will be able to verify. It does not show up again.',
+    'Read it out to the customer: it is the only thing the driver will be able to verify. If it gets lost, it is in the order details, under Orders.',
   'pos.otpCerrar': 'Read it out',
   'pos.destino': 'Destination',
   'pos.tipoComanda': 'Order type',
@@ -928,6 +928,7 @@ export const EN: Record<ClaveI18n, string> = {
   'ordenes.tituloDetalle': 'Order {codigo} · {destino}',
   'ordenes.cargandoDetalle': 'Loading the order…',
   'ordenes.direccion': 'Address',
+  'ordenes.codigoEntrega': 'Delivery code',
   'ordenes.pago': 'Payment',
   'ordenes.promocion': 'Promotion',
   'ordenes.cupon': 'Coupon',

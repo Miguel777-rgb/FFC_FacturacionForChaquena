@@ -163,6 +163,14 @@
             <dd>{{ d.direccionDelivery }}</dd>
           </div>
         }
+        <!-- Solo llega a quien atiende: un pedido por telefono no lo recibe por
+             mensaje y hay que poder dictarlo otra vez. -->
+        @if (d.codigoOtpEntrega) {
+          <div>
+            <dt>{{ t('ordenes.codigoEntrega') }}</dt>
+            <dd class="cifra">{{ d.codigoOtpEntrega }}</dd>
+          </div>
+        }
         @if (d.tipoPago) {
           <div>
             <dt>{{ t('ordenes.pago') }}</dt>

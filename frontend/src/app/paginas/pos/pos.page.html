@@ -13,9 +13,9 @@
     </button>
   </header>
 
-  <!-- El codigo de entrega solo llega una vez, al crear la comanda: ninguna
-       lectura posterior lo devuelve. Se queda en pantalla hasta que el mozo lo
-       haya dictado y lo cierre a mano. -->
+  <!-- El codigo de entrega llega al crear la comanda; despues solo lo devuelve
+       el detalle de Ordenes, a quien atiende. Se queda en pantalla hasta que el
+       mozo lo haya dictado y lo cierre a mano. -->
   @if (entregaPendiente(); as entrega) {
     <section class="bloque entrega" role="status">
       <div>

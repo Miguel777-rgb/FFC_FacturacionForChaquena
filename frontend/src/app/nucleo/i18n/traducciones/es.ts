@@ -245,7 +245,7 @@ export const ES = {
   // --- POS -------------------------------------------------------------------
   'pos.otpTitulo': 'Código de entrega · comanda {correlativo}',
   'pos.otpDictar':
-    'Díctaselo al cliente: es lo único que el repartidor va a poder verificar. No vuelve a aparecer.',
+    'Díctaselo al cliente: es lo único que el repartidor va a poder verificar. Si se pierde, está en el detalle de la comanda, en Órdenes.',
   'pos.otpCerrar': 'Ya lo dicté',
   'pos.destino': 'Destino',
   'pos.tipoComanda': 'Tipo de comanda',
@@ -958,6 +958,7 @@ export const ES = {
   'ordenes.tituloDetalle': 'Orden {codigo} · {destino}',
   'ordenes.cargandoDetalle': 'Cargando la orden…',
   'ordenes.direccion': 'Dirección',
+  'ordenes.codigoEntrega': 'Código de entrega',
   'ordenes.pago': 'Pago',
   'ordenes.promocion': 'Promoción',
   'ordenes.cupon': 'Cupón',
