@@ -112,7 +112,7 @@ export const ES = {
   'comun.igvIncluido': 'IGV incluido ({pct} %)',
 
   // --- equivalente en dólares (servicio externo) -----------------------------
-  'cambio.detalle': 'Referencia: {tasa} soles por dólar, cotización del {fecha}.',
+  'cambio.detalle': 'Referencia: {tasa} soles por dólar, cotización del {fecha}',
   'cambio.delDia': 'del {fecha}',
 
   // --- tema y confirmaciones de peligro ------------------------------------
