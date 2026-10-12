@@ -1,11 +1,13 @@
 package com.chaquena.backend_logistica.shared.config;
 
+import com.chaquena.backend_logistica.shared.config.demo.PlanDiaDemo;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -75,5 +77,31 @@ class HistorialDemoSeederTest {
         assertThat(HistorialDemoSeeder.pesoDe("Ají de Gallina")).isEqualTo(HistorialDemoSeeder.pesoDe("Aji de Gallina"));
         assertThat(HistorialDemoSeeder.pesoDe("Papa a la Huancaína")).isEqualTo(5);
         assertThat(HistorialDemoSeeder.pesoDe("Tacu tacu")).isEqualTo(3);
+    }
+
+    /** Domingo 11/10 a las 20:00 en Lima, la vispera de una presentacion. */
+    private static final ZonedDateTime VISPERA = ZonedDateTime.of(2026, 10, 11, 20, 0, 0, 0, PlanDiaDemo.LIMA);
+
+    @Test
+    void sinFechaLasVentasLleganHastaAhora() {
+        assertThat(HistorialDemoSeeder.corteDeVentas(VISPERA, null)).isEqualTo(VISPERA);
+    }
+
+    @Test
+    void conManianaEntraElDiaEnteroDeManiana() {
+        assertThat(HistorialDemoSeeder.corteDeVentas(VISPERA, LocalDate.of(2026, 10, 12)))
+                .isEqualTo(ZonedDateTime.of(2026, 10, 13, 0, 0, 0, 0, PlanDiaDemo.LIMA));
+    }
+
+    @Test
+    void unaFechaPasadaNoRecortaLoQueYaToca() {
+        assertThat(HistorialDemoSeeder.corteDeVentas(VISPERA, LocalDate.of(2026, 10, 1))).isEqualTo(VISPERA);
+    }
+
+    @Test
+    void noAdelantaMasQueLasReservas() {
+        assertThat(HistorialDemoSeeder.corteDeVentas(VISPERA, LocalDate.of(2027, 1, 1)))
+                .isEqualTo(VISPERA.toLocalDate().plusDays(HistorialDemoSeeder.DIAS_ADELANTE + 1)
+                        .atStartOfDay(PlanDiaDemo.LIMA));
     }
 }

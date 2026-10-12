@@ -20,6 +20,7 @@ import com.chaquena.backend_logistica.shared.config.demo.PlanDiaDemo.Promo;
 import com.chaquena.backend_logistica.shared.config.demo.PlanDiaDemo.Reparto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +40,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,7 +65,10 @@ import static com.chaquena.backend_logistica.shared.config.demo.PlanDiaDemo.uuid
  * cero en una base de demostracion. No duplica nada porque cada fila tiene un id
  * que sale de su fecha y su posicion ({@link PlanDiaDemo}): lo que ya esta se
  * reconoce y se salta. De hoy solo entra lo que ya termino —cobrado, cancelado,
- * calificado—; nada queda en cocina, en caja ni ocupando una mesa.
+ * calificado—; nada queda en cocina, en caja ni ocupando una mesa. Con
+ * {@code app.seed.demo.ventas-hasta} las ventas llegan hasta el final de ese dia
+ * aunque aun no haya pasado: las de la demo empiezan a las 12:15, y una
+ * presentacion por la manana veria «Hoy» en cero.
  *
  * <p>Se escribe directo con JDBC y no por los servicios, a proposito: dos mil
  * ventas por los servicios agotarian el stock y llenarian el kardex de salidas.
@@ -96,6 +101,10 @@ public class HistorialDemoSeeder {
     private final ClienteRepository clienteRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /** aaaa-mm-dd; vacio, las ventas llegan hasta ahora mismo. Ver {@link #corteDeVentas}. */
+    @Value("${app.seed.demo.ventas-hasta:}")
+    private String ventasHasta;
+
     @Bean
     @Order(3) // despues de DatosIniciales (1) y DatosDemo (2)
     public ApplicationRunner sembrarHistorialDemo() {
@@ -126,14 +135,18 @@ public class HistorialDemoSeeder {
         Catalogo catalogo = leerCatalogo();
         ZonedDateTime ahora = ZonedDateTime.now(LIMA);
         LocalDate hoy = ahora.toLocalDate();
+        ZonedDateTime corte = corteDeVentas(ahora, leerVentasHasta());
+        if (corte.isAfter(ahora)) {
+            log.info("Ventas de demostracion por adelantado hasta el {}.", corte.minusDays(1).toLocalDate());
+        }
         Fidelizacion fidelizacion = new Fidelizacion();
 
         int comandas = 0;
-        for (LocalDate dia = hoy.minusDays(DIAS); !dia.isAfter(hoy); dia = dia.plusDays(1)) {
+        for (LocalDate dia = hoy.minusDays(DIAS); dia.atStartOfDay(LIMA).isBefore(corte); dia = dia.plusDays(1)) {
             LocalDate estos = dia;
             // Un dia por transaccion: si algo falla, ese dia entero se reintenta
             // en el proximo arranque y los anteriores quedan.
-            Integer nuevas = enTransaccion.execute(s -> sembrarDia(estos, catalogo, ahora, fidelizacion));
+            Integer nuevas = enTransaccion.execute(s -> sembrarDia(estos, catalogo, corte, fidelizacion));
             comandas += nuevas != null ? nuevas : 0;
         }
 
@@ -450,9 +463,32 @@ public class HistorialDemoSeeder {
                 INSERT_CUPON, INSERT_TURNO, INSERT_MARCACION, INSERT_RESERVA);
     }
 
-    private int sembrarDia(LocalDate dia, Catalogo c, ZonedDateTime ahora, Fidelizacion fidelizacion) {
+    /**
+     * Hasta donde entran las ventas: ahora mismo o, si {@code hasta} es posterior,
+     * el final de ese dia, con el mismo tope que las reservas. Lo adelantado son
+     * las filas que ese dia sembraria un arranque normal —el plan sale de la fecha
+     * y los ids tambien—, asi que despues no se duplica nada.
+     */
+    static ZonedDateTime corteDeVentas(ZonedDateTime ahora, LocalDate hasta) {
+        if (hasta == null) return ahora;
+        LocalDate tope = ahora.toLocalDate().plusDays(DIAS_ADELANTE);
+        ZonedDateTime finDelDia = (hasta.isAfter(tope) ? tope : hasta).plusDays(1).atStartOfDay(LIMA);
+        return finDelDia.isAfter(ahora) ? finDelDia : ahora;
+    }
+
+    private LocalDate leerVentasHasta() {
+        if (ventasHasta == null || ventasHasta.isBlank()) return null;
+        try {
+            return LocalDate.parse(ventasHasta.trim());
+        } catch (DateTimeParseException e) {
+            log.warn("app.seed.demo.ventas-hasta='{}' no es aaaa-mm-dd; las ventas llegan hasta ahora.", ventasHasta);
+            return null;
+        }
+    }
+
+    private int sembrarDia(LocalDate dia, Catalogo c, ZonedDateTime corte, Fidelizacion fidelizacion) {
         List<ComandaPlan> plan = PlanDiaDemo.planear(dia, c, diaConFraude(dia)).stream()
-                .filter(p -> !p.fin().isAfter(ahora))
+                .filter(p -> !p.fin().isAfter(corte))
                 .toList();
         if (plan.isEmpty()) return 0;
 
