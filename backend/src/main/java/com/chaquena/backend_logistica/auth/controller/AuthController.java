@@ -47,8 +47,8 @@ public class AuthController {
 
     /**
      * Alta del primer administrador del sistema. Es el unico endpoint publico
-     * que crea trabajadores y solo responde mientras la tabla esta vacia:
-     * despues del primero, las altas pasan por POST /api/v1/trabajadores, que
+     * que crea trabajadores y solo responde mientras no hay mas trabajador que
+     * el del bot de clientes: despues del primero, las altas pasan por POST /api/v1/trabajadores, que
      * exige un token de administrador.
      */
     @PostMapping("/bootstrap")

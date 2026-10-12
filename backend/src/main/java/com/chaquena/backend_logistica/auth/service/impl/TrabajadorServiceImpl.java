@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import com.chaquena.backend_logistica.auth.repository.CargoRepository;
 import com.chaquena.backend_logistica.auth.repository.TrabajadorRepository;
+import com.chaquena.backend_logistica.auth.service.TrabajadorContexto;
 import com.chaquena.backend_logistica.auth.service.TrabajadorService;
 import com.chaquena.backend_logistica.personas.repository.PersonaRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -83,14 +84,15 @@ public class TrabajadorServiceImpl implements TrabajadorService {
     }
 
     /**
-     * Alta del primer administrador. Deliberadamente exige que la tabla este
-     * vacia: es la unica puerta publica que queda y se cierra sola en cuanto
-     * existe un trabajador.
+     * Alta del primer administrador. Deliberadamente exige que no haya nadie de
+     * alta: es la unica puerta publica que queda y se cierra sola en cuanto
+     * existe un trabajador. No cuenta al del bot de clientes, que el arranque
+     * siembra en toda instalacion y la cerraria antes de abrirla.
      */
     @Override
     @Transactional
     public TrabajadorResponseDto bootstrapPrimerAdmin(BootstrapAdminRequestDto request) {
-        if (trabajadorRepository.count() > 0) {
+        if (trabajadorRepository.existsByUsernameNot(TrabajadorContexto.USERNAME_BOT_CLIENTES)) {
             throw new ConflictoException(
                     "Ya existen trabajadores registrados. Pide a un administrador que te dé de alta "
                             + "en POST /api/v1/trabajadores.");

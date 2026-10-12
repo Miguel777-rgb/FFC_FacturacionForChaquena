@@ -4,8 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 /**
- * Alta del primer administrador. Solo funciona con la tabla de trabajadores
- * vacia: resuelve el problema del huevo y la gallina sin dejar abierta el alta
+ * Alta del primer administrador. Solo funciona mientras no haya mas trabajador
+ * que el del bot de clientes: resuelve el problema del huevo y la gallina sin dejar abierta el alta
  * publica de trabajadores, que era como estaba antes.
  */
 @Getter

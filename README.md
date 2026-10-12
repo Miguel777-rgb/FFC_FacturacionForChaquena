@@ -147,8 +147,8 @@ con `app.outbox.enabled=false` hasta que exista un destino al que enviarlo.
 > cualquier arranque.
 > No sirven para ningún despliegue real y no deben crearse en uno: antes de
 > exponer esto a una red, hay que borrar estos usuarios y crear el primer
-> administrador con `POST /api/v1/auth/bootstrap`, que solo funciona con la
-> tabla de trabajadores vacía.
+> administrador con `POST /api/v1/auth/bootstrap`, que solo funciona mientras
+> no haya más trabajador que `bot.clientes`, el de sistema que firma lo del bot.
 
 Todos comparten la contraseña `Chaquena2001`. Se entra por
 `POST /api/v1/auth/login` con `usernameOrEmail` y `password`.

@@ -51,6 +51,9 @@ public interface TrabajadorRepository extends JpaRepository<Trabajador, UUID> {
 
     boolean existsByUsername(String username);
 
+    /** Si hay alguien de alta aparte del trabajador de sistema que firma lo del bot de clientes. */
+    boolean existsByUsernameNot(String username);
+
     java.util.List<Trabajador> findByActivoTrue();
 
     org.springframework.data.domain.Page<Trabajador> findByCargoId(Integer cargoId,
